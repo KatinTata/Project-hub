@@ -91,3 +91,52 @@ export function buildStackMatrix(tasks, phases) {
 
   return { stacks: STACKS, rows, colTotals, grand, ostalo: ostaloList }
 }
+
+// Derive the team per stack from Jira (assignees), mirroring the matrix
+// attribution. Used for per-stack headcount in the forecast + a team view.
+export function buildStackTeams(tasks, phases) {
+  const phaseOf = {}
+  for (const p of (phases || [])) for (const k of (p.taskKeys || [])) phaseOf[k] = String(p.id)
+
+  const blank = () => { const o = {}; for (const s of STACKS) o[s] = { people: new Set(), est: 0, spent: 0 }; return o }
+  const byStack = blank()
+  const phaseStack = {}
+  const people = {} // name → { name, stacks:Set, est, spent }
+
+  const touch = pid => { if (!phaseStack[pid]) phaseStack[pid] = blank(); return phaseStack[pid] }
+  const add = (pid, rawComp, assignee, est, spent) => {
+    if (est === 0 && spent === 0) return
+    const stack = normalizeStack(rawComp)
+    const name = assignee || 'Neraspoređeno'
+    byStack[stack].people.add(name); byStack[stack].est += est; byStack[stack].spent += spent
+    const ps = touch(pid)
+    ps[stack].people.add(name); ps[stack].est += est; ps[stack].spent += spent
+    if (!people[name]) people[name] = { name, stacks: new Set(), est: 0, spent: 0 }
+    people[name].stacks.add(stack); people[name].est += est; people[name].spent += spent
+  }
+
+  for (const task of (tasks || [])) {
+    const pid = phaseOf[task.key] || 'none'
+    const subs = task.subtasks || []
+    const subEst = subs.reduce((s, x) => s + (x.timeoriginalestimate || 0), 0)
+    const subSpent = subs.reduce((s, x) => s + (x.timespent || 0), 0)
+    add(pid, (task.components || [])[0] || '', task.assignee, Math.max(0, (task.est || 0) - subEst), Math.max(0, (task.spent || 0) - subSpent))
+    for (const sub of subs) add(pid, (sub.components || [])[0] || '', sub.assignee || task.assignee, sub.timeoriginalestimate || 0, sub.timespent || 0)
+  }
+
+  const ser = obj => {
+    const o = {}
+    for (const s of STACKS) {
+      const realPeople = [...obj[s].people].filter(n => n !== 'Neraspoređeno')
+      o[s] = { people: [...obj[s].people], realCount: realPeople.length, est: obj[s].est, spent: obj[s].spent }
+    }
+    return o
+  }
+  const phaseStackOut = {}
+  for (const pid of Object.keys(phaseStack)) phaseStackOut[pid] = ser(phaseStack[pid])
+  const peopleOut = Object.values(people)
+    .map(p => ({ name: p.name, stacks: [...p.stacks], est: p.est, spent: p.spent }))
+    .sort((a, b) => b.spent - a.spent)
+
+  return { stacks: STACKS, byStack: ser(byStack), phaseStack: phaseStackOut, people: peopleOut }
+}

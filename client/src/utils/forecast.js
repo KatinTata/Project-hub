@@ -39,7 +39,12 @@ export function buildPhaseForecast(matrix, config, opts = {}) {
   const workdayHours = config?.workdayHours > 0 ? config.workdayHours : 6.5
   const wdpw = config?.workdaysPerWeek >= 1 && config?.workdaysPerWeek <= 7 ? config.workdaysPerWeek : 5
   const basis = opts.basis === 'plan' ? 'plan' : 'remaining'
-  const people = opts.peoplePerStack > 0 ? opts.peoplePerStack : 1
+  const fallbackPeople = opts.peoplePerStack > 0 ? opts.peoplePerStack : 1
+  const peopleMap = opts.peoplePerStackMap || null
+  const peopleFor = s => {
+    const n = peopleMap ? peopleMap[s] : null
+    return n > 0 ? n : fallbackPeople
+  }
   const today = opts.today ? new Date(opts.today) : new Date()
 
   const stacks = matrix?.stacks || []
@@ -61,7 +66,7 @@ export function buildPhaseForecast(matrix, config, opts = {}) {
       const manDays = (effortSec / 3600) / workdayHours
       stackManDays[s] = manDays
       phaseManDays += manDays
-      const stackDuration = manDays / people
+      const stackDuration = manDays / peopleFor(s)
       if (stackDuration > phaseDurationDays) phaseDurationDays = stackDuration
     }
     const durationWorkingDays = Math.ceil(phaseDurationDays - 1e-9)
@@ -92,7 +97,7 @@ export function buildPhaseForecast(matrix, config, opts = {}) {
     workdayHours,
     workdaysPerWeek: wdpw,
     basis,
-    peoplePerStack: people,
+    peoplePerStack: peopleMap || fallbackPeople,
     projectStart: isoLocal(projectStart),
     projectEnd,
     totalWorkingDays: cursor,
