@@ -101,6 +101,10 @@ export const api = {
   getDocuments: () => request('GET', '/documents'),
   deleteDocument: (id) => request('DELETE', `/documents/${id}`),
 
+  // Stack team size (capacity planning)
+  getStackPeople: (projectId) => request('GET', `/projects/${projectId}/stack-people`),
+  setStackPeople: (projectId, people) => request('PUT', `/projects/${projectId}/stack-people`, { people }),
+
   // Billable
   getBillableTasks: (projectId) => request('GET', `/projects/${projectId}/billable`),
   setBillableTask: (projectId, taskKey, billable) => request('PUT', `/projects/${projectId}/billable`, { taskKey, billable }),

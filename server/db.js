@@ -209,4 +209,14 @@ db.exec(`
   )
 `)
 
+// Per-project team size per stack (capacity planning)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS project_stack_people (
+    project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    stack      TEXT NOT NULL,
+    people     INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (project_id, stack)
+  )
+`)
+
 export default db

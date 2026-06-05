@@ -28,7 +28,7 @@ const STACK_COLORS = {
   Ostalo: 'var(--textSubtle)',
 }
 
-export default function PhaseForecast({ tasks, phases, canEditConfig }) {
+export default function PhaseForecast({ tasks, phases, projectId, createdAt, canEditConfig }) {
   const [settings, setSettings] = useState(null)
   const [basis, setBasis] = useState('remaining')
   const [hcOverride, setHcOverride] = useState({}) // { stack: number }
@@ -42,6 +42,16 @@ export default function PhaseForecast({ tasks, phases, canEditConfig }) {
       .then(s => { setSettings(s); setDraft({ workdayHours: s.workdayHours, workdaysPerWeek: s.workdaysPerWeek }) })
       .catch(() => setSettings({ workdayHours: 6.5, workdaysPerWeek: 5 }))
   }, [])
+
+  useEffect(() => {
+    if (typeof projectId !== 'number') return
+    api.getStackPeople(projectId).then(m => { if (m && Object.keys(m).length) setHcOverride(m) }).catch(() => {})
+  }, [projectId])
+
+  function persistTeam(map) {
+    if (typeof projectId !== 'number') return
+    api.setStackPeople(projectId, map).catch(() => {})
+  }
 
   const matrix = useMemo(() => buildStackMatrix(tasks || [], phases || []), [tasks, phases])
   const teams = useMemo(() => buildStackTeams(tasks || [], phases || []), [tasks, phases])
@@ -58,8 +68,8 @@ export default function PhaseForecast({ tasks, phases, canEditConfig }) {
   }, [stacks, teams, hcOverride])
 
   const forecast = useMemo(
-    () => (settings ? buildPhaseForecast(matrix, settings, { basis, peoplePerStackMap: effectiveHc }) : null),
-    [matrix, settings, basis, effectiveHc]
+    () => (settings ? buildPhaseForecast(matrix, settings, { basis, peoplePerStackMap: effectiveHc, today: basis === 'plan' ? (createdAt || undefined) : undefined }) : null),
+    [matrix, settings, basis, effectiveHc, createdAt]
   )
   const cap = useMemo(
     () => (settings ? buildCapacity(tasks || [], phases || [], settings, { basis }) : null),
@@ -149,7 +159,8 @@ export default function PhaseForecast({ tasks, phases, canEditConfig }) {
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>{s}</span>
               <input type="number" min={1} max={50} value={effectiveHc[s]}
                 onChange={e => setHcOverride(o => ({ ...o, [s]: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
-                title={`Izvedeno iz Jire: ${def}`}
+                onBlur={() => persistTeam(effectiveHc)}
+                title={`Izvedeno iz Jire: ${def} · sačuvaj se na izlazak iz polja`}
                 style={{ width: 46, padding: '3px 6px', borderRadius: 6, border: `1px solid ${overridden ? 'var(--accent)' : 'var(--border)'}`, background: 'var(--bg)', color: 'var(--text)', fontFamily: "'DM Mono'", fontSize: 12 }} />
             </label>
           )

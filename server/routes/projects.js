@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
   if (role === 'user') {
     const projects = db.prepare(`
       SELECT p.id, p.epic_key as epicKey, p.display_name as displayName, p.position, p.user_id as ownerId,
-             p.filter_type as filterType, p.filter_jql as filterJql, p.filter_meta as filterMeta
+             p.filter_type as filterType, p.filter_jql as filterJql, p.filter_meta as filterMeta, p.created_at as createdAt
       FROM project_clients pc
       JOIN projects p ON p.id = pc.project_id
       WHERE pc.client_user_id = ? AND (p.archived IS NULL OR p.archived = 0)
@@ -25,7 +25,7 @@ router.get('/', (req, res) => {
     return res.json(projects)
   }
   const projects = db.prepare(
-    'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta FROM projects WHERE user_id = ? AND (archived IS NULL OR archived = 0) ORDER BY position ASC, id ASC'
+    'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta, created_at as createdAt FROM projects WHERE user_id = ? AND (archived IS NULL OR archived = 0) ORDER BY position ASC, id ASC'
   ).all(req.userId)
   res.json(projects)
 })
@@ -134,6 +134,40 @@ router.put('/:id/billable', (req, res) => {
     db.prepare('DELETE FROM task_billable WHERE project_id = ? AND task_key = ?').run(req.params.id, taskKey)
   }
   res.json({ ok: true })
+})
+
+// Per-project team size per stack (capacity planning)
+const VALID_STACKS = ['Backend', 'Frontend', 'Testing', 'Ostalo']
+
+router.get('/:id/stack-people', (req, res) => {
+  const role = getUserRole(req.userId)
+  const access = isAdminRole(role)
+    ? db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    : db.prepare('SELECT p.id FROM project_clients pc JOIN projects p ON p.id = pc.project_id WHERE pc.client_user_id = ? AND p.id = ?').get(req.userId, req.params.id)
+  if (!access) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const rows = db.prepare('SELECT stack, people FROM project_stack_people WHERE project_id = ?').all(req.params.id)
+  const map = {}
+  for (const r of rows) map[r.stack] = r.people
+  res.json(map)
+})
+
+router.put('/:id/stack-people', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const people = req.body?.people || {}
+  const up = db.prepare('INSERT INTO project_stack_people (project_id, stack, people) VALUES (?, ?, ?) ON CONFLICT(project_id, stack) DO UPDATE SET people = excluded.people')
+  db.transaction(() => {
+    for (const [stack, n] of Object.entries(people)) {
+      if (!VALID_STACKS.includes(stack)) continue
+      const v = Math.max(1, Math.min(50, parseInt(n, 10) || 1))
+      up.run(req.params.id, stack, v)
+    }
+  })()
+  const rows = db.prepare('SELECT stack, people FROM project_stack_people WHERE project_id = ?').all(req.params.id)
+  const map = {}
+  for (const r of rows) map[r.stack] = r.people
+  res.json(map)
 })
 
 router.put('/reorder', (req, res) => {

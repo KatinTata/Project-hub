@@ -523,7 +523,7 @@ export default function ProjectCard({
       </div>
 
       {/* Project resource & completion estimate — admin only */}
-      {!isClient && <ProjectEstimateSummary tasks={tasks} phases={chartPhases} />}
+      {!isClient && <ProjectEstimateSummary tasks={tasks} phases={chartPhases} projectId={project.id} createdAt={project.createdAt} />}
 
       {/* Changes feed — admin only, above metrics */}
       {!isClient && (
@@ -718,7 +718,7 @@ export default function ProjectCard({
         {activeTab === 'stacks' && !isClient && (
           <>
             <StackMatrix tasks={tasks} phases={chartPhases} />
-            <PhaseForecast tasks={tasks} phases={chartPhases} canEditConfig={isSuperAdmin} />
+            <PhaseForecast tasks={tasks} phases={chartPhases} projectId={project.id} createdAt={project.createdAt} canEditConfig={isSuperAdmin} />
           </>
         )}
       </div>

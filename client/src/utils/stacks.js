@@ -14,7 +14,7 @@ export function normalizeStack(name) {
   const clean = String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '')
   if (!clean) return 'Ostalo'
   if (clean.startsWith('back') || clean === 'bck' || clean === 'bckend') return 'Backend'
-  if (clean.startsWith('front')) return 'Frontend'
+  if (clean.startsWith('front') || clean.startsWith('web')) return 'Frontend'
   if (clean.startsWith('test') || clean === 'qa') return 'Testing'
   return 'Ostalo'
 }
