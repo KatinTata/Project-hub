@@ -1,0 +1,37 @@
+{
+  "name": "jira-tracker-web",
+  "version": "1.0.0",
+  "description": "Jira Project Tracker Web App",
+  "type": "module",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "dev": "concurrently \"node server/index.js\" \"vite --config client/vite.config.js\"",
+    "build": "vite build --config client/vite.config.js",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@vitejs/plugin-react": "^4.2.1",
+    "axios": "^1.13.6",
+    "bcrypt": "^5.1.1",
+    "better-sqlite3": "^12.8.0",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "docx": "^9.6.1",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.18.3",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
+    "pdfjs-dist": "^5.5.207",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.33.5",
+    "vite": "^5.1.6"
+  }
+}

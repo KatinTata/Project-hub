@@ -1,0 +1,156 @@
+import { Router } from 'express'
+import db from '../db.js'
+
+const router = Router()
+
+function getUserRole(userId) {
+  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+}
+
+function isAdminRole(role) {
+  return role === 'admin' || role === 'super_admin'
+}
+
+router.get('/', (req, res) => {
+  const role = getUserRole(req.userId)
+  if (role === 'user') {
+    const projects = db.prepare(`
+      SELECT p.id, p.epic_key as epicKey, p.display_name as displayName, p.position, p.user_id as ownerId,
+             p.filter_type as filterType, p.filter_jql as filterJql, p.filter_meta as filterMeta
+      FROM project_clients pc
+      JOIN projects p ON p.id = pc.project_id
+      WHERE pc.client_user_id = ? AND (p.archived IS NULL OR p.archived = 0)
+      ORDER BY p.position ASC, p.id ASC
+    `).all(req.userId)
+    return res.json(projects)
+  }
+  const projects = db.prepare(
+    'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta FROM projects WHERE user_id = ? AND (archived IS NULL OR archived = 0) ORDER BY position ASC, id ASC'
+  ).all(req.userId)
+  res.json(projects)
+})
+
+router.post('/', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  try {
+    const { epicKey, displayName, filterType = 'epic', filterJql, filterMeta } = req.body
+
+    // For epic mode, epicKey is required; for jql/combined, generate a unique key
+    let resolvedKey
+    if (filterType === 'epic') {
+      if (!epicKey) return res.status(400).json({ error: 'epicKey je obavezan za Epic mode' })
+      resolvedKey = epicKey.trim().toUpperCase()
+    } else {
+      resolvedKey = `${filterType.toUpperCase()}-${Date.now()}`
+    }
+
+    if (!displayName?.trim() && filterType !== 'epic') {
+      return res.status(400).json({ error: 'Naziv projekta je obavezan' })
+    }
+
+    const maxPos = db.prepare('SELECT MAX(position) as m FROM projects WHERE user_id = ?').get(req.userId)
+    const position = (maxPos?.m ?? -1) + 1
+
+    const result = db.prepare(
+      'INSERT INTO projects (user_id, epic_key, display_name, position, filter_type, filter_jql, filter_meta) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).run(req.userId, resolvedKey, displayName?.trim() || null, position, filterType, filterJql || null, filterMeta ? JSON.stringify(filterMeta) : null)
+
+    const project = db.prepare(
+      'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta FROM projects WHERE id = ?'
+    ).get(result.lastInsertRowid)
+
+    res.json({ project })
+  } catch (err) {
+    if (err.message.includes('UNIQUE')) {
+      return res.status(409).json({ error: 'Projekat već postoji' })
+    }
+    res.status(500).json({ error: 'Greška servera' })
+  }
+})
+
+// Archive (soft delete)
+router.delete('/:id', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const now = new Date().toISOString()
+  db.prepare('UPDATE projects SET archived = 1, archived_at = ? WHERE id = ?').run(now, req.params.id)
+  res.json({ ok: true })
+})
+
+// Get archived projects
+router.get('/archived', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const projects = db.prepare(
+    'SELECT id, epic_key as epicKey, display_name as displayName, archived_at as archivedAt, filter_type as filterType FROM projects WHERE user_id = ? AND archived = 1 ORDER BY archived_at DESC'
+  ).all(req.userId)
+  res.json(projects)
+})
+
+// Restore from archive
+router.put('/:id/restore', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  db.prepare('UPDATE projects SET archived = 0, archived_at = NULL WHERE id = ?').run(req.params.id)
+  const restored = db.prepare(
+    'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta FROM projects WHERE id = ?'
+  ).get(req.params.id)
+  res.json({ project: restored })
+})
+
+// Permanent delete
+router.delete('/:id/permanent', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  db.prepare('DELETE FROM projects WHERE id = ?').run(req.params.id)
+  res.json({ ok: true })
+})
+
+// Get billable task keys for a project
+router.get('/:id/billable', (req, res) => {
+  console.log('[billable GET] projectId:', req.params.id, 'userId:', req.userId)
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  console.log('[billable GET] project found:', !!project)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const rows = db.prepare('SELECT task_key FROM task_billable WHERE project_id = ?').all(req.params.id)
+  console.log('[billable GET] keys:', rows.map(r => r.task_key))
+  res.json(rows.map(r => r.task_key))
+})
+
+// Toggle billable for a task
+router.put('/:id/billable', (req, res) => {
+  console.log('[billable PUT] projectId:', req.params.id, 'userId:', req.userId, 'body:', req.body)
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  console.log('[billable PUT] project found:', !!project)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const { taskKey, billable } = req.body
+  if (!taskKey) return res.status(400).json({ error: 'taskKey je obavezan' })
+  if (billable) {
+    db.prepare('INSERT OR IGNORE INTO task_billable (project_id, task_key) VALUES (?, ?)').run(req.params.id, taskKey)
+  } else {
+    db.prepare('DELETE FROM task_billable WHERE project_id = ? AND task_key = ?').run(req.params.id, taskKey)
+  }
+  res.json({ ok: true })
+})
+
+router.put('/reorder', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  try {
+    const { ids } = req.body
+    if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids mora biti niz' })
+
+    const update = db.prepare('UPDATE projects SET position = ? WHERE id = ? AND user_id = ?')
+    const updateMany = db.transaction((ids) => {
+      ids.forEach((id, idx) => update.run(idx, id, req.userId))
+    })
+    updateMany(ids)
+    res.json({ ok: true })
+  } catch {
+    res.status(500).json({ error: 'Greška servera' })
+  }
+})
+
+export default router

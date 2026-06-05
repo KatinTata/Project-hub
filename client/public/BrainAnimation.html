@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Geometric Brain Animation</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #0b0f19;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .brain-wrapper {
+      position: relative;
+      width: min(80vmin, 600px);
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    /* Animate the main network lines */
+    .network-lines {
+      stroke-dasharray: 1500;
+      stroke-dashoffset: 1500;
+      animation: drawLines 10s ease-in-out infinite alternate;
+    }
+
+    /* Pulse the nodes - LESS INTENSE NOW */
+    .nodes circle {
+      animation: pulseNode 3s infinite alternate;
+      opacity: 0.5; /* lower base opacity for a softer look */
+    }
+
+    /* Stagger the pulse so they blink organically */
+    .nodes circle:nth-child(odd) {
+      animation-delay: 1s;
+      animation-duration: 4s;
+    }
+    .nodes circle:nth-child(3n) {
+      animation-delay: 2s;
+      animation-duration: 3.5s;
+    }
+
+    @keyframes drawLines {
+      0% { stroke-dashoffset: 1500; opacity: 0.2; }
+      50% { opacity: 0.9; }
+      100% { stroke-dashoffset: 0; opacity: 0.7; }
+    }
+
+    /* Less aggressive scaling for a subtle twinkle */
+    @keyframes pulseNode {
+      0% { opacity: 0.3; transform: scale(0.9); }
+      100% { opacity: 0.8; transform: scale(1.1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .network-lines, .nodes circle, .particle {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="brain-wrapper">
+    <svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="blueGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#4facfe" stop-opacity="0.8"/>
+          <stop offset="50%" stop-color="#e0f2fe" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#00f2fe" stop-opacity="0.8"/>
+        </linearGradient>
+
+        <path id="mesh" d="
+          M 5 60 L 25 30 L 45 15 L 75 10 L 105 15 L 130 35 L 145 60 L 140 90 L 120 110 L 95 125 L 85 105 L 55 95 L 35 100 L 15 85 Z
+          M 5 60 L 25 60 L 25 30
+          M 25 60 L 45 40 L 45 15
+          M 45 40 L 75 45 L 75 10
+          M 75 45 L 105 50 L 105 15
+          M 105 50 L 130 35
+          M 105 50 L 120 70 L 145 60
+          M 120 70 L 140 90
+          M 120 70 L 95 80 L 120 110
+          M 95 80 L 95 125
+          M 95 80 L 85 105
+          M 95 80 L 75 80 L 75 45
+          M 75 80 L 85 105
+          M 75 80 L 50 70 L 45 40
+          M 50 70 L 75 45
+          M 50 70 L 55 95
+          M 50 70 L 35 80 L 25 60
+          M 35 80 L 35 100
+          M 35 80 L 15 85
+          M 25 30 L 45 40
+        " />
+      </defs>
+
+      <use href="#mesh" 
+           class="network-lines"
+           fill="none" 
+           stroke="url(#lineGrad)" 
+           stroke-width="1.2" 
+           stroke-linejoin="round"
+           filter="url(#blueGlow)" />
+
+      <g class="nodes" fill="#ffffff" filter="url(#blueGlow)" style="transform-origin: center;">
+        <circle cx="5" cy="60" r="0.8" />
+        <circle cx="25" cy="30" r="0.8" />
+        <circle cx="45" cy="15" r="0.8" />
+        <circle cx="75" cy="10" r="0.8" />
+        <circle cx="105" cy="15" r="0.8" />
+        <circle cx="130" cy="35" r="0.8" />
+        <circle cx="145" cy="60" r="0.8" />
+        <circle cx="140" cy="90" r="0.8" />
+        <circle cx="120" cy="110" r="0.8" />
+        <circle cx="95" cy="125" r="0.8" />
+        <circle cx="85" cy="105" r="0.8" />
+        <circle cx="55" cy="95" r="0.8" />
+        <circle cx="35" cy="100" r="0.8" />
+        <circle cx="15" cy="85" r="0.8" />
+        
+        <circle cx="25" cy="60" r="1" />
+        <circle cx="45" cy="40" r="1" />
+        <circle cx="75" cy="45" r="1" />
+        <circle cx="105" cy="50" r="1" />
+        <circle cx="120" cy="70" r="1" />
+        <circle cx="95" cy="80" r="1" />
+        <circle cx="75" cy="80" r="1" />
+        <circle cx="50" cy="70" r="1" />
+        <circle cx="35" cy="80" r="1" />
+      </g>
+
+      <g filter="url(#blueGlow)">
+        <circle class="particle" r="0.6" fill="#ffffff" opacity="0.8">
+          <animateMotion dur="6s" repeatCount="indefinite" path="M 5 60 L 25 60 L 45 40 L 75 45 L 105 50 L 130 35" />
+        </circle>
+        <circle class="particle" r="0.5" fill="#4facfe" opacity="0.8">
+          <animateMotion dur="4s" repeatCount="indefinite" path="M 75 10 L 75 45 L 50 70 L 55 95 L 35 100" />
+        </circle>
+        <circle class="particle" r="0.7" fill="#e0f2fe" opacity="0.8">
+          <animateMotion dur="8s" repeatCount="indefinite" path="M 145 60 L 120 70 L 95 80 L 85 105 L 95 125" />
+        </circle>
+      </g>
+    </svg>
+  </div>
+
+</body>
+</html>

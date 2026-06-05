@@ -1,0 +1,622 @@
+import { Router } from 'express'
+import { randomBytes } from 'crypto'
+import db from '../db.js'
+import { decryptToken, makeJiraAuth, jiraPost } from '../jiraClient.js'
+import {
+  Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+  WidthType, BorderStyle, AlignmentType, HeadingLevel, ShadingType,
+} from 'docx'
+import Anthropic from '@anthropic-ai/sdk'
+
+const router = Router()
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function getUserJira(userId) {
+  const user = db.prepare('SELECT jira_url, jira_email, jira_token FROM users WHERE id = ?').get(userId)
+  if (!user?.jira_url || !user?.jira_email || !user?.jira_token) return null
+  const token = decryptToken(user.jira_token)
+  const auth = makeJiraAuth(user.jira_email, token)
+  return { jiraUrl: user.jira_url, auth }
+}
+
+function isAdminRole(role) {
+  return role === 'admin' || role === 'super_admin'
+}
+
+function getSuperAdminJira() {
+  const sa = db.prepare("SELECT jira_url, jira_email, jira_token FROM users WHERE role = 'super_admin' AND jira_url IS NOT NULL AND jira_token IS NOT NULL LIMIT 1").get()
+  if (!sa) return null
+  const token = decryptToken(sa.jira_token)
+  const auth = makeJiraAuth(sa.jira_email, token)
+  return { jiraUrl: sa.jira_url, auth }
+}
+
+function getOwnerJiraForProject(userId, projectId) {
+  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  if (isAdminRole(role)) return getUserJira(userId) || getSuperAdminJira()
+
+  const row = db.prepare(`
+    SELECT p.user_id as ownerId FROM project_clients pc
+    JOIN projects p ON p.id = pc.project_id
+    WHERE pc.client_user_id = ? AND p.id = ?
+  `).get(userId, projectId)
+  if (!row) return null
+  return getUserJira(row.ownerId)
+}
+
+function getProject(userId, projectId) {
+  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  if (isAdminRole(role)) {
+    return db.prepare('SELECT * FROM projects WHERE id = ? AND user_id = ?').get(projectId, userId)
+  }
+  return db.prepare(`
+    SELECT p.* FROM project_clients pc
+    JOIN projects p ON p.id = pc.project_id
+    WHERE pc.client_user_id = ? AND p.id = ?
+  `).get(userId, projectId)
+}
+
+async function fetchTasksForProject(jira, project, customJql) {
+  const fields = ['summary', 'status', 'issuetype', 'description', 'assignee', 'components', 'issuelinks']
+  let jql
+  if (customJql?.trim()) {
+    jql = customJql.trim()
+  } else if (project.filter_type === 'jql' && project.filter_jql) {
+    jql = project.filter_jql
+  } else if (project.filter_type === 'combined' && project.filter_jql) {
+    jql = project.filter_jql
+  } else {
+    jql = `parent = ${project.epic_key} ORDER BY created ASC`
+  }
+
+  let results = []
+  let token = null
+  do {
+    const body = { jql, fields, maxResults: 100, ...(token ? { nextPageToken: token } : {}) }
+    const data = await jiraPost(jira.jiraUrl, '/search/jql', body, jira.auth)
+    results.push(...(data.issues || []))
+    token = data.isLast ? null : (data.nextPageToken || null)
+  } while (token)
+
+  return results.map(issue => ({
+    id: issue.id,
+    key: issue.key,
+    fields: {
+      summary: issue.fields.summary || '',
+      status: { name: issue.fields.status?.name || '' },
+      issuetype: { name: issue.fields.issuetype?.name || '' },
+      assignee: issue.fields.assignee || null,
+      components: issue.fields.components || [],
+      issuelinks: (issue.fields.issuelinks || []).map(l => {
+        const linked = l.inwardIssue || l.outwardIssue
+        if (!linked) return null
+        return {
+          key: linked.key,
+          summary: linked.fields?.summary || '',
+          status: linked.fields?.status?.name || '',
+          type: l.type?.name || '',
+        }
+      }).filter(Boolean),
+    },
+    description: extractDescriptionText(issue.fields.description),
+  }))
+}
+
+function extractDescriptionText(doc) {
+  if (!doc || !doc.content) return ''
+  const lines = []
+  function walk(node) {
+    if (node.type === 'text') { lines.push(node.text || ''); return }
+    if (node.type === 'hardBreak') { lines.push('\n'); return }
+    if (node.content) node.content.forEach(walk)
+    if (['paragraph', 'bulletList', 'listItem', 'heading'].includes(node.type)) lines.push('\n')
+  }
+  doc.content.forEach(walk)
+  return lines.join('').trim()
+}
+
+// ── Route: Task detail (summary + comments) ──────────────────────────────────
+
+router.post('/task-detail', async (req, res) => {
+  try {
+    const { taskKey, projectId } = req.body
+    if (!taskKey) return res.status(400).json({ error: 'taskKey je obavezan' })
+
+    const project = getProject(req.userId, projectId)
+    if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+
+    const jira = getOwnerJiraForProject(req.userId, projectId)
+    if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
+
+    const { jiraGet } = await import('../jiraClient.js')
+    const baseUrl = jira.jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')
+    const data = await jiraGet(
+      jira.jiraUrl,
+      `/issue/${taskKey}?fields=summary,description,comment`,
+      jira.auth
+    )
+
+    const comments = (data.fields?.comment?.comments || [])
+      .filter(c => c.body)
+      .slice(-10) // last 10 comments
+      .map(c => ({
+        author: c.author?.displayName || 'Nepoznat',
+        created: c.created,
+        text: extractDescriptionText(c.body),
+      }))
+
+    res.json({
+      key: data.key,
+      summary: data.fields?.summary || '',
+      description: extractDescriptionText(data.fields?.description),
+      comments,
+    })
+  } catch (err) {
+    console.error('task-detail error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route 1: Fetch tasks ──────────────────────────────────────────────────────
+
+router.post('/tasks', async (req, res) => {
+  try {
+    const { projectId, customJql } = req.body
+    if (!projectId) return res.status(400).json({ error: 'projectId je obavezan' })
+
+    const project = getProject(req.userId, projectId)
+    if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+
+    const jira = getOwnerJiraForProject(req.userId, projectId)
+    if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
+
+    const tasks = await fetchTasksForProject(jira, project, customJql)
+    res.json({ tasks, projectName: project.display_name || project.epic_key })
+  } catch (err) {
+    console.error('releaseNotes /tasks error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route 2: Export DOCX ──────────────────────────────────────────────────────
+
+const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }
+const TABLE_BORDERS = { top: NO_BORDER, bottom: NO_BORDER, left: NO_BORDER, right: NO_BORDER, insideH: NO_BORDER, insideV: NO_BORDER }
+
+function makeParagraphs(markdown) {
+  // Very simple markdown parser: headings, bullet lists, bold, plain text
+  const paragraphs = []
+  const lines = markdown.split('\n')
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i]
+
+    if (line.startsWith('### ')) {
+      paragraphs.push(new Paragraph({
+        text: line.slice(4),
+        heading: HeadingLevel.HEADING_3,
+        spacing: { before: 200, after: 100 },
+      }))
+    } else if (line.startsWith('## ')) {
+      paragraphs.push(new Paragraph({
+        text: line.slice(3),
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 300, after: 120 },
+      }))
+    } else if (line.startsWith('# ')) {
+      paragraphs.push(new Paragraph({
+        text: line.slice(2),
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 400, after: 160 },
+      }))
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      const runs = parseInline(line.slice(2))
+      paragraphs.push(new Paragraph({ children: runs, bullet: { level: 0 }, spacing: { after: 60 } }))
+    } else if (line.trim() === '') {
+      paragraphs.push(new Paragraph({ text: '', spacing: { after: 120 } }))
+    } else {
+      const runs = parseInline(line)
+      paragraphs.push(new Paragraph({ children: runs, spacing: { after: 80 } }))
+    }
+    i++
+  }
+
+  return paragraphs
+}
+
+function parseInline(text) {
+  const runs = []
+  const re = /\*\*(.+?)\*\*|\*(.+?)\*/g
+  let last = 0
+  let m
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) runs.push(new TextRun({ text: text.slice(last, m.index), size: 22, font: 'Calibri' }))
+    if (m[1] !== undefined) runs.push(new TextRun({ text: m[1], bold: true, size: 22, font: 'Calibri' }))
+    else if (m[2] !== undefined) runs.push(new TextRun({ text: m[2], italics: true, size: 22, font: 'Calibri' }))
+    last = m.index + m[0].length
+  }
+  if (last < text.length) runs.push(new TextRun({ text: text.slice(last), size: 22, font: 'Calibri' }))
+  return runs.length ? runs : [new TextRun({ text, size: 22, font: 'Calibri' })]
+}
+
+function infoTableCell(text, bold = false) {
+  return new TableCell({
+    borders: TABLE_BORDERS,
+    children: [new Paragraph({
+      children: [new TextRun({ text, bold, size: 20, font: 'Calibri' })],
+    })],
+    width: { size: 50, type: WidthType.PERCENTAGE },
+  })
+}
+
+router.post('/export/docx', async (req, res) => {
+  try {
+    const { projectName, version, date, preparedBy, content } = req.body
+    if (!content) return res.status(400).json({ error: 'content je obavezan' })
+
+    const bodyParagraphs = makeParagraphs(content)
+
+    const doc = new Document({
+      creator: 'Jira Tracker',
+      title: `Release Notes — ${projectName || 'Projekat'}`,
+      styles: {
+        default: {
+          document: { run: { font: 'Calibri', size: 22 } },
+        },
+        paragraphStyles: [
+          {
+            id: 'Heading1',
+            name: 'Heading 1',
+            basedOn: 'Normal',
+            next: 'Normal',
+            run: { bold: true, size: 32, color: '1A1A2E', font: 'Calibri' },
+            paragraph: { spacing: { before: 400, after: 160 } },
+          },
+          {
+            id: 'Heading2',
+            name: 'Heading 2',
+            basedOn: 'Normal',
+            next: 'Normal',
+            run: { bold: true, size: 26, color: '2563EB', font: 'Calibri' },
+            paragraph: { spacing: { before: 300, after: 120 } },
+          },
+          {
+            id: 'Heading3',
+            name: 'Heading 3',
+            basedOn: 'Normal',
+            next: 'Normal',
+            run: { bold: true, size: 24, color: '374151', font: 'Calibri' },
+            paragraph: { spacing: { before: 200, after: 80 } },
+          },
+        ],
+      },
+      sections: [{
+        properties: {
+          page: {
+            margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 }, // ~2cm
+          },
+        },
+        children: [
+          // ── Header: INTELISALE logo text + title ──
+          new Paragraph({
+            children: [new TextRun({ text: 'INTELISALE', bold: true, size: 40, color: '2563EB', font: 'Calibri' })],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 80 },
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: 'Release Notes', size: 36, color: '374151', font: 'Calibri' })],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 400 },
+          }),
+
+          // ── Info table (4 rows, no borders) ──
+          new Table({
+            width: { size: 60, type: WidthType.PERCENTAGE },
+            borders: TABLE_BORDERS,
+            rows: [
+              new TableRow({ children: [infoTableCell('Projekat', true), infoTableCell(projectName || '')] }),
+              new TableRow({ children: [infoTableCell('Verzija', true), infoTableCell(version || '')] }),
+              new TableRow({ children: [infoTableCell('Datum', true), infoTableCell(date || '')] }),
+              new TableRow({ children: [infoTableCell('Pripremio', true), infoTableCell(preparedBy || '')] }),
+            ],
+          }),
+
+          new Paragraph({ text: '', spacing: { after: 400 } }),
+
+          // ── Body content ──
+          ...bodyParagraphs,
+
+          new Paragraph({ text: '', spacing: { after: 600 } }),
+
+          // ── Footer ──
+          new Paragraph({
+            children: [new TextRun({ text: '─────────────────────────────────────────', color: 'CCCCCC', size: 16, font: 'Calibri' })],
+            spacing: { before: 400, after: 80 },
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: 'Generisano putem Jira Tracker · intelisale.com', size: 16, color: '9CA3AF', font: 'Calibri' })],
+          }),
+        ],
+      }],
+    })
+
+    const buffer = await Packer.toBuffer(doc)
+    const filename = `release-notes-${(projectName || 'projekat').replace(/\s+/g, '-').toLowerCase()}-${(version || 'v1').replace(/\s+/g, '')}.docx`
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    res.send(buffer)
+  } catch (err) {
+    console.error('releaseNotes /export/docx error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route 3: AI enhance ───────────────────────────────────────────────────────
+
+const AI_PROMPTS = {
+  summarize: (text) => `Ti si tehnički pisac. Rezimiri sledeći sadržaj release notes-a u jasne, kratke tačke koje su razumljive i tehničkim i netehničkim korisnicima. Zadrži strukturu ako postoji.\n\n${text}`,
+  simplify: (text) => `Ti si tehnički pisac. Uprosti sledeći tekst release notes-a tako da ga mogu razumeti i korisnici koji nisu tehnički. Izbegavaj žargon, koristi jasne i kratke rečenice.\n\n${text}`,
+  translate_sr: (text) => `Prevedi sledeći tekst na srpski jezik (latinica). Zadrži formatiranje (Markdown, bullet liste, naslovi).\n\n${text}`,
+  translate_en: (text) => `Translate the following text to English. Keep the exact same labels and structure (e.g. Summary:, Description:, Image1:, etc.) — only translate the values after the colon. Do not add any explanation or extra text.\n\n${text}`,
+  generate_description: (text) => `Ti si senior product manager koji piše release notes za klijente. Na osnovu opisa taska i komentara, napiši opis funkcionalnosti koja je implementirana.\n\nPravila:\n- Cilj je da klijent razume šta je urađeno i kakvu korist ima od toga\n- Piši jasno i razumljivo — nije potrebno izbegavati tehničke detalje ako su relevantni, ali fokus treba da bude na poslovnom smislu implementacije\n- Nemoj pisati samo jednu rečenicu ako tema to ne dozvoljava — piši onoliko koliko je potrebno da se stvar razume, ali bez nepotrebnog razvlačenja\n- Odgovori SAMO sa opisom, bez uvoda, zaglavlja, objašnjenja ili navodnika\n\n${text}`,
+}
+
+router.post('/ai-enhance', async (req, res) => {
+  try {
+    const { content, action } = req.body
+    if (!content?.trim()) return res.status(400).json({ error: 'content je obavezan' })
+    if (!AI_PROMPTS[action]) return res.status(400).json({ error: `Nepoznata akcija: ${action}. Dozvoljeno: ${Object.keys(AI_PROMPTS).join(', ')}` })
+
+    // Try user's DB key first, fallback to env
+    const userRow = db.prepare('SELECT anthropic_key FROM users WHERE id = ?').get(req.userId)
+    const apiKey = userRow?.anthropic_key ? decryptToken(userRow.anthropic_key) : process.env.ANTHROPIC_API_KEY
+    if (!apiKey) return res.status(503).json({ aiAvailable: false, error: 'Anthropic API ključ nije podešen' })
+
+    const anthropic = new Anthropic({ apiKey })
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2048,
+      messages: [{ role: 'user', content: AI_PROMPTS[action](content) }],
+    })
+
+    const result = message.content?.[0]?.text || ''
+    res.json({ result })
+  } catch (err) {
+    console.error('releaseNotes /ai-enhance error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route: Sections CRUD ─────────────────────────────────────────────────────
+
+router.get('/sections', (req, res) => {
+  try {
+    const sections = db.prepare('SELECT id, name, position FROM release_note_sections WHERE user_id = ? ORDER BY position ASC, name ASC').all(req.userId)
+    res.json({ sections })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.post('/sections', (req, res) => {
+  try {
+    const { name } = req.body
+    if (!name?.trim()) return res.status(400).json({ error: 'name je obavezan' })
+    const maxPos = db.prepare('SELECT MAX(position) as m FROM release_note_sections WHERE user_id = ?').get(req.userId)
+    const position = (maxPos?.m ?? -1) + 1
+    const result = db.prepare('INSERT INTO release_note_sections (user_id, name, position) VALUES (?, ?, ?)').run(req.userId, name.trim(), position)
+    res.json({ id: result.lastInsertRowid, name: name.trim(), position })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.delete('/sections/:id', (req, res) => {
+  try {
+    const sec = db.prepare('SELECT id FROM release_note_sections WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    if (!sec) return res.status(404).json({ error: 'Nije pronađeno' })
+    db.prepare('DELETE FROM release_note_sections WHERE id = ?').run(sec.id)
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route: Publish ────────────────────────────────────────────────────────────
+
+router.post('/publish', (req, res) => {
+  try {
+    const { html, title, projectId, version, sectionId } = req.body
+    if (!html?.trim()) return res.status(400).json({ error: 'html je obavezan' })
+
+    const token = randomBytes(16).toString('hex')
+
+    // Resolve sectionId: if a string name is passed, find or create the section
+    let resolvedSectionId = sectionId || null
+    if (!resolvedSectionId && req.body.sectionName?.trim()) {
+      const existing = db.prepare('SELECT id FROM release_note_sections WHERE user_id = ? AND name = ?').get(req.userId, req.body.sectionName.trim())
+      if (existing) {
+        resolvedSectionId = existing.id
+      } else {
+        const maxPos = db.prepare('SELECT MAX(position) as m FROM release_note_sections WHERE user_id = ?').get(req.userId)
+        const position = (maxPos?.m ?? -1) + 1
+        const result = db.prepare('INSERT INTO release_note_sections (user_id, name, position) VALUES (?, ?, ?)').run(req.userId, req.body.sectionName.trim(), position)
+        resolvedSectionId = result.lastInsertRowid
+      }
+    }
+
+    db.prepare('INSERT INTO published_notes (token, project_id, user_id, title, version, html, section_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(token, projectId || null, req.userId, title || null, version || null, html, resolvedSectionId)
+
+    // Auto-populate clients from project on publish
+    if (projectId) {
+      const projectClients = db.prepare(
+        'SELECT client_user_id FROM project_clients WHERE project_id = ?'
+      ).all(projectId)
+      const insertClient = db.prepare(
+        'INSERT OR IGNORE INTO release_note_clients (note_id, client_user_id) VALUES (?, ?)'
+      )
+      const noteRow = db.prepare('SELECT id FROM published_notes WHERE token = ?').get(token)
+      if (noteRow) {
+        for (const pc of projectClients) {
+          insertClient.run(noteRow.id, pc.client_user_id)
+        }
+      }
+    }
+
+    const noteRow = db.prepare('SELECT id FROM published_notes WHERE token = ?').get(token)
+    res.json({ token, id: noteRow?.id, updated: false })
+  } catch (err) {
+    console.error('publish error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Public view (no auth) ─────────────────────────────────────────────────────
+
+router.get('/public/:token', (req, res) => {
+  const row = db.prepare('SELECT html, title FROM published_notes WHERE token = ?').get(req.params.token)
+  if (!row) return res.status(404).send('<h1>Not found</h1>')
+  res.setHeader('Content-Type', 'text/html; charset=utf-8')
+  res.send(row.html)
+})
+
+// ── Route: List notes (admin) ─────────────────────────────────────────────────
+
+router.get('/list', (req, res) => {
+  try {
+    const notes = db.prepare(`
+      SELECT pn.id, pn.token, pn.title, pn.version, pn.status, pn.created_at, pn.updated_at, pn.released_at, pn.project_id,
+             p.display_name as project_name, p.epic_key,
+             pn.section_id, rns.name as section_name,
+             (SELECT COUNT(*) FROM release_note_clients WHERE note_id = pn.id) as client_count
+      FROM published_notes pn
+      LEFT JOIN projects p ON p.id = pn.project_id
+      LEFT JOIN release_note_sections rns ON rns.id = pn.section_id
+      WHERE pn.user_id = ?
+      ORDER BY pn.created_at DESC
+    `).all(req.userId)
+    res.json({ notes })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route: List notes for client ──────────────────────────────────────────────
+
+router.get('/client-list', (req, res) => {
+  try {
+    const notes = db.prepare(`
+      SELECT pn.id, pn.token, pn.title, pn.version, pn.status, pn.created_at, pn.released_at, pn.project_id,
+             p.display_name as project_name, p.epic_key,
+             pn.section_id, rns.name as section_name
+      FROM release_note_clients rnc
+      JOIN published_notes pn ON pn.id = rnc.note_id
+      LEFT JOIN projects p ON p.id = pn.project_id
+      LEFT JOIN release_note_sections rns ON rns.id = pn.section_id
+      WHERE rnc.client_user_id = ?
+      ORDER BY pn.created_at DESC
+    `).all(req.userId)
+    res.json({ notes })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route: Get single note detail (admin + client) ───────────────────────────
+
+router.get('/:id/detail', (req, res) => {
+  try {
+    const role = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId)?.role || 'admin'
+    let note
+    if (role === 'user') {
+      note = db.prepare(`
+        SELECT pn.id, pn.token, pn.title, pn.version, pn.status, pn.created_at, pn.released_at, pn.html,
+               p.display_name as project_name, p.epic_key
+        FROM release_note_clients rnc
+        JOIN published_notes pn ON pn.id = rnc.note_id
+        LEFT JOIN projects p ON p.id = pn.project_id
+        WHERE rnc.client_user_id = ? AND pn.id = ?
+      `).get(req.userId, req.params.id)
+    } else {
+      note = db.prepare(`
+        SELECT pn.id, pn.token, pn.title, pn.version, pn.status, pn.created_at, pn.released_at, pn.html,
+               p.display_name as project_name, p.epic_key,
+               (SELECT COUNT(*) FROM release_note_clients WHERE note_id = pn.id) as client_count
+        FROM published_notes pn
+        LEFT JOIN projects p ON p.id = pn.project_id
+        WHERE pn.id = ? AND pn.user_id = ?
+      `).get(req.params.id, req.userId)
+    }
+    if (!note) return res.status(404).json({ error: 'Nije pronađeno' })
+    res.json({ note })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route: Get clients for a note ─────────────────────────────────────────────
+
+router.get('/:id/clients', (req, res) => {
+  try {
+    const note = db.prepare('SELECT id FROM published_notes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    if (!note) return res.status(404).json({ error: 'Nije pronađeno' })
+    const clients = db.prepare(`
+      SELECT u.id, u.name, u.email FROM release_note_clients rnc
+      JOIN users u ON u.id = rnc.client_user_id
+      WHERE rnc.note_id = ?
+    `).all(note.id)
+    res.json({ clients })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route: Set clients for a note ─────────────────────────────────────────────
+
+router.put('/:id/clients', (req, res) => {
+  try {
+    const { clientIds } = req.body // array of user IDs
+    const note = db.prepare('SELECT id FROM published_notes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    if (!note) return res.status(404).json({ error: 'Nije pronađeno' })
+
+    db.prepare('DELETE FROM release_note_clients WHERE note_id = ?').run(note.id)
+    const insert = db.prepare('INSERT OR IGNORE INTO release_note_clients (note_id, client_user_id) VALUES (?, ?)')
+    for (const cid of (clientIds || [])) insert.run(note.id, cid)
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route: Mark as released ───────────────────────────────────────────────────
+
+router.put('/:id/release', (req, res) => {
+  try {
+    const note = db.prepare('SELECT id FROM published_notes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    if (!note) return res.status(404).json({ error: 'Nije pronađeno' })
+    db.prepare('UPDATE published_notes SET status = ?, released_at = CURRENT_TIMESTAMP WHERE id = ?')
+      .run('released', note.id)
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Route: Delete note ────────────────────────────────────────────────────────
+
+router.delete('/:id', (req, res) => {
+  try {
+    const note = db.prepare('SELECT id FROM published_notes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    if (!note) return res.status(404).json({ error: 'Nije pronađeno' })
+    db.prepare('DELETE FROM published_notes WHERE id = ?').run(note.id)
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+export default router

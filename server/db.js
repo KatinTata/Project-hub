@@ -1,0 +1,203 @@
+import Database from 'better-sqlite3'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import fs from 'fs'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data')
+
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true })
+}
+
+const db = new Database(path.join(dataDir, 'tracker.db'))
+
+db.pragma('journal_mode = WAL')
+db.pragma('foreign_keys = ON')
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    email       TEXT UNIQUE NOT NULL,
+    password    TEXT NOT NULL,
+    name        TEXT NOT NULL,
+    role        TEXT DEFAULT 'admin',
+    jira_url    TEXT,
+    jira_email  TEXT,
+    jira_token  TEXT,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS projects (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    epic_key     TEXT NOT NULL,
+    display_name TEXT,
+    position     INTEGER DEFAULT 0,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, epic_key)
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS project_clients (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id     INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    client_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(project_id, client_user_id)
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS messages (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id        INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    sender_id         INTEGER NOT NULL REFERENCES users(id),
+    text              TEXT NOT NULL,
+    task_key          TEXT DEFAULT NULL,
+    task_summary      TEXT DEFAULT NULL,
+    subject           TEXT DEFAULT NULL,
+    recipient_user_id INTEGER DEFAULT NULL,
+    created_at        DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS message_reads (
+    message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY(message_id, user_id)
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS organizations (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+// Migrations for existing DBs (fail silently if column already exists)
+try { db.exec(`ALTER TABLE projects ADD COLUMN archived INTEGER DEFAULT 0`) } catch {}
+try { db.exec(`ALTER TABLE projects ADD COLUMN archived_at TEXT`) } catch {}
+try { db.exec(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'admin'`) } catch {}
+try { db.exec(`ALTER TABLE users ADD COLUMN organization_id INTEGER REFERENCES organizations(id) ON DELETE SET NULL`) } catch {}
+try { db.exec(`UPDATE users SET role = 'user' WHERE role = 'client'`) } catch {}
+// Promote oldest admin to super_admin if no super_admin exists
+try {
+  const hasSuperAdmin = db.prepare("SELECT COUNT(*) as c FROM users WHERE role = 'super_admin'").get().c
+  if (hasSuperAdmin === 0) {
+    db.prepare("UPDATE users SET role = 'super_admin' WHERE id = (SELECT MIN(id) FROM users WHERE role = 'admin')").run()
+  }
+} catch {}
+try { db.exec(`ALTER TABLE projects ADD COLUMN filter_type TEXT DEFAULT 'epic'`) } catch {}
+try { db.exec(`ALTER TABLE projects ADD COLUMN filter_jql TEXT`) } catch {}
+try { db.exec(`ALTER TABLE projects ADD COLUMN filter_meta TEXT`) } catch {}
+try { db.exec(`ALTER TABLE messages ADD COLUMN task_key TEXT DEFAULT NULL`) } catch {}
+try { db.exec(`ALTER TABLE messages ADD COLUMN recipient_user_id INTEGER DEFAULT NULL`) } catch {}
+try { db.exec(`ALTER TABLE messages ADD COLUMN task_summary TEXT DEFAULT NULL`) } catch {}
+try { db.exec(`ALTER TABLE messages ADD COLUMN subject TEXT DEFAULT NULL`) } catch {}
+try { db.exec(`ALTER TABLE users ADD COLUMN anthropic_key TEXT`) } catch {}
+try { db.exec(`ALTER TABLE phases ADD COLUMN due_date TEXT DEFAULT NULL`) } catch {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS phases (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id  INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    name        TEXT NOT NULL,
+    color       TEXT NOT NULL DEFAULT '#4F8EF7',
+    position    INTEGER DEFAULT 0,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS phase_tasks (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    phase_id   INTEGER REFERENCES phases(id) ON DELETE CASCADE,
+    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    task_key   TEXT NOT NULL,
+    position   INTEGER DEFAULT 0,
+    UNIQUE(project_id, task_key)
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS published_notes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    token      TEXT UNIQUE NOT NULL,
+    project_id INTEGER,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title      TEXT,
+    html       TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+try { db.exec(`ALTER TABLE published_notes ADD COLUMN status TEXT DEFAULT 'published'`) } catch {}
+try { db.exec(`ALTER TABLE published_notes ADD COLUMN released_at DATETIME`) } catch {}
+try { db.exec(`ALTER TABLE published_notes ADD COLUMN version TEXT`) } catch {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS document_sections (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    name        TEXT NOT NULL,
+    position    INTEGER DEFAULT 0,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS documents (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    section_id    INTEGER REFERENCES document_sections(id) ON DELETE SET NULL,
+    name          TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    file_data     BLOB NOT NULL,
+    file_size     INTEGER,
+    thumbnail     TEXT,
+    visible_to    TEXT DEFAULT 'all',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+// Migration: add file_path column for disk-based storage (replaces BLOB approach)
+try { db.exec(`ALTER TABLE documents ADD COLUMN file_path TEXT`) } catch {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS release_note_sections (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    name        TEXT NOT NULL,
+    position    INTEGER DEFAULT 0,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS release_note_clients (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    note_id        INTEGER NOT NULL REFERENCES published_notes(id) ON DELETE CASCADE,
+    client_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(note_id, client_user_id)
+  )
+`)
+
+try { db.exec(`ALTER TABLE published_notes ADD COLUMN section_id INTEGER REFERENCES release_note_sections(id) ON DELETE SET NULL`) } catch {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS task_billable (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    task_key   TEXT NOT NULL,
+    UNIQUE(project_id, task_key)
+  )
+`)
+
+export default db
