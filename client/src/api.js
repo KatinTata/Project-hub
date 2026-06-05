@@ -150,6 +150,10 @@ export const api = {
     URL.revokeObjectURL(url)
   },
 
+  // App settings — working-calendar config (PUT is super_admin only)
+  getAppSettings: () => request('GET', '/settings'),
+  updateAppSettings: (body) => request('PUT', '/settings', body),
+
   // Organizations (super admin only for write)
   getOrganizations: () => request('GET', '/organizations'),
   createOrganization: (name) => request('POST', '/organizations', { name }),

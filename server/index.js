@@ -15,6 +15,7 @@ import documentsRoutes from './routes/documents.js'
 import phasesRoutes from './routes/phases.js'
 import organizationsRoutes from './routes/organizations.js'
 import reportsRoutes from './routes/reports.js'
+import settingsRoutes from './routes/settings.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -34,6 +35,7 @@ app.use('/api/documents', authMiddleware, documentsRoutes)
 app.use('/api/phases', authMiddleware, phasesRoutes)
 app.use('/api/organizations', authMiddleware, organizationsRoutes)
 app.use('/api/reports', authMiddleware, reportsRoutes)
+app.use('/api/settings', authMiddleware, settingsRoutes)
 app.get('/rn/:token', (req, res) => {
   const row = db.prepare('SELECT html FROM published_notes WHERE token = ?').get(req.params.token)
   if (!row) return res.status(404).send('<!DOCTYPE html><html><body><h2>Release notes nisu pronađeni.</h2></body></html>')

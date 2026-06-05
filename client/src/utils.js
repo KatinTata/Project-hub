@@ -101,6 +101,7 @@ export function processEpicData(parents, subtasks) {
       assignee: f.assignee?.displayName || null,
       billable: f.billable === true,
       modules,
+      components: (f.components || []).map(c => c.name),
     }
 
     tasks.push(task)

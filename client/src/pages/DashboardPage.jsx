@@ -374,6 +374,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               previousData={prevProjectData[activeProject.id]?.data}
               previousTime={prevProjectData[activeProject.id]?.time}
               isClient={isClient}
+              isSuperAdmin={user.role === 'super_admin'}
               jiraUrl={user.jiraUrl}
               autoRefreshTime={autoRefreshTime}
               onOpenMessages={() => onGoToMessages?.(activeProject?.id || null)}

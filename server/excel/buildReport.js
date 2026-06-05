@@ -66,7 +66,7 @@ function styleHeader(row) {
 export async function buildProjectReport(payload) {
   const {
     meta = {}, totals = {}, tasks = [], assignees = [], components = [],
-    modules = [], phases = [], hasBillableField = false,
+    modules = [], phases = [], hasBillableField = false, stackMatrix = null,
   } = payload
 
   const wb = new ExcelJS.Workbook()
@@ -88,6 +88,7 @@ export async function buildProjectReport(payload) {
   buildPhasesSheet(wb, phases, tasks)
   buildAssigneeSheet(wb, assignees)
   buildBreakdownSheet(wb, modules, components)
+  if (stackMatrix && stackMatrix.rows) buildStackSheet(wb, stackMatrix)
 
   return wb.xlsx.writeBuffer()
 }
@@ -545,4 +546,83 @@ function buildBreakdownSheet(wb, modules, components) {
 
   table('Po modulu', modules, 1)
   table('Po komponenti', components, 6)
+}
+
+// ── Sheet: Faza × Stek (Plan vs Utrošeno) ──────────────────────────────────
+function buildStackSheet(wb, matrix) {
+  const ws = wb.addWorksheet('Stekovi', { views: [{ state: 'frozen', xSplit: 1, ySplit: 2, showGridLines: false }] })
+  const stacks = matrix.stacks
+  const groups = stacks.length + 1 // + Ukupno
+
+  // widths: Faza + 2 per group
+  const widths = [{ width: 22 }]
+  for (let i = 0; i < groups; i++) widths.push({ width: 10 }, { width: 11 })
+  ws.columns = widths
+
+  // Row 1 — group headers (stack name spanning Plan+Utroš)
+  const r1 = ws.getRow(1)
+  let c = 2
+  for (const s of stacks) { ws.mergeCells(1, c, 1, c + 1); r1.getCell(c).value = s; c += 2 }
+  ws.mergeCells(1, c, 1, c + 1); r1.getCell(c).value = 'Ukupno'
+  r1.eachCell(cell => {
+    cell.font = { name: FONT, size: 11, bold: true, color: { argb: C.white } }
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: C.headerBg } }
+    cell.alignment = { horizontal: 'center', vertical: 'middle' }
+    cell.border = thinBorder()
+  })
+  ws.getRow(1).height = 20
+
+  // Row 2 — Plan / Utroš sub-headers
+  const r2 = ws.getRow(2)
+  r2.getCell(1).value = 'Faza'
+  c = 2
+  for (let i = 0; i < groups; i++) { r2.getCell(c).value = 'Plan'; r2.getCell(c + 1).value = 'Utroš'; c += 2 }
+  styleHeader(r2)
+
+  let r = 3
+  const writeRow = (label, cells, total, isTotal) => {
+    const row = ws.getRow(r)
+    row.getCell(1).value = label
+    row.getCell(1).font = { name: FONT, size: 11, bold: !!isTotal, color: { argb: isTotal ? C.text : (label === 'Neraspoređeno' ? C.muted : C.text) } }
+    let cc = 2
+    const put = pair => {
+      row.getCell(cc).value = H(pair.plan); row.getCell(cc).numFmt = HOURS_FMT
+      const sp = row.getCell(cc + 1); sp.value = H(pair.spent); sp.numFmt = HOURS_FMT
+      if (pair.plan > 0 && pair.spent > pair.plan * 1.15) sp.font = { name: FONT, size: 11, bold: true, color: { argb: C.red } }
+      cc += 2
+    }
+    for (const s of stacks) put(cells[s])
+    put(total)
+    row.eachCell(cell => {
+      cell.border = thinBorder()
+      if (!cell.font) cell.font = { name: FONT, size: 11, color: { argb: C.text } }
+      if (isTotal) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: C.surfaceAlt } }
+    })
+    r++
+  }
+
+  for (const row of matrix.rows) writeRow(row.phaseName, row.cells, row.total, false)
+  writeRow('Ukupno', matrix.colTotals, matrix.grand, true)
+
+  // "Šta je u Ostalo"
+  if (matrix.ostalo && matrix.ostalo.length) {
+    r += 1
+    ws.getCell(`A${r}`).value = 'Šta je u „Ostalo" (za naknadno peglanje)'
+    ws.getCell(`A${r}`).font = { name: FONT, size: 12, bold: true, color: { argb: C.text } }
+    r += 1
+    const h = ws.getRow(r)
+    h.getCell(1).value = 'Komponenta (sirovo)'
+    h.getCell(2).value = 'Plan'
+    h.getCell(3).value = 'Utroš'
+    styleHeader(h)
+    r += 1
+    for (const o of matrix.ostalo) {
+      const row = ws.getRow(r)
+      row.getCell(1).value = o.name
+      row.getCell(2).value = H(o.plan); row.getCell(2).numFmt = HOURS_FMT
+      row.getCell(3).value = H(o.spent); row.getCell(3).numFmt = HOURS_FMT
+      ;[1, 2, 3].forEach(cI => { const cell = row.getCell(cI); cell.border = thinBorder(); if (!cell.font) cell.font = { name: FONT, size: 11, color: { argb: C.text } } })
+      r++
+    }
+  }
 }

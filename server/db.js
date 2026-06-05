@@ -200,4 +200,12 @@ db.exec(`
   )
 `)
 
+// Global app settings (key/value) — e.g. working-calendar config for capacity planning
+db.exec(`
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT
+  )
+`)
+
 export default db

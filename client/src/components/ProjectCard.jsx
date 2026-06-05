@@ -11,6 +11,9 @@ import ComponentBreakdown from './ComponentBreakdown.jsx'
 import OverrunHeatmap from './OverrunHeatmap.jsx'
 import ModuleChart from './ModuleChart.jsx'
 import PhaseBuilder, { PhaseCharts } from './PhaseBuilder.jsx'
+import StackMatrix from './StackMatrix.jsx'
+import PhaseForecast from './PhaseForecast.jsx'
+import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 
@@ -259,7 +262,7 @@ export default function ProjectCard({
   project, data, onArchive, loading, error,
   hasJira, refreshing, lastRefresh, onRefresh,
   previousData, previousTime, isClient, onOpenMessages, jiraUrl,
-  autoRefreshTime,
+  autoRefreshTime, isSuperAdmin,
 }) {
   const { isMobile, isTablet } = useWindowSize()
   const t = useT()
@@ -346,6 +349,7 @@ export default function ProjectCard({
         components: componentData || [],
         modules: moduleData || [],
         phases: chartPhases || [],
+        stackMatrix: buildStackMatrix(tasks, chartPhases || []),
         hasBillableField: !!data.hasBillableField,
       })
     } catch (err) {
@@ -682,6 +686,7 @@ export default function ProjectCard({
           {[
             { id: 'tasks', label: 'Taskovi' },
             { id: 'phases', label: 'Faze' },
+            ...(!isClient ? [{ id: 'stacks', label: 'Stekovi' }] : []),
           ].map(tab => (
             <button
               key={tab.id}
@@ -705,6 +710,12 @@ export default function ProjectCard({
         )}
         {activeTab === 'phases' && (
           <PhaseBuilder projectId={project.id} tasks={tasks} isClient={isClient} onPhasesChange={setChartPhases} jiraUrl={jiraUrl} />
+        )}
+        {activeTab === 'stacks' && !isClient && (
+          <>
+            <StackMatrix tasks={tasks} phases={chartPhases} />
+            <PhaseForecast tasks={tasks} phases={chartPhases} canEditConfig={isSuperAdmin} />
+          </>
         )}
       </div>
     </div>
