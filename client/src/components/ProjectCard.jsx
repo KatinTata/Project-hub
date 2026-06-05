@@ -13,6 +13,7 @@ import ModuleChart from './ModuleChart.jsx'
 import PhaseBuilder, { PhaseCharts } from './PhaseBuilder.jsx'
 import StackMatrix from './StackMatrix.jsx'
 import PhaseForecast from './PhaseForecast.jsx'
+import ProjectEstimateSummary from './ProjectEstimateSummary.jsx'
 import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
@@ -520,6 +521,9 @@ export default function ProjectCard({
           </div>
         )}
       </div>
+
+      {/* Project resource & completion estimate — admin only */}
+      {!isClient && <ProjectEstimateSummary tasks={tasks} phases={chartPhases} />}
 
       {/* Changes feed — admin only, above metrics */}
       {!isClient && (
