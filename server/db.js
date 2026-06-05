@@ -102,6 +102,7 @@ try { db.exec(`ALTER TABLE messages ADD COLUMN task_summary TEXT DEFAULT NULL`) 
 try { db.exec(`ALTER TABLE messages ADD COLUMN subject TEXT DEFAULT NULL`) } catch {}
 try { db.exec(`ALTER TABLE users ADD COLUMN anthropic_key TEXT`) } catch {}
 try { db.exec(`ALTER TABLE phases ADD COLUMN due_date TEXT DEFAULT NULL`) } catch {}
+try { db.exec(`ALTER TABLE phases ADD COLUMN start_date TEXT DEFAULT NULL`) } catch {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS phases (

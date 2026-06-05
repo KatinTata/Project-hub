@@ -3,6 +3,16 @@ import { api } from '../api.js'
 import { fmtHours } from '../utils.js'
 import { buildStackMatrix, buildStackTeams } from '../utils/stacks.js'
 import { buildPhaseForecast } from '../utils/forecast.js'
+import { buildCapacity } from '../utils/capacity.js'
+
+const CAP_STATUS = {
+  ok: { bg: 'var(--greenTint)', fg: 'var(--green)' },
+  tight: { bg: 'var(--amberTint)', fg: 'var(--amber)' },
+  over: { bg: 'var(--redTint)', fg: 'var(--red)' },
+  nostaff: { bg: 'var(--redTint)', fg: 'var(--red)' },
+}
+const capChip = st => ({ fontFamily: "'DM Mono'", fontSize: 11, padding: '2px 8px', borderRadius: 6, background: (CAP_STATUS[st] || {}).bg || 'var(--surfaceAlt)', color: (CAP_STATUS[st] || {}).fg || 'var(--textMuted)', border: '1px solid var(--border)' })
+const capLabel = c => c.status === 'nostaff' ? 'nema ljudi' : (c.load != null ? Math.round(c.load * 100) + '%' : '–')
 
 function fmtDate(iso) {
   if (!iso) return '—'
@@ -50,6 +60,10 @@ export default function PhaseForecast({ tasks, phases, canEditConfig }) {
   const forecast = useMemo(
     () => (settings ? buildPhaseForecast(matrix, settings, { basis, peoplePerStackMap: effectiveHc }) : null),
     [matrix, settings, basis, effectiveHc]
+  )
+  const cap = useMemo(
+    () => (settings ? buildCapacity(tasks || [], phases || [], settings, { basis }) : null),
+    [tasks, phases, settings, basis]
   )
 
   async function saveConfig() {
@@ -211,6 +225,50 @@ export default function PhaseForecast({ tasks, phases, canEditConfig }) {
             </span>
           </div>
         </>
+      )}
+
+      {/* Sloj 3 — capacity vs effort in phase windows */}
+      {cap && cap.anyWindow && (
+        <div style={{ borderTop: '1px solid var(--border)' }}>
+          <div style={{ padding: '12px 16px 4px', fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
+            Kapacitet vs napor (prozori faza)
+            <span style={{ ...labelMuted, marginLeft: 8 }}>radni dani u prozoru × ljudi/stek × {settings.workdayHours}h · load %</span>
+          </div>
+          {cap.rows.filter(r => r.hasWindow).map(r => (
+            <div key={r.phaseId} style={{ padding: '8px 16px', borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{r.name}</span>
+                <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>{fmtDate(r.start)}–{fmtDate(r.due)} · {r.workingDays} r.d.</span>
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {stacks.map(s => {
+                  const c = r.cells[s]
+                  if (c.status === 'none') return null
+                  return <span key={s} style={capChip(c.status)}>{s}: {capLabel(c)}</span>
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Hint when phases exist but have no windows yet */}
+      {cap && !cap.anyWindow && forecast.phases.length > 0 && (
+        <div style={{ borderTop: '1px solid var(--border)', padding: '10px 16px', ...labelMuted }}>
+          💡 Postavi <strong style={{ color: 'var(--text)' }}>start + rok</strong> na faze (tab „Faze") da bi dobio proveru kapaciteta i detekciju preopterećenja.
+        </div>
+      )}
+
+      {/* Overallocation warnings */}
+      {cap && cap.warnings.length > 0 && (
+        <div style={{ borderTop: '1px solid var(--border)', padding: '10px 16px', background: 'var(--redTint)' }}>
+          <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: 'var(--red)', marginBottom: 6 }}>⚠️ Preopterećenje ({cap.warnings.length})</div>
+          {cap.warnings.slice(0, 8).map((w, i) => (
+            <div key={i} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)', padding: '2px 0' }}>
+              <strong>{w.person}</strong> — „{w.phases.join('" + „')}" se preklapaju: {fmtDays(w.perDay)} h/dan ({fmtDays(w.over)}h preko {settings.workdayHours}h)
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )

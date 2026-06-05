@@ -99,7 +99,7 @@ function DueDateBadge({ dueDate, isDone, small = false }) {
   )
 }
 
-function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename, onDelete, onUpdateDueDate, activeTaskKey, jiraUrl }) {
+function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename, onDelete, onUpdateDueDate, onUpdateStartDate, activeTaskKey, jiraUrl }) {
   const { setNodeRef, isOver } = useDroppable({ id })
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(phase.name)
@@ -218,24 +218,32 @@ function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename
         )}
       </div>
 
-      {/* Due date inline editor */}
+      {/* Start + due date inline editor (phase window) */}
       {editingDate && !isUnassigned && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <input
-            ref={dateRef}
-            type="date"
-            defaultValue={phase.due_date || ''}
-            onBlur={e => { onUpdateDueDate?.(e.target.value || null); setEditingDate(false) }}
-            onKeyDown={e => { if (e.key === 'Enter') { onUpdateDueDate?.(e.target.value || null); setEditingDate(false) } if (e.key === 'Escape') setEditingDate(false) }}
-            style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--accent)', borderRadius: 4, padding: '3px 6px', color: 'var(--text)', fontFamily: "'DM Mono'", fontSize: 11, outline: 'none' }}
-          />
-          {phase.due_date && (
-            <button
-              onMouseDown={e => { e.preventDefault(); onUpdateDueDate?.(null); setEditingDate(false) }}
-              title="Ukloni rok"
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--textSubtle)', fontSize: 12, lineHeight: 1, padding: '1px 3px' }}
-            >✕</button>
-          )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {[
+            { label: 'Start', value: phase.start_date, on: onUpdateStartDate, ref: dateRef },
+            { label: 'Rok', value: phase.due_date, on: onUpdateDueDate },
+          ].map(row => (
+            <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 30, fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textMuted)' }}>{row.label}</span>
+              <input
+                ref={row.ref}
+                type="date"
+                defaultValue={row.value || ''}
+                onBlur={e => row.on?.(e.target.value || null)}
+                onKeyDown={e => { if (e.key === 'Enter') setEditingDate(false); if (e.key === 'Escape') setEditingDate(false) }}
+                style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--accent)', borderRadius: 4, padding: '3px 6px', color: 'var(--text)', fontFamily: "'DM Mono'", fontSize: 11, outline: 'none' }}
+              />
+              {row.value && (
+                <button
+                  onMouseDown={e => { e.preventDefault(); row.on?.(null) }}
+                  title={`Ukloni ${row.label.toLowerCase()}`}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--textSubtle)', fontSize: 12, lineHeight: 1, padding: '1px 3px' }}
+                >✕</button>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -247,6 +255,11 @@ function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename
       )}
       {!isUnassigned && phase.due_date && !editingDate && (
         <DueDateBadge dueDate={phase.due_date} isDone={donePct === 100} small />
+      )}
+      {!isUnassigned && phase.start_date && !editingDate && (
+        <div style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textMuted)' }}>
+          od {new Date(phase.start_date).toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'short' })}
+        </div>
       )}
 
       {/* Task chips */}
@@ -580,6 +593,14 @@ export default function PhaseBuilder({ projectId, tasks, isClient, onPhasesChang
     catch { loadPhases() }
   }
 
+  async function updatePhaseStartDate(phaseId, startDate) {
+    const phase = phases.find(p => p.id === phaseId)
+    if (!phase) return
+    setPhases(prev => prev.map(p => p.id === phaseId ? { ...p, start_date: startDate } : p))
+    try { await api.updatePhase(phaseId, { startDate }) }
+    catch { loadPhases() }
+  }
+
   async function deletePhase(phaseId) {
     setPhases(prev => prev.filter(p => p.id !== phaseId))
     try { await api.deletePhase(phaseId) }
@@ -681,6 +702,7 @@ export default function PhaseBuilder({ projectId, tasks, isClient, onPhasesChang
               onRename={name => renamePhase(phase.id, name)}
               onDelete={() => deletePhase(phase.id)}
               onUpdateDueDate={dueDate => updatePhaseDueDate(phase.id, dueDate)}
+              onUpdateStartDate={startDate => updatePhaseStartDate(phase.id, startDate)}
               activeTaskKey={activeTask?.key}
               jiraUrl={jiraUrl}
             />

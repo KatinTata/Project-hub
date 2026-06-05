@@ -32,7 +32,7 @@ router.get('/:projectId', (req, res) => {
   const projectId = parseInt(req.params.projectId)
   if (!canAccessProject(req.userId, projectId)) return res.status(403).json({ error: 'Forbidden' })
   const phases = db.prepare(
-    'SELECT id, name, color, position, due_date, created_at FROM phases WHERE project_id = ? ORDER BY position ASC, id ASC'
+    'SELECT id, name, color, position, due_date, start_date, created_at FROM phases WHERE project_id = ? ORDER BY position ASC, id ASC'
   ).all(projectId)
 
   const taskRows = db.prepare(
@@ -52,15 +52,15 @@ router.get('/:projectId', (req, res) => {
 router.post('/:projectId', (req, res) => {
   const projectId = parseInt(req.params.projectId)
   if (!ownsProject(req.userId, projectId)) return res.status(403).json({ error: 'Forbidden' })
-  const { name, color = '#4F8EF7', dueDate } = req.body
+  const { name, color = '#4F8EF7', dueDate, startDate } = req.body
   if (!name?.trim()) return res.status(400).json({ error: 'name je obavezan' })
 
   const maxPos = db.prepare('SELECT MAX(position) as m FROM phases WHERE project_id = ?').get(projectId)?.m ?? -1
   const result = db.prepare(
-    'INSERT INTO phases (project_id, name, color, position, due_date) VALUES (?, ?, ?, ?, ?)'
-  ).run(projectId, name.trim(), color, maxPos + 1, dueDate || null)
+    'INSERT INTO phases (project_id, name, color, position, due_date, start_date) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(projectId, name.trim(), color, maxPos + 1, dueDate || null, startDate || null)
 
-  const row = db.prepare('SELECT id, name, color, position, due_date, created_at FROM phases WHERE id = ?').get(result.lastInsertRowid)
+  const row = db.prepare('SELECT id, name, color, position, due_date, start_date, created_at FROM phases WHERE id = ?').get(result.lastInsertRowid)
   res.json({ phase: { ...row, taskKeys: [] } })
 })
 
@@ -71,9 +71,16 @@ router.put('/:phaseId', (req, res) => {
   const phase = db.prepare('SELECT * FROM phases WHERE id = ?').get(phaseId)
   if (!phase) return res.status(404).json({ error: 'Faza nije pronađena' })
 
-  const { name, color, position, dueDate } = req.body
-  db.prepare('UPDATE phases SET name = ?, color = ?, position = ?, due_date = ? WHERE id = ?')
-    .run(name ?? phase.name, color ?? phase.color, position ?? phase.position, dueDate !== undefined ? (dueDate || null) : phase.due_date, phaseId)
+  const { name, color, position, dueDate, startDate } = req.body
+  db.prepare('UPDATE phases SET name = ?, color = ?, position = ?, due_date = ?, start_date = ? WHERE id = ?')
+    .run(
+      name ?? phase.name,
+      color ?? phase.color,
+      position ?? phase.position,
+      dueDate !== undefined ? (dueDate || null) : phase.due_date,
+      startDate !== undefined ? (startDate || null) : phase.start_date,
+      phaseId
+    )
 
   res.json({ ok: true })
 })
