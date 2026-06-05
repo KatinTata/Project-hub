@@ -43,10 +43,11 @@ export function buildCapacity(tasks, phases, config, opts = {}) {
     const hasWindow = !!(p.start && p.due)
     const W = hasWindow ? countWorkingDays(p.start, p.due, wdpw) : 0
     const mRow = matrix.rows.find(r => r.phaseId === p.id)
+    const roster = opts.peoplePerStack || null
     const cells = {}
     for (const s of STACKS) {
       const demand = mRow ? demandOf(mRow.cells[s]) : 0
-      const people = teams.phaseStack[p.id]?.[s]?.realCount || 0
+      const people = (roster && roster[s] !== undefined) ? roster[s] : (teams.phaseStack[p.id]?.[s]?.realCount || 0)
       const capacity = hasWindow ? W * people * wdh * 3600 : 0
       let status
       if (demand <= 0) status = 'none'

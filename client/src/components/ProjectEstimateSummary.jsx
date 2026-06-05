@@ -18,24 +18,18 @@ function fmtDateAny(v) {
 const fmtDays = n => (Math.round(n * 10) / 10).toFixed(1)
 const STACK_SHORT = { Backend: 'BE', Frontend: 'FE', Testing: 'QA', Ostalo: 'Ost' }
 
-export default function ProjectEstimateSummary({ tasks, phases, projectId, createdAt }) {
+export default function ProjectEstimateSummary({ tasks, phases, createdAt, peoplePerStackMap }) {
   const [settings, setSettings] = useState(null)
-  const [stackPeople, setStackPeople] = useState({})
 
   useEffect(() => {
     api.getAppSettings().then(setSettings).catch(() => setSettings({ workdayHours: 6.5, workdaysPerWeek: 5 }))
   }, [])
 
-  useEffect(() => {
-    if (typeof projectId !== 'number') return
-    api.getStackPeople(projectId).then(m => setStackPeople(m || {})).catch(() => {})
-  }, [projectId])
-
   const teamMap = useMemo(() => {
     const o = {}
-    for (const s of STACKS) o[s] = stackPeople[s] > 0 ? stackPeople[s] : 1
+    for (const s of STACKS) o[s] = (peoplePerStackMap && peoplePerStackMap[s] > 0) ? peoplePerStackMap[s] : 1
     return o
-  }, [stackPeople])
+  }, [peoplePerStackMap])
 
   const data = useMemo(() => {
     if (!settings) return null

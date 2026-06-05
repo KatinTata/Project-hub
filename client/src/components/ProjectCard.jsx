@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { api } from '../api.js'
 import MetricCards from './MetricCards.jsx'
 import DonutChart from './DonutChart.jsx'
@@ -14,6 +14,7 @@ import PhaseBuilder, { PhaseCharts } from './PhaseBuilder.jsx'
 import StackMatrix from './StackMatrix.jsx'
 import PhaseForecast from './PhaseForecast.jsx'
 import ProjectEstimateSummary from './ProjectEstimateSummary.jsx'
+import TeamRoster from './TeamRoster.jsx'
 import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
@@ -276,6 +277,26 @@ export default function ProjectCard({
     api.getPhases(project.id).then(d => setChartPhases(d?.phases || [])).catch(() => {})
   }, [project?.id])
 
+  const [team, setTeam] = useState([])
+  useEffect(() => {
+    if (!project?.id || typeof project.id === 'string') { setTeam([]); return }
+    api.getTeam(project.id).then(t => setTeam(t || [])).catch(() => setTeam([]))
+  }, [project?.id])
+  async function addTeamMember(name, stack) {
+    try { const { member } = await api.addTeamMember(project.id, name, stack); setTeam(t => [...t, member]) }
+    catch (e) { alert(e.message || 'Greška pri dodavanju') }
+  }
+  async function removeTeamMember(id) {
+    setTeam(t => t.filter(m => m.id !== id))
+    try { await api.removeTeamMember(project.id, id) } catch {}
+  }
+  const peoplePerStackMap = useMemo(() => {
+    if (!team.length) return null
+    const m = { Backend: 0, Frontend: 0, Testing: 0, Ostalo: 0 }
+    for (const mem of team) if (m[mem.stack] !== undefined) m[mem.stack]++
+    return m
+  }, [team])
+
   if (loading) {
     return (
       <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
@@ -523,7 +544,7 @@ export default function ProjectCard({
       </div>
 
       {/* Project resource & completion estimate — admin only */}
-      {!isClient && <ProjectEstimateSummary tasks={tasks} phases={chartPhases} projectId={project.id} createdAt={project.createdAt} />}
+      {!isClient && <ProjectEstimateSummary tasks={tasks} phases={chartPhases} createdAt={project.createdAt} peoplePerStackMap={peoplePerStackMap} />}
 
       {/* Changes feed — admin only, above metrics */}
       {!isClient && (
@@ -717,8 +738,9 @@ export default function ProjectCard({
         )}
         {activeTab === 'stacks' && !isClient && (
           <>
+            <TeamRoster team={team} tasks={tasks} onAdd={addTeamMember} onRemove={removeTeamMember} />
             <StackMatrix tasks={tasks} phases={chartPhases} />
-            <PhaseForecast tasks={tasks} phases={chartPhases} projectId={project.id} createdAt={project.createdAt} canEditConfig={isSuperAdmin} />
+            <PhaseForecast tasks={tasks} phases={chartPhases} createdAt={project.createdAt} peoplePerStackMap={peoplePerStackMap} canEditConfig={isSuperAdmin} />
           </>
         )}
       </div>

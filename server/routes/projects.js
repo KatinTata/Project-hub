@@ -170,6 +170,42 @@ router.put('/:id/stack-people', (req, res) => {
   res.json(map)
 })
 
+// Curated team roster (named people per stack)
+router.get('/:id/team', (req, res) => {
+  const role = getUserRole(req.userId)
+  const access = isAdminRole(role)
+    ? db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    : db.prepare('SELECT p.id FROM project_clients pc JOIN projects p ON p.id = pc.project_id WHERE pc.client_user_id = ? AND p.id = ?').get(req.userId, req.params.id)
+  if (!access) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const rows = db.prepare('SELECT id, name, stack FROM project_team WHERE project_id = ? ORDER BY stack, name').all(req.params.id)
+  res.json(rows)
+})
+
+router.post('/:id/team', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const name = (req.body?.name || '').trim()
+  const stack = req.body?.stack
+  if (!name) return res.status(400).json({ error: 'Ime je obavezno' })
+  if (!VALID_STACKS.includes(stack)) return res.status(400).json({ error: 'Nevalidan stek' })
+  try {
+    const r = db.prepare('INSERT INTO project_team (project_id, name, stack) VALUES (?, ?, ?)').run(req.params.id, name, stack)
+    res.json({ member: { id: r.lastInsertRowid, name, stack } })
+  } catch (err) {
+    if (String(err.message).includes('UNIQUE')) return res.status(409).json({ error: 'Već u timu za taj stek' })
+    res.status(500).json({ error: 'Greška servera' })
+  }
+})
+
+router.delete('/:id/team/:memberId', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  db.prepare('DELETE FROM project_team WHERE id = ? AND project_id = ?').run(req.params.memberId, req.params.id)
+  res.json({ ok: true })
+})
+
 router.put('/reorder', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   try {

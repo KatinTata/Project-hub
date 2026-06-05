@@ -105,6 +105,11 @@ export const api = {
   getStackPeople: (projectId) => request('GET', `/projects/${projectId}/stack-people`),
   setStackPeople: (projectId, people) => request('PUT', `/projects/${projectId}/stack-people`, { people }),
 
+  // Team roster (named people per stack)
+  getTeam: (projectId) => request('GET', `/projects/${projectId}/team`),
+  addTeamMember: (projectId, name, stack) => request('POST', `/projects/${projectId}/team`, { name, stack }),
+  removeTeamMember: (projectId, memberId) => request('DELETE', `/projects/${projectId}/team/${memberId}`),
+
   // Billable
   getBillableTasks: (projectId) => request('GET', `/projects/${projectId}/billable`),
   setBillableTask: (projectId, taskKey, billable) => request('PUT', `/projects/${projectId}/billable`, { taskKey, billable }),

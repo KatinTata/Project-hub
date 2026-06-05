@@ -219,4 +219,15 @@ db.exec(`
   )
 `)
 
+// Per-project curated team roster (named people assigned to a stack)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS project_team (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    name       TEXT NOT NULL,
+    stack      TEXT NOT NULL,
+    UNIQUE(project_id, name, stack)
+  )
+`)
+
 export default db
