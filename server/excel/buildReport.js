@@ -3,8 +3,17 @@
 // so there is no Jira/logic duplication here — this module only formats.
 
 import ExcelJS from 'exceljs'
-import sharp from 'sharp'
+import { Resvg } from '@resvg/resvg-js'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { donutSVG, columnSVG, hbarSVG, PALETTE } from './charts.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const FONT_FILES = [
+  path.join(__dirname, 'fonts', 'Inter-Regular.ttf'),
+  path.join(__dirname, 'fonts', 'Inter-Bold.ttf'),
+]
 
 // ── Colors (ARGB) ───────────────────────────────────────────────────────────
 const C = {
@@ -28,8 +37,13 @@ function fmtDate(iso) {
 
 const CAT_LABEL = { done: 'Završeno', testing: 'Testing', inprog: 'In Progress', todo: 'To Do' }
 
-async function svgToPng(svg) {
-  return sharp(Buffer.from(svg), { density: 144 }).png().toBuffer()
+// SVG → PNG with the bundled Inter font (no reliance on system/container fonts).
+function svgToPng(svg) {
+  const r = new Resvg(svg, {
+    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Inter' },
+    fitTo: { mode: 'zoom', value: 2 }, // 2× for crisp embedding
+  })
+  return r.render().asPng()
 }
 
 function thinBorder() {
@@ -74,14 +88,13 @@ export async function buildProjectReport(payload) {
   buildPhasesSheet(wb, phases, tasks)
   buildAssigneeSheet(wb, assignees)
   buildBreakdownSheet(wb, modules, components)
-  buildSubtaskSheet(wb, tasks)
 
   return wb.xlsx.writeBuffer()
 }
 
 // ── Sheet 1: Dashboard ──────────────────────────────────────────────────────
 async function buildDashboard(wb, ctx) {
-  const { meta, totals, overTasks, phases, hasBillableField, billableSpent, diff, diffPct, donePct, tasks } = ctx
+  const { meta, totals, overTasks, phases, hasBillableField, billableSpent, diff, diffPct, donePct, tasks, assignees, modules } = ctx
   const ws = wb.addWorksheet('Dashboard', {
     properties: { tabColor: { argb: C.accent } },
     views: [{ showGridLines: false }],
@@ -187,36 +200,71 @@ async function buildDashboard(wb, ctx) {
   }
 
   // ── Charts (images) ─────────────────────────────────────────────────────
-  const donut = await svgToPng(donutSVG([
+  const place = (svg, wpx, hpx, tlCol, atRow) => {
+    const id = wb.addImage({ buffer: svgToPng(svg), extension: 'png' })
+    ws.addImage(id, { tl: { col: tlCol, row: atRow }, ext: { width: wpx, height: hpx }, editAs: 'oneCell' })
+  }
+  const sectionTitle = (atRow, text, color) => {
+    ws.mergeCells(`B${atRow}:M${atRow}`)
+    const cell = ws.getCell(`B${atRow}`)
+    cell.value = text
+    cell.font = { name: FONT, size: 13, bold: true, color: { argb: color || C.text } }
+    ws.getRow(atRow).height = 20
+  }
+  const rowsFor = hpx => Math.ceil(hpx / 19) + 1
+  const hbarH = n => 20 + Math.min(Math.max(n, 1), 12) * 28
+
+  let row = hasBillableField ? 18 : 17
+
+  // Row A: status donut + estimate-vs-spent columns
+  sectionTitle(row, 'Distribucija statusa  ·  Estimacija vs Utrošeno (top taskovi)')
+  row += 1
+  place(donutSVG([
     { value: totals.done || 0, label: 'Završeno', color: PALETTE.green },
     { value: totals.testing || 0, label: 'Testing', color: PALETTE.amber },
     { value: totals.inprog || 0, label: 'In Progress', color: PALETTE.accent },
     { value: totals.todo || 0, label: 'To Do', color: PALETTE.grayLight },
-  ], { centerLabel: Math.round(donePct * 100) + '%', centerSub: 'završeno' }))
-
+  ], { width: 440, height: 240, centerLabel: Math.round(donePct * 100) + '%', centerSub: 'završeno' }), 440, 240, 1, row)
   const colData = tasks
     .filter(t => (t.est || 0) > 0)
     .sort((a, b) => (b.est || 0) - (a.est || 0))
     .map(t => ({ label: t.key, est: t.est, spent: t.spent, over: t.over }))
-  const columns = await svgToPng(columnSVG(colData))
+  place(columnSVG(colData, { width: 470, height: 240 }), 470, 240, 6.7, row)
+  row += rowsFor(240)
 
-  const chartRow = hasBillableField ? 18 : 17
-  ws.mergeCells(`B${chartRow}:M${chartRow}`)
-  ws.getCell(`B${chartRow}`).value = 'Distribucija statusa  ·  Estimacija vs Utrošeno (top taskovi)'
-  ws.getCell(`B${chartRow}`).font = { name: FONT, size: 13, bold: true, color: { argb: C.text } }
-  ws.getRow(chartRow).height = 20
+  // Row B: time by module + workload by assignee
+  const moduleItems = (modules || []).filter(m => (m.totalSpent || 0) > 0).map(m => ({ label: m.name, value: m.totalSpent, sub: (m.taskCount || 0) + ' tsk' }))
+  const assigneeItems = (assignees || []).map(a => ({ label: a.name, value: a.totalSpent, sub: (a.totalTasks || 0) + ' tsk' }))
+  if (moduleItems.length || assigneeItems.length) {
+    sectionTitle(row, 'Utrošeno po modulu  ·  Opterećenje po izvršiocu')
+    row += 1
+    const mH = hbarH(moduleItems.length)
+    const aH = hbarH(assigneeItems.length)
+    if (moduleItems.length) place(hbarSVG(moduleItems, { width: 440, color: PALETTE.accent }), 440, mH, 1, row)
+    if (assigneeItems.length) place(hbarSVG(assigneeItems, { width: 440, color: PALETTE.green }), 440, aH, 6.2, row)
+    row += rowsFor(Math.max(mH, aH))
+  }
 
-  const donutId = wb.addImage({ buffer: donut, extension: 'png' })
-  ws.addImage(donutId, { tl: { col: 1, row: chartRow }, ext: { width: 380, height: 240 }, editAs: 'oneCell' })
-  const colId = wb.addImage({ buffer: columns, extension: 'png' })
-  ws.addImage(colId, { tl: { col: 6.1, row: chartRow }, ext: { width: 460, height: 240 }, editAs: 'oneCell' })
+  // Row C: phase progress (% done)
+  const taskByKey = {}
+  for (const tk of tasks) taskByKey[tk.key] = tk
+  const phaseItems = (phases || []).map(ph => {
+    const ts = (ph.taskKeys || []).map(k => taskByKey[k]).filter(Boolean)
+    const done = ts.filter(x => x.statusCategory === 'done').length
+    return { label: ph.name, value: ts.length ? done / ts.length : 0, sub: `${done}/${ts.length}` }
+  })
+  if (phaseItems.length) {
+    sectionTitle(row, 'Napredak po fazama (% završeno)')
+    row += 1
+    const pH = hbarH(phaseItems.length)
+    place(hbarSVG(phaseItems, { width: 900, color: PALETTE.green, format: 'pct', max: 1 }), 900, pH, 1, row)
+    row += rowsFor(pH)
+  }
 
   // ── Top overruns table ────────────────────────────────────────────────────
-  let r = chartRow + 14
   if (overTasks.length) {
-    ws.mergeCells(`B${r}:M${r}`)
-    ws.getCell(`B${r}`).value = `Top prekoračenja (${overTasks.length})`
-    ws.getCell(`B${r}`).font = { name: FONT, size: 13, bold: true, color: { argb: C.red } }
+    let r = row
+    sectionTitle(r, `Top prekoračenja (${overTasks.length})`, C.red)
     r++
     const head = ws.getRow(r)
     head.getCell(2).value = 'Task'
@@ -227,19 +275,19 @@ async function buildDashboard(wb, ctx) {
     ws.mergeCells(`D${r}:I${r}`)
     styleHeader(head)
     r++
-    overTasks.slice(0, 8).sort((a, b) => b.overPct - a.overPct).forEach(t => {
-      const row = ws.getRow(r)
-      row.getCell(2).value = t.key
-      row.getCell(2).font = { name: FONT, size: 11, bold: true, color: { argb: C.accent } }
+    overTasks.slice().sort((a, b) => b.overPct - a.overPct).slice(0, 8).forEach(t => {
+      const rr = ws.getRow(r)
+      rr.getCell(2).value = t.key
+      rr.getCell(2).font = { name: FONT, size: 11, bold: true, color: { argb: C.accent } }
       ws.mergeCells(`D${r}:I${r}`)
-      row.getCell(4).value = t.summary
-      row.getCell(4).font = { name: FONT, size: 11, color: { argb: C.text } }
-      row.getCell(4).alignment = { wrapText: false }
-      row.getCell(10).value = H(t.est); row.getCell(10).numFmt = HOURS_FMT
-      row.getCell(11).value = H(t.spent); row.getCell(11).numFmt = HOURS_FMT
-      row.getCell(12).value = t.overPct / 100; row.getCell(12).numFmt = PCT_FMT
-      row.getCell(12).font = { name: FONT, size: 11, bold: true, color: { argb: C.red } }
-      ;[2, 10, 11, 12].forEach(c => { row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: C.redTint } } })
+      rr.getCell(4).value = t.summary
+      rr.getCell(4).font = { name: FONT, size: 11, color: { argb: C.text } }
+      rr.getCell(4).alignment = { wrapText: false }
+      rr.getCell(10).value = H(t.est); rr.getCell(10).numFmt = HOURS_FMT
+      rr.getCell(11).value = H(t.spent); rr.getCell(11).numFmt = HOURS_FMT
+      rr.getCell(12).value = t.overPct / 100; rr.getCell(12).numFmt = PCT_FMT
+      rr.getCell(12).font = { name: FONT, size: 11, bold: true, color: { argb: C.red } }
+      ;[2, 10, 11, 12].forEach(c => { rr.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: C.redTint } } })
       r++
     })
   }
@@ -497,34 +545,4 @@ function buildBreakdownSheet(wb, modules, components) {
 
   table('Po modulu', modules, 1)
   table('Po komponenti', components, 6)
-}
-
-// ── Sheet 6: Subtaskovi (sirovo) ────────────────────────────────────────────
-function buildSubtaskSheet(wb, tasks) {
-  const ws = wb.addWorksheet('Subtaskovi', { views: [{ state: 'frozen', ySplit: 1, showGridLines: false }] })
-  ws.columns = [
-    { width: 13 }, { width: 13 }, { width: 50 }, { width: 18 }, { width: 20 }, { width: 18 }, { width: 10 }, { width: 12 },
-  ]
-  const header = ws.getRow(1)
-  ;['Parent', 'Subtask', 'Naziv', 'Status', 'Izvršilac', 'Komponente', 'Est (h)', 'Utrošeno (h)'].forEach((h, i) => { header.getCell(i + 1).value = h })
-  styleHeader(header)
-
-  let r = 2
-  for (const t of tasks) {
-    for (const sub of (t.subtasks || [])) {
-      const row = ws.getRow(r)
-      row.getCell(1).value = t.key
-      row.getCell(2).value = sub.key
-      row.getCell(2).font = { name: FONT, size: 11, bold: true, color: { argb: C.accent } }
-      row.getCell(3).value = sub.summary
-      row.getCell(4).value = sub.status
-      row.getCell(5).value = sub.assignee || '—'
-      row.getCell(6).value = (sub.components || []).join(', ')
-      row.getCell(7).value = H(sub.timeoriginalestimate); row.getCell(7).numFmt = HOURS_FMT
-      row.getCell(8).value = H(sub.timespent); row.getCell(8).numFmt = HOURS_FMT
-      row.eachCell(cell => { cell.border = thinBorder(); if (!cell.font) cell.font = { name: FONT, size: 11, color: { argb: C.text } } })
-      r++
-    }
-  }
-  if (r > 2) ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: 8 } }
 }
