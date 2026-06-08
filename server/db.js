@@ -230,4 +230,16 @@ db.exec(`
   )
 `)
 
+// Daily project snapshots (history / trends) — one row per project per day
+db.exec(`
+  CREATE TABLE IF NOT EXISTS project_snapshots (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    day        TEXT NOT NULL,
+    payload    TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(project_id, day)
+  )
+`)
+
 export default db

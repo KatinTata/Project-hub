@@ -15,6 +15,7 @@ import StackMatrix from './StackMatrix.jsx'
 import PhaseForecast from './PhaseForecast.jsx'
 import ProjectEstimateSummary from './ProjectEstimateSummary.jsx'
 import TeamRoster from './TeamRoster.jsx'
+import ProjectTrend from './ProjectTrend.jsx'
 import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
@@ -711,7 +712,7 @@ export default function ProjectCard({
           {[
             { id: 'tasks', label: 'Taskovi' },
             { id: 'phases', label: 'Faze' },
-            ...(!isClient ? [{ id: 'stacks', label: 'Stekovi' }] : []),
+            ...(!isClient ? [{ id: 'stacks', label: 'Stekovi' }, { id: 'trend', label: 'Trend' }] : []),
           ].map(tab => (
             <button
               key={tab.id}
@@ -742,6 +743,9 @@ export default function ProjectCard({
             <StackMatrix tasks={tasks} phases={chartPhases} />
             <PhaseForecast tasks={tasks} phases={chartPhases} createdAt={project.createdAt} peoplePerStackMap={peoplePerStackMap} canEditConfig={isSuperAdmin} />
           </>
+        )}
+        {activeTab === 'trend' && !isClient && (
+          <ProjectTrend projectId={project.id} />
         )}
       </div>
     </div>

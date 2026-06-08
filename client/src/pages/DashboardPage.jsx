@@ -8,6 +8,7 @@ import ClientNotificationModal from '../components/ClientNotificationModal.jsx'
 import AddProjectPage from './AddProjectPage.jsx'
 import { api } from '../api.js'
 import { processEpicData, DEMO_PROJECTS } from '../utils.js'
+import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 
@@ -185,6 +186,20 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
       data.hasBillableField = !!hasBillableField
       const fetchedAt = Date.now()
       saveProjectCache(project.id, data)
+
+      // Daily snapshot (history) — fire and forget; server keeps one per day
+      if (!isClient && typeof project.id === 'number') {
+        try {
+          const sm = buildStackMatrix(data.tasks, [])
+          const stacks = {}
+          for (const s of sm.stacks) stacks[s] = { plan: sm.colTotals[s].plan, spent: sm.colTotals[s].spent }
+          const billableSpent = (data.tasks || []).filter(t => t.billable).reduce((acc, t) => acc + (t.spent || 0), 0)
+          api.saveSnapshot(project.id, {
+            total: data.total, done: data.done, inprog: data.inprog, testing: data.testing, todo: data.todo,
+            totalEst: data.totalEst, totalSpent: data.totalSpent, billableSpent, stacks,
+          }).catch(() => {})
+        } catch {}
+      }
       setLastRefresh(prev => ({ ...prev, [project.id]: fetchedAt }))
       setProjectData(prev => {
         const current = prev[project.id]

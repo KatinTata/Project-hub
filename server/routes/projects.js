@@ -206,6 +206,33 @@ router.delete('/:id/team/:memberId', (req, res) => {
   res.json({ ok: true })
 })
 
+// Daily snapshots (history / trends)
+router.post('/:id/snapshot', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const payload = req.body?.payload
+  if (!payload || typeof payload !== 'object') return res.status(400).json({ error: 'payload je obavezan' })
+  const day = new Date().toISOString().slice(0, 10)
+  db.prepare('INSERT INTO project_snapshots (project_id, day, payload) VALUES (?, ?, ?) ON CONFLICT(project_id, day) DO UPDATE SET payload = excluded.payload, created_at = CURRENT_TIMESTAMP')
+    .run(req.params.id, day, JSON.stringify(payload))
+  res.json({ ok: true, day })
+})
+
+router.get('/:id/snapshots', (req, res) => {
+  const role = getUserRole(req.userId)
+  const access = isAdminRole(role)
+    ? db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    : db.prepare('SELECT p.id FROM project_clients pc JOIN projects p ON p.id = pc.project_id WHERE pc.client_user_id = ? AND p.id = ?').get(req.userId, req.params.id)
+  if (!access) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const rows = db.prepare('SELECT day, payload FROM project_snapshots WHERE project_id = ? ORDER BY day ASC').all(req.params.id)
+  res.json(rows.map(r => {
+    let payload = {}
+    try { payload = JSON.parse(r.payload) } catch {}
+    return { day: r.day, ...payload }
+  }))
+})
+
 router.put('/reorder', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   try {

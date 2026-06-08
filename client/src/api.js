@@ -105,6 +105,10 @@ export const api = {
   getStackPeople: (projectId) => request('GET', `/projects/${projectId}/stack-people`),
   setStackPeople: (projectId, people) => request('PUT', `/projects/${projectId}/stack-people`, { people }),
 
+  // Snapshots (history / trends)
+  saveSnapshot: (projectId, payload) => request('POST', `/projects/${projectId}/snapshot`, { payload }),
+  getSnapshots: (projectId) => request('GET', `/projects/${projectId}/snapshots`),
+
   // Team roster (named people per stack)
   getTeam: (projectId) => request('GET', `/projects/${projectId}/team`),
   addTeamMember: (projectId, name, stack) => request('POST', `/projects/${projectId}/team`, { name, stack }),
