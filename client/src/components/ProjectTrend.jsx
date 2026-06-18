@@ -65,7 +65,7 @@ export default function ProjectTrend({ projectId }) {
   if (snaps.length < 2) {
     return (
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
-        📈 Trend se gradi iz dnevnih snapshot-a (beleže se pri svakom „Osveži").<br />
+        Trend se gradi iz dnevnih snapshot-a (beleže se pri svakom „Osveži").<br />
         Treba bar <strong>2 različita dana</strong> podataka — vrati se sutra pa će biti grafika.
         {snaps.length === 1 && <div style={{ marginTop: 6, fontSize: 12 }}>Zabeležen 1 dan ({fmtDay(snaps[0].day)}).</div>}
       </div>
@@ -134,7 +134,7 @@ export default function ProjectTrend({ projectId }) {
 
         {weeksLeft != null && (
           <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)', marginBottom: 12 }}>
-            🏁 Po trenutnoj brzini ({velWeek.toFixed(1)} taskova/ned), preostalih <strong style={{ color: 'var(--text)' }}>{openNow}</strong> otvorenih ≈ <strong style={{ color: 'var(--text)' }}>{weeksLeft.toFixed(1)} nedelja</strong>.
+            Po trenutnoj brzini ({velWeek.toFixed(1)} taskova/ned), preostalih <strong style={{ color: 'var(--text)' }}>{openNow}</strong> otvorenih ≈ <strong style={{ color: 'var(--text)' }}>{weeksLeft.toFixed(1)} nedelja</strong>.
           </div>
         )}
 

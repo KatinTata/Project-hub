@@ -148,13 +148,13 @@ export default function ProjectEstimateSummary({ tasks, phases, createdAt, peopl
       {(data.openOverCount > 0 || data.openNoEst > 0 || data.unassignedManDays > 0.05) && (
         <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 5, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
           {data.openOverCount > 0 && (
-            <div>⚠️ <strong style={{ color: 'var(--red)' }}>{data.openOverCount}</strong> {data.openOverCount === 1 ? 'otvoren task već prekoračuje' : 'otvorenih taskova već prekoračuje'} estimaciju (+{fmtDays(data.openOverHours)}h preko plana) — procena ne uključuje dalja prekoračenja.</div>
+            <div><strong style={{ color: 'var(--red)' }}>{data.openOverCount}</strong> {data.openOverCount === 1 ? 'otvoren task već prekoračuje' : 'otvorenih taskova već prekoračuje'} estimaciju (+{fmtDays(data.openOverHours)}h preko plana) — procena ne uključuje dalja prekoračenja.</div>
           )}
           {data.openNoEst > 0 && (
-            <div>📐 <strong style={{ color: 'var(--text)' }}>{data.openNoEst}</strong> {data.openNoEst === 1 ? 'otvoren task bez estimacije' : 'otvorenih taskova bez estimacije'} — ne ulaze u preostali napor ni datum.</div>
+            <div><strong style={{ color: 'var(--text)' }}>{data.openNoEst}</strong> {data.openNoEst === 1 ? 'otvoren task bez estimacije' : 'otvorenih taskova bez estimacije'} — ne ulaze u preostali napor ni datum.</div>
           )}
           {data.unassignedManDays > 0.05 && (
-            <div>📋 <strong style={{ color: 'var(--text)' }}>{fmtDays(data.unassignedManDays)} čd</strong> preostalog posla nije ni u jednoj fazi — nije uračunato u datum. Dodeli te taskove fazama.</div>
+            <div><strong style={{ color: 'var(--text)' }}>{fmtDays(data.unassignedManDays)} čd</strong> preostalog posla nije ni u jednoj fazi — nije uračunato u datum. Dodeli te taskove fazama.</div>
           )}
         </div>
       )}
