@@ -3,7 +3,7 @@
 // the working-day capacity in that window (per stack) against the demand
 // (effort), and detect people booked across overlapping phase windows.
 
-import { buildStackMatrix, buildStackTeams, normalizeStack, STACKS } from './stacks.js'
+import { buildStackMatrix, buildStackTeams, normalizeStack, remainingOf, STACKS } from './stacks.js'
 
 const mondayIdx = d => (d.getDay() + 6) % 7
 const isWorking = (d, wdpw) => mondayIdx(d) < wdpw
@@ -32,7 +32,8 @@ export function buildCapacity(tasks, phases, config, opts = {}) {
   const wdh = config?.workdayHours > 0 ? config.workdayHours : 6.5
   const wdpw = config?.workdaysPerWeek >= 1 && config?.workdaysPerWeek <= 7 ? config.workdaysPerWeek : 5
   const basis = opts.basis === 'plan' ? 'plan' : 'remaining'
-  const demandOf = c => basis === 'plan' ? c.plan : Math.max(0, c.plan - c.spent)
+  // Demand mirrors the forecast: status-aware remaining (precomputed per cell).
+  const demandOf = c => basis === 'plan' ? c.plan : (c.remaining || 0)
 
   const matrix = buildStackMatrix(tasks || [], phases || [])
   const teams = buildStackTeams(tasks || [], phases || [])
@@ -67,8 +68,8 @@ export function buildCapacity(tasks, phases, config, opts = {}) {
 
   // person → phaseId → demand seconds
   const pp = {}
-  const addPP = (name, pid, est, spent) => {
-    const dem = basis === 'plan' ? est : Math.max(0, est - spent)
+  const addPP = (name, pid, est, spent, statusCat) => {
+    const dem = basis === 'plan' ? est : remainingOf(statusCat, est, spent)
     if (dem <= 0 || !name || name === 'Neraspoređeno') return
     if (!pp[name]) pp[name] = {}
     pp[name][pid] = (pp[name][pid] || 0) + dem
@@ -78,8 +79,8 @@ export function buildCapacity(tasks, phases, config, opts = {}) {
     const subs = task.subtasks || []
     const subEst = subs.reduce((a, x) => a + (x.timeoriginalestimate || 0), 0)
     const subSpent = subs.reduce((a, x) => a + (x.timespent || 0), 0)
-    addPP(task.assignee, pid, Math.max(0, (task.est || 0) - subEst), Math.max(0, (task.spent || 0) - subSpent))
-    for (const sub of subs) addPP(sub.assignee || task.assignee, pid, sub.timeoriginalestimate || 0, sub.timespent || 0)
+    addPP(task.assignee, pid, Math.max(0, (task.est || 0) - subEst), Math.max(0, (task.spent || 0) - subSpent), task.statusCategory)
+    for (const sub of subs) addPP(sub.assignee || task.assignee, pid, sub.timeoriginalestimate || 0, sub.timespent || 0, sub.statusCategory)
   }
 
   const warnings = []

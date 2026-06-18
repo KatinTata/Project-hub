@@ -61,8 +61,10 @@ export function buildPhaseForecast(matrix, config, opts = {}) {
     let phaseDurationDays = 0
     let phaseManDays = 0
     for (const s of stacks) {
-      const cell = row.cells[s] || { plan: 0, spent: 0 }
-      const effortSec = basis === 'plan' ? cell.plan : Math.max(0, cell.plan - cell.spent)
+      const cell = row.cells[s] || { plan: 0, spent: 0, remaining: 0 }
+      // 'remaining' is status-aware (done→0, todo→plan, inprog→plan−spent),
+      // computed in buildStackMatrix; 'plan' uses the full estimate.
+      const effortSec = basis === 'plan' ? cell.plan : (cell.remaining || 0)
       const manDays = (effortSec / 3600) / workdayHours
       stackManDays[s] = manDays
       phaseManDays += manDays

@@ -8,6 +8,19 @@
 
 export const STACKS = ['Backend', 'Frontend', 'Testing', 'Ostalo']
 
+// Status-aware remaining effort for one unit (task-own or subtask).
+// Completion is driven by Jira STATUS, not by burned hours:
+//   done            → 0 (gotovo, bez obzira na potrošeno)
+//   todo            → pun plan (posao nije počeo)
+//   inprog/testing  → max(0, plan − utrošeno), nikad ispod 0
+// Note: open work that is over budget contributes 0 here by design — the extra
+// overrun is unpredictable and is surfaced separately as a risk, not as ETA.
+export function remainingOf(statusCat, plan, spent) {
+  if (statusCat === 'done') return 0
+  if (statusCat === 'todo') return plan
+  return Math.max(0, plan - spent)
+}
+
 // Alias config — messy Jira component names → canonical stack.
 // Kept as data so it can be made editable later without code changes.
 export function normalizeStack(name) {
@@ -26,13 +39,13 @@ export function buildStackMatrix(tasks, phases) {
 
   const blankCells = () => {
     const o = {}
-    for (const s of STACKS) o[s] = { plan: 0, spent: 0 }
+    for (const s of STACKS) o[s] = { plan: 0, spent: 0, remaining: 0 }
     return o
   }
 
   const rowsMap = {}
-  for (const p of phaseList) rowsMap[p.id] = { phaseId: p.id, phaseName: p.name, cells: blankCells(), total: { plan: 0, spent: 0 } }
-  rowsMap.none = { phaseId: 'none', phaseName: 'Neraspoređeno', cells: blankCells(), total: { plan: 0, spent: 0 } }
+  for (const p of phaseList) rowsMap[p.id] = { phaseId: p.id, phaseName: p.name, cells: blankCells(), total: { plan: 0, spent: 0, remaining: 0 } }
+  rowsMap.none = { phaseId: 'none', phaseName: 'Neraspoređeno', cells: blankCells(), total: { plan: 0, spent: 0, remaining: 0 } }
 
   const ostalo = {} // raw component name → { name, plan, spent }
   const addOstaloRaw = (raw, plan, spent) => {
@@ -42,14 +55,17 @@ export function buildStackMatrix(tasks, phases) {
     ostalo[key].spent += spent
   }
 
-  const attribute = (pid, rawComp, plan, spent) => {
+  const attribute = (pid, rawComp, plan, spent, statusCat) => {
     if (plan === 0 && spent === 0) return
     const stack = normalizeStack(rawComp)
     const row = rowsMap[pid] || rowsMap.none
+    const rem = remainingOf(statusCat, plan, spent)
     row.cells[stack].plan += plan
     row.cells[stack].spent += spent
+    row.cells[stack].remaining += rem
     row.total.plan += plan
     row.total.spent += spent
+    row.total.remaining += rem
     if (stack === 'Ostalo') addOstaloRaw(rawComp, plan, spent)
   }
 
@@ -59,16 +75,17 @@ export function buildStackMatrix(tasks, phases) {
     const subEst = subs.reduce((s, x) => s + (x.timeoriginalestimate || 0), 0)
     const subSpent = subs.reduce((s, x) => s + (x.timespent || 0), 0)
 
-    // Parent-own remainder → main task component (equals raw parent est/spent)
+    // Parent-own remainder → main task component (equals raw parent est/spent),
+    // attributed with the parent's own status.
     const parentEst = Math.max(0, (task.est || 0) - subEst)
     const parentSpent = Math.max(0, (task.spent || 0) - subSpent)
     const mainComp = (task.components || [])[0] || ''
-    attribute(pid, mainComp, parentEst, parentSpent)
+    attribute(pid, mainComp, parentEst, parentSpent, task.statusCategory)
 
-    // Each included subtask → its own component
+    // Each included subtask → its own component + its own status
     for (const sub of subs) {
       const comp = (sub.components || [])[0] || ''
-      attribute(pid, comp, sub.timeoriginalestimate || 0, sub.timespent || 0)
+      attribute(pid, comp, sub.timeoriginalestimate || 0, sub.timespent || 0, sub.statusCategory)
     }
   }
 
@@ -76,15 +93,17 @@ export function buildStackMatrix(tasks, phases) {
   if (rowsMap.none.total.plan > 0 || rowsMap.none.total.spent > 0) rows.push(rowsMap.none)
 
   const colTotals = {}
-  for (const s of STACKS) colTotals[s] = { plan: 0, spent: 0 }
-  const grand = { plan: 0, spent: 0 }
+  for (const s of STACKS) colTotals[s] = { plan: 0, spent: 0, remaining: 0 }
+  const grand = { plan: 0, spent: 0, remaining: 0 }
   for (const r of rows) {
     for (const s of STACKS) {
       colTotals[s].plan += r.cells[s].plan
       colTotals[s].spent += r.cells[s].spent
+      colTotals[s].remaining += r.cells[s].remaining
     }
     grand.plan += r.total.plan
     grand.spent += r.total.spent
+    grand.remaining += r.total.remaining
   }
 
   const ostaloList = Object.values(ostalo).sort((a, b) => b.spent - a.spent || b.plan - a.plan)
