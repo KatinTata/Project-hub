@@ -186,22 +186,25 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
         // Moving an existing image: place it at the drop point AND set its side
         // (left/center/right) from where it was dropped horizontally.
         if (moved) {
-          const dn = slice.content.firstChild
+          const sel = view.state.selection
+          const dn = sel.node // NodeSelection only — guarantees we delete the right node
+          // Only take over when the dragged thing is exactly the selected image.
           if (dn && dn.type.name === 'image') {
             const coords = view.posAtCoords({ left: event.clientX, top: event.clientY })
             if (!coords) return false
+            // Dropped inside its own range → no-op (avoids duplicate).
+            if (coords.pos >= sel.from && coords.pos <= sel.to) { event.preventDefault(); return true }
             event.preventDefault()
             const rect = view.dom.getBoundingClientRect()
             const rel = (event.clientX - rect.left) / rect.width
             const align = rel < 0.34 ? 'left' : rel > 0.66 ? 'right' : 'full'
-            const sel = view.state.selection
             let tr = view.state.tr.delete(sel.from, sel.to)
             const target = Math.min(tr.doc.content.size, tr.mapping.map(coords.pos))
             tr = tr.insert(target, dn.type.create({ ...dn.attrs, style: FLOAT[align](widthOf(dn.attrs.style)) }))
             view.dispatch(tr)
             return true
           }
-          return false
+          return false // let ProseMirror move it (reliable, never copies)
         }
         const files = Array.from(event.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'))
         if (!files.length) return false
