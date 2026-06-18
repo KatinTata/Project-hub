@@ -5,8 +5,22 @@ import JqlEditor from '../components/JqlEditor.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useT } from '../lang.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
+import RichBodyEditor, { sanitizeBodyHtml, textToHtml, htmlToText } from '../components/RichBodyEditor.jsx'
 
 // ── Pure helpers ───────────────────────────────────────────────────────────────
+
+// Build the rich body HTML for a task: prefer stored bodyHtml, otherwise migrate
+// from the legacy plain `description` + `images` block.
+function migrateBodyHtml(edit) {
+  if (edit?.bodyHtml != null) return edit.bodyHtml
+  let html = textToHtml(edit?.description || '')
+  for (const img of (edit?.images || [])) {
+    if (!img?.base64) continue
+    const cap = img.desc ? `<figcaption>${esc(img.desc)}</figcaption>` : ''
+    html += `<figure style="margin:10px 0"><img src="${img.base64}" alt="${esc(img.desc || '')}" style="width:60%;display:block;margin:0 auto;max-width:100%">${cap}</figure>`
+  }
+  return html
+}
 
 function esc(s) {
   return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -105,39 +119,10 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       const edit = taskEdits[task.id] || {}
       const key = esc(task.key || '')
       const name = esc(edit.name || task.fields?.summary || task.summary || '')
-      const desc = (edit.description || '').trim()
       const cardId = `c-${prefix}-${idx}`
-      const hasDesc = !!desc
-      const images = edit.images || []
+      const bodyHtml = sanitizeBodyHtml(migrateBodyHtml(edit))
       const helpLinks = getHelpLinks(task)
-      const hasExpand = hasDesc || images.length > 0
-
-      const imageLayout = edit.imageLayout || 'grid'
-      let imagesHtml = ''
-      if (images.length > 0) {
-        if (imageLayout === 'grid') {
-          const pairs = images.map((img, imgIdx) => {
-            const isLast = imgIdx === images.length - 1
-            const isOdd = images.length % 2 !== 0
-            const spanFull = isOdd && isLast
-            return `<div class="img-pair${spanFull ? ' img-pair--full' : ''}">
-              <div class="img-print-label">Slika ${imgIdx + 1}${img.desc ? ` &mdash; <em class="img-desc-em">${esc(img.desc)}</em>` : ''}</div>
-              <img src="${img.base64}" alt="${esc(img.desc || '')}" style="width:100%;${spanFull ? 'max-height:140px' : 'max-height:160px'};object-fit:contain;border-radius:4px;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact">
-              ${img.desc ? `<div class="img-screen-desc">${esc(img.desc)}</div>` : ''}
-            </div>`
-          })
-          imagesHtml = `<div class="images-block images-grid">${pairs.join('')}</div>`
-        } else {
-          const rows = images.map((img, imgIdx) => `
-            <div class="img-side-row">
-              <img src="${img.base64}" alt="${esc(img.desc || '')}" style="width:130px;height:100px;object-fit:contain;flex-shrink:0;border-radius:4px;background:#F3F4F6;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact">
-              <div class="img-side-text">
-                <span class="img-num">Slika ${imgIdx + 1}</span>${img.desc ? `<span class="img-side-desc"> &mdash; ${esc(img.desc)}</span>` : ''}
-              </div>
-            </div>`)
-          imagesHtml = `<div class="images-block images-side">${rows.join('')}</div>`
-        }
-      }
+      const hasExpand = !!bodyHtml && (/<img/i.test(bodyHtml) || bodyHtml.replace(/<[^>]+>/g, '').trim().length > 0)
 
       const helpHtml = helpLinks.map(link => {
         const url = jiraBase ? `${jiraBase}/browse/${esc(link.key)}` : null
@@ -162,10 +147,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
           ${hasExpand ? `<button class="expand-btn" onclick="toggle('${cardId}')" title="Prikaži/sakrij detalje">▾</button>` : ''}
         </div>
         ${hasExpand ? `<div class="task-desc" id="${cardId}-d">
-          <div class="task-desc-inner">
-            ${desc ? esc(desc).replace(/\n/g, '<br>') : ''}
-            ${imagesHtml}
-          </div>
+          <div class="task-desc-inner rn-body">${bodyHtml}</div>
         </div>` : ''}
         ${helpHtml}
       </div>`
@@ -224,6 +206,17 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .task-desc{max-height:0;overflow:hidden;transition:max-height 0.32s cubic-bezier(0.4,0,0.2,1)}
     .task-desc.open{max-height:3000px}
     .task-desc-inner{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);line-height:1.75}
+    .rn-body{color:#0F1523}
+    .rn-body::after{content:"";display:block;clear:both}
+    .rn-body p{margin:0 0 8px}
+    .rn-body h2,.rn-body h3{font-family:'Syne',sans-serif;color:#0F1523;margin:10px 0 4px;line-height:1.3}
+    .rn-body h3{font-size:15px}.rn-body h2{font-size:17px}
+    .rn-body ul,.rn-body ol{margin:6px 0;padding-left:22px}
+    .rn-body li{margin:2px 0}
+    .rn-body a{color:#2563EB}
+    .rn-body img{max-width:100%;border-radius:5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .rn-body figure{margin:10px 0}
+    .rn-body figcaption{font-size:12px;color:#6B7A99;margin-top:4px;text-align:center}
     .img-wrap{margin-top:12px}
     .img-print-label{display:none}
     .images-block{margin-top:12px}
@@ -286,6 +279,9 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       /* ── Description ── */
       .task-desc,.task-desc.open{max-height:none !important;overflow:visible !important;display:block !important}
       .task-desc-inner{font-size:12px !important;color:#374151 !important;line-height:1.65 !important;border-top:none !important;padding-top:8px !important;margin-top:8px !important}
+      .rn-body{color:#0F1523 !important}
+      .rn-body img{page-break-inside:avoid;break-inside:avoid}
+      .rn-body figure{page-break-inside:avoid;break-inside:avoid}
       /* ── Images ── */
       .img-print-label{display:block !important;font-size:11px !important;font-weight:600 !important;color:#374151 !important;margin-bottom:4px}
       .img-desc-em{font-style:italic;color:#5A6480;font-weight:400}
@@ -554,6 +550,15 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], [key]: value } }))
   }
 
+  // Rich body: store HTML + keep a plain-text mirror (used for AI prompt context).
+  function updateBody(taskId, html) {
+    setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], bodyHtml: html, description: htmlToText(html) } }))
+  }
+  // Apply AI/translate plain text into the rich body (converts to paragraphs).
+  function applyAiText(taskId, text) {
+    setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], description: text, bodyHtml: textToHtml(text) } }))
+  }
+
   // Fetch Jira detail for a task, pre-fill description if empty
   async function fetchAndSetDetail(task) {
     if (taskJiraDetails[task.id]?.description !== undefined || taskJiraDetails[task.id]?.loading) return
@@ -599,7 +604,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       const content = `Naziv taska: ${edit.name}${jiraDesc ? `\n\nOriginalni Jira opis:\n${jiraDesc}` : ''}`
       const result = await aiEnhance('generate_description', content)
       if (applyDirectly) {
-        updateEdit(taskId, 'description', result)
+        applyAiText(taskId, result)
       } else {
         setAiPreviews(prev => ({ ...prev, [taskId]: result }))
       }
@@ -642,7 +647,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         [taskId]: {
           ...prev[taskId],
           ...(newName ? { name: newName } : {}),
-          ...(newDesc ? { description: newDesc } : {}),
+          ...(newDesc ? { description: newDesc, bodyHtml: textToHtml(newDesc) } : {}),
           images: prev[taskId].images.map((img, i) =>
             newImageDescs[i] ? { ...img, desc: newImageDescs[i] } : img
           ),
@@ -1172,12 +1177,12 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                           </button>
                         </div>
                       </div>
-                      <textarea
-                        value={edit.description || ''}
-                        onChange={e => updateEdit(task.id, 'description', e.target.value)}
+                      <RichBodyEditor
+                        value={migrateBodyHtml(edit)}
+                        onChange={html => updateBody(task.id, html)}
                         placeholder={detail?.loading ? t('rne.loadingJira') : t('rne.taskNamePlaceholder')}
-                        rows={5}
-                        style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 13, boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.6 }} />
+                        onError={showToast}
+                      />
 
                       {/* AI preview */}
                       {aiPreviews[task.id] && (
@@ -1187,7 +1192,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                             <div style={{ display: 'flex', gap: 6 }}>
                               <button
                                 onClick={() => {
-                                  updateEdit(task.id, 'description', aiPreviews[task.id])
+                                  applyAiText(task.id, aiPreviews[task.id])
                                   setAiPreviews(prev => { const n = { ...prev }; delete n[task.id]; return n })
                                 }}
                                 style={{ padding: '4px 12px', borderRadius: 6, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>
@@ -1207,59 +1212,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                       )}
                     </div>
 
-                    {/* C: Images */}
-                    <div>
-                      <label style={labelStyle}>Slike ({(edit.images || []).length}/5)</label>
-                      {(edit.images || []).length < 5 && (
-                        <div
-                          onDragOver={e => e.preventDefault()}
-                          onDrop={e => { e.preventDefault(); handleImageUpload(task.id, e.dataTransfer.files) }}
-                          onClick={() => {
-                            const inp = document.createElement('input')
-                            inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true
-                            inp.onchange = ev => handleImageUpload(task.id, ev.target.files)
-                            inp.click()
-                          }}
-                          style={{ border: '2px dashed var(--border)', borderRadius: 8, padding: '16px', textAlign: 'center', cursor: 'pointer', color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 13, marginBottom: (edit.images || []).length ? 10 : 0, transition: 'border-color 0.2s' }}>
-                          {t('rne.imagePrompt')}
-                        </div>
-                      )}
-                      {(edit.images || []).length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          {/* Layout toggle */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                            <span style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', flexShrink: 0 }}>Prikaz slika:</span>
-                            {[{ value: 'grid', label: 'A — Grid' }, { value: 'side', label: 'B — Pored teksta' }].map(opt => {
-                              const active = (edit.imageLayout || 'grid') === opt.value
-                              return (
-                                <button key={opt.value} onClick={() => setImageLayout(task.id, opt.value)}
-                                  style={{ fontFamily: 'DM Sans', fontSize: 12, fontWeight: active ? 600 : 400, padding: '4px 10px', borderRadius: 6, border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`, background: active ? 'rgba(79,142,247,0.12)' : 'transparent', color: active ? 'var(--accent)' : 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.2s' }}>
-                                  {opt.label}
-                                </button>
-                              )
-                            })}
-                          </div>
-                          {(edit.images || []).map((img, imgIdx) => (
-                            <div key={imgIdx} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: 10 }}>
-                              <div style={{ position: 'relative', flexShrink: 0 }}>
-                                <img src={img.base64} alt="" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, display: 'block' }} />
-                                <button onClick={() => removeImage(task.id, imgIdx)}
-                                  style={{ position: 'absolute', top: -7, right: -7, width: 20, height: 20, borderRadius: '50%', background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 12, lineHeight: '20px', textAlign: 'center', padding: 0, fontWeight: 700 }}>×</button>
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <label style={{ ...labelStyle, marginBottom: 4 }}>Opis slike</label>
-                                <textarea
-                                  value={img.desc}
-                                  onChange={e => updateImageDesc(task.id, imgIdx, e.target.value)}
-                                  placeholder={t('rne.imagePrompt')}
-                                  rows={3}
-                                  style={{ width: '100%', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 10px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 12, boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5 }} />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {/* Slike se sada ubacuju direktno u telo (rich editor gore) */}
 
                     {/* HELP links — auto from Jira */}
                     {helpLinks.length > 0 && (
