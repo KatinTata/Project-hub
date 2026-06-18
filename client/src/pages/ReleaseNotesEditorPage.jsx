@@ -1406,14 +1406,20 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         `}</style>
 
         {/* Action bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <button onClick={() => setWizardStep(2)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
-          <button onClick={goToStep4} style={{ marginLeft: 'auto', padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+          <button onClick={() => setWizardStep(1)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
+          <button onClick={generateAllDescriptions} disabled={!!bulkProgress || !hasAiKey} style={{ ...smallBtnStyle, opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
+            {bulkProgress?.action === 'generate' ? `Generišem ${bulkProgress.current}/${bulkProgress.total}…` : <><IconSparkle /> Generiši sve</>}
+          </button>
+          <button onClick={translateAll} disabled={!!bulkProgress || !hasAiKey} style={{ ...smallBtnStyle, opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
+            {bulkProgress?.action === 'translate' ? `Prevodim ${bulkProgress.current}/${bulkProgress.total}…` : <><IconGlobe /> Prevedi sve</>}
+          </button>
+          <button onClick={goToStep3} style={{ marginLeft: 'auto', padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
             Dalje: Pregled →
           </button>
         </div>
         <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', marginBottom: 16 }}>
-          Stilizuj tekst i ubaci slike unutar svake kartice · prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da preurediš redosled ili premestiš u drugu sekciju · klikni naziv sekcije da je preimenuješ.
+          Po kartici: dugme za AI opis i prevod, pa stilizuj tekst i ubaci slike · prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da preurediš redosled ili premestiš u drugu sekciju · klikni naziv sekcije da je preimenuješ.
         </div>
 
         {/* Document */}
@@ -1496,7 +1502,21 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                                 title="Prevuci da preurediš ili premestiš"
                                 style={{ color: 'var(--textSubtle)', fontSize: 16, flexShrink: 0, userSelect: 'none', letterSpacing: 2, cursor: 'grab' }}>⠿</span>
                               <span style={{ fontFamily: 'DM Mono', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`, flexShrink: 0 }}>{task.key}</span>
-                              <span style={{ fontFamily: 'DM Sans', fontSize: 14, fontWeight: 600, color: 'var(--text)', flex: 1 }}>{edit.name}</span>
+                              <input value={edit.name || ''} onChange={e => updateEdit(task.id, 'name', e.target.value)} placeholder={t('rne.taskNamePlaceholder')}
+                                style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14, fontWeight: 600 }} />
+                              <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && generateTaskDesc(task.id, { applyDirectly: true })}
+                                disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
+                                title={!hasAiKey ? t('rne.noApiKeyShort') : t('rne.generateAI')}
+                                style={{ ...iconBtnStyle, color: 'var(--accent)', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.4 : 1 }}>
+                                {aiLoadingIds.has(task.id) ? <span style={{ fontSize: 10, opacity: 0.7 }}>···</span> : <IconSparkle />}
+                              </button>
+                              <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && translateTask(task.id)}
+                                disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
+                                title={!hasAiKey ? t('rne.noApiKeyShort') : t('rne.translate')}
+                                style={{ ...iconBtnStyle, opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.4 : 1 }}>
+                                <IconGlobe />
+                              </button>
+                              <button onClick={() => removeFromSelection(task.id)} title={t('rne.removeTask')} style={{ ...iconBtnStyle, color: 'var(--textMuted)' }}>×</button>
                             </div>
                             <RichBodyEditor
                               value={migrateBodyHtml(edit)}
@@ -1541,7 +1561,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <button onClick={() => setWizardStep(3)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
+          <button onClick={() => setWizardStep(2)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
             <button onClick={exportPdf} style={smallBtnStyle}>{t('rne.exportPdf')}</button>
             <button onClick={openPublishModal} disabled={publishState?.loading}
@@ -1591,9 +1611,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <Stepper step={wizardStep} maxStep={maxStep} onStepClick={goToStep} />
         </div>
         {wizardStep === 1 && renderStep1()}
-        {wizardStep === 2 && renderStep2()}
-        {wizardStep === 3 && renderStep3()}
-        {wizardStep === 4 && renderStep4()}
+        {wizardStep === 2 && renderStep3()}
+        {wizardStep === 3 && renderStep4()}
       </div>
       {toast && <Toast message={toast.message} onClose={() => setToast(null)} />}
       {publishModal && (
@@ -1683,9 +1702,8 @@ function Step1Row({ task, selected, onToggle }) {
 function Stepper({ step, maxStep, onStepClick }) {
   const steps = [
     { n: 1, label: 'Selekcija' },
-    { n: 2, label: 'Tekst' },
-    { n: 3, label: 'Stilizovanje' },
-    { n: 4, label: 'Pregled' },
+    { n: 2, label: 'Sadržaj i stil' },
+    { n: 3, label: 'Pregled' },
   ]
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 20px' }}>

@@ -71,10 +71,67 @@ const FLOAT = {
   full: w => `float:none;display:block;width:${w}%;margin:10px auto;max-width:100%`,
 }
 const StyledImage = Image.extend({
+  draggable: true,
   addAttributes() {
     return {
       ...this.parent?.(),
       style: { default: FLOAT.right(45), parseHTML: el => el.getAttribute('style'), renderHTML: a => (a.style ? { style: a.style } : {}) },
+    }
+  },
+  // NodeView with corner resize handles → fluid drag-to-resize.
+  addNodeView() {
+    return ({ node, getPos, editor }) => {
+      const dom = document.createElement('span')
+      dom.className = 'rbe-img'
+      const img = document.createElement('img')
+      img.src = node.attrs.src
+      if (node.attrs.alt) img.alt = node.attrs.alt
+      dom.appendChild(img)
+      const apply = style => dom.setAttribute('style', style || FLOAT.right(45))
+      apply(node.attrs.style)
+
+      let curStyle = node.attrs.style
+      for (const pos of ['nw', 'ne', 'sw', 'se']) {
+        const h = document.createElement('span')
+        h.className = `rbe-img-handle rbe-h-${pos}`
+        h.addEventListener('mousedown', e => {
+          e.preventDefault(); e.stopPropagation()
+          const startX = e.clientX
+          const startW = img.getBoundingClientRect().width
+          const editorW = editor.view.dom.clientWidth || 600
+          const dir = (pos === 'ne' || pos === 'se') ? 1 : -1
+          const align = alignOf(curStyle)
+          const onMove = ev => {
+            const w = startW + (ev.clientX - startX) * dir
+            const pct = Math.max(15, Math.min(100, Math.round((w / editorW) * 100)))
+            curStyle = FLOAT[align](pct)
+            apply(curStyle)
+          }
+          const onUp = () => {
+            document.removeEventListener('mousemove', onMove)
+            document.removeEventListener('mouseup', onUp)
+            if (typeof getPos === 'function') {
+              editor.view.dispatch(editor.view.state.tr.setNodeMarkup(getPos(), undefined, { ...node.attrs, style: curStyle }))
+            }
+          }
+          document.addEventListener('mousemove', onMove)
+          document.addEventListener('mouseup', onUp)
+        })
+        dom.appendChild(h)
+      }
+
+      return {
+        dom,
+        update(updated) {
+          if (updated.type.name !== node.type.name) return false
+          if (updated.attrs.src !== img.src) img.src = updated.attrs.src
+          curStyle = updated.attrs.style
+          apply(updated.attrs.style)
+          return true
+        },
+        ignoreMutation: () => true,
+        stopEvent: e => e.target?.classList?.contains?.('rbe-img-handle'),
+      }
     }
   },
 })
@@ -184,8 +241,15 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
         .rbe .ProseMirror blockquote{border-left:3px solid var(--border);padding-left:12px;color:var(--textMuted);margin:8px 0}
         .rbe .ProseMirror code{background:var(--surfaceAlt);padding:1px 4px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px}
         .rbe .ProseMirror a{color:var(--accent)}
-        .rbe .ProseMirror img{border-radius:5px}
-        .rbe .ProseMirror img.ProseMirror-selectednode{outline:2px solid var(--accent);outline-offset:1px}
+        .rbe .ProseMirror .rbe-img{position:relative;display:inline-block;line-height:0}
+        .rbe .ProseMirror .rbe-img img{width:100%;height:auto;display:block;border-radius:5px}
+        .rbe .ProseMirror .rbe-img.ProseMirror-selectednode{outline:2px solid var(--accent);outline-offset:2px}
+        .rbe .ProseMirror .rbe-img-handle{position:absolute;width:12px;height:12px;background:var(--accent);border:2px solid #fff;border-radius:50%;display:none;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,0.35)}
+        .rbe .ProseMirror .rbe-img:hover .rbe-img-handle,.rbe .ProseMirror .rbe-img.ProseMirror-selectednode .rbe-img-handle{display:block}
+        .rbe-h-nw{top:-7px;left:-7px;cursor:nwse-resize}
+        .rbe-h-ne{top:-7px;right:-7px;cursor:nesw-resize}
+        .rbe-h-sw{bottom:-7px;left:-7px;cursor:nesw-resize}
+        .rbe-h-se{bottom:-7px;right:-7px;cursor:nwse-resize}
         .rbe .ProseMirror::after{content:"";display:block;clear:both}
         .rbe .ProseMirror p.is-editor-empty:first-child::before{content:attr(data-placeholder);color:var(--textSubtle);float:left;height:0;pointer-events:none}
       `}</style>
