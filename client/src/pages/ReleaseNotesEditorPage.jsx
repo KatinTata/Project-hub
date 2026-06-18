@@ -444,6 +444,9 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   const [sectionTaskOrders, setSectionTaskOrders] = useState({}) // { [prefix]: [id,...] }
   const dragTaskId = useRef(null)
   const dragFromPrefix = useRef(null)
+  const [aiBackup, setAiBackup] = useState({}) // { [taskId]: { name, description, bodyHtml } } — undo for AI
+  const editsRef = useRef(taskEdits)
+  editsRef.current = taskEdits
 
   // publish
   const [publishModal, setPublishModal] = useState(null)
@@ -562,8 +565,28 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   function updateBody(taskId, html) {
     setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], bodyHtml: html, description: htmlToText(html) } }))
   }
+  // Snapshot a task's content so the user can revert an AI change.
+  function backupAi(taskId) {
+    const cur = editsRef.current[taskId] || {}
+    setAiBackup(b => ({ ...b, [taskId]: { name: cur.name, description: cur.description, bodyHtml: cur.bodyHtml } }))
+  }
+  function revertAi(taskId) {
+    const bk = aiBackup[taskId]
+    if (!bk) return
+    setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], name: bk.name, description: bk.description, bodyHtml: bk.bodyHtml } }))
+    setAiBackup(b => { const n = { ...b }; delete n[taskId]; return n })
+  }
+  function revertAllAi() {
+    setTaskEdits(prev => {
+      const next = { ...prev }
+      for (const [id, bk] of Object.entries(aiBackup)) next[id] = { ...next[id], name: bk.name, description: bk.description, bodyHtml: bk.bodyHtml }
+      return next
+    })
+    setAiBackup({})
+  }
   // Apply AI/translate plain text into the rich body (converts to paragraphs).
   function applyAiText(taskId, text) {
+    backupAi(taskId)
     setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], description: text, bodyHtml: textToHtml(text) } }))
   }
 
@@ -650,6 +673,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         showToast(t('rne.aiTranslateFailed'))
         return
       }
+      backupAi(taskId)
       setTaskEdits(prev => ({
         ...prev,
         [taskId]: {
@@ -1414,6 +1438,11 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <button onClick={translateAll} disabled={!!bulkProgress || !hasAiKey} style={{ ...smallBtnStyle, opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
             {bulkProgress?.action === 'translate' ? `Prevodim ${bulkProgress.current}/${bulkProgress.total}…` : <><IconGlobe /> Prevedi sve</>}
           </button>
+          {Object.keys(aiBackup).length > 0 && (
+            <button onClick={revertAllAi} title="Vrati sve AI izmene na original" style={{ ...smallBtnStyle }}>
+              ↶ Vrati sve ({Object.keys(aiBackup).length})
+            </button>
+          )}
           <button onClick={goToStep3} style={{ marginLeft: 'auto', padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
             Dalje: Pregled →
           </button>
@@ -1494,7 +1523,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                             onDragOver={e => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; if (dragOverTaskId !== task.id) setDragOverTaskId(task.id); if (dragOverPrefix !== prefix) setDragOverPrefix(prefix) }}
                             onDrop={e => { e.preventDefault(); e.stopPropagation(); applyDrop(prefix, task.id) }}
                             style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                               <span
                                 draggable={true}
                                 onDragStart={e => { dragTaskId.current = task.id; dragFromPrefix.current = prefix; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', task.id) }}
@@ -1504,19 +1533,27 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                               <span style={{ fontFamily: 'DM Mono', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`, flexShrink: 0 }}>{task.key}</span>
                               <input value={edit.name || ''} onChange={e => updateEdit(task.id, 'name', e.target.value)} placeholder={t('rne.taskNamePlaceholder')}
                                 style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14, fontWeight: 600 }} />
+                              <button onClick={() => removeFromSelection(task.id)} title={t('rne.removeTask')} style={{ ...iconBtnStyle, color: 'var(--textMuted)' }}>×</button>
+                            </div>
+                            <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
                               <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && generateTaskDesc(task.id, { applyDirectly: true })}
                                 disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
-                                title={!hasAiKey ? t('rne.noApiKeyShort') : t('rne.generateAI')}
-                                style={{ ...iconBtnStyle, color: 'var(--accent)', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.4 : 1 }}>
-                                {aiLoadingIds.has(task.id) ? <span style={{ fontSize: 10, opacity: 0.7 }}>···</span> : <IconSparkle />}
+                                title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--accent)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
+                                <IconSparkle /> {aiLoadingIds.has(task.id) ? 'Generišem…' : 'Generiši tekst'}
                               </button>
                               <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && translateTask(task.id)}
                                 disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
-                                title={!hasAiKey ? t('rne.noApiKeyShort') : t('rne.translate')}
-                                style={{ ...iconBtnStyle, opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.4 : 1 }}>
-                                <IconGlobe />
+                                title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
+                                <IconGlobe /> Prevedi
                               </button>
-                              <button onClick={() => removeFromSelection(task.id)} title={t('rne.removeTask')} style={{ ...iconBtnStyle, color: 'var(--textMuted)' }}>×</button>
+                              {aiBackup[task.id] && (
+                                <button onClick={() => revertAi(task.id)} title="Vrati tekst pre AI izmene"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--textMuted)', cursor: 'pointer' }}>
+                                  ↶ Vrati original
+                                </button>
+                              )}
                             </div>
                             <RichBodyEditor
                               value={migrateBodyHtml(edit)}

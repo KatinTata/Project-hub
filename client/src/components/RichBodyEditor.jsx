@@ -71,7 +71,7 @@ const FLOAT = {
   full: w => `float:none;display:block;width:${w}%;margin:10px auto;max-width:100%`,
 }
 const StyledImage = Image.extend({
-  draggable: true,
+  draggable: false,
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -91,6 +91,50 @@ const StyledImage = Image.extend({
       apply(node.attrs.style)
 
       let curStyle = node.attrs.style
+
+      // Free drag: a "ghost" follows the cursor; on drop the image moves to that
+      // text position and floats left/center/right by where it was dropped.
+      img.addEventListener('mousedown', e => {
+        if (e.button !== 0 || e.target.classList.contains('rbe-img-handle')) return
+        e.preventDefault()
+        const sx = e.clientX, sy = e.clientY
+        let dragging = false, ghost = null
+        const onMove = ev => {
+          if (!dragging && Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) < 5) return
+          if (!dragging) {
+            dragging = true
+            ghost = img.cloneNode(true)
+            ghost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.75;width:${img.getBoundingClientRect().width}px;height:auto;border-radius:5px;box-shadow:0 8px 28px rgba(0,0,0,0.35)`
+            document.body.appendChild(ghost)
+            dom.style.opacity = '0.4'
+          }
+          ghost.style.left = (ev.clientX + 10) + 'px'
+          ghost.style.top = (ev.clientY + 10) + 'px'
+        }
+        const onUp = ev => {
+          document.removeEventListener('mousemove', onMove)
+          document.removeEventListener('mouseup', onUp)
+          if (ghost) ghost.remove()
+          dom.style.opacity = ''
+          if (typeof getPos !== 'function') return
+          if (!dragging) { editor.commands.setNodeSelection(getPos()); return }
+          const view = editor.view
+          const coords = view.posAtCoords({ left: ev.clientX, top: ev.clientY })
+          if (!coords) return
+          const rect = view.dom.getBoundingClientRect()
+          const rel = (ev.clientX - rect.left) / rect.width
+          const align = rel < 0.34 ? 'left' : rel > 0.66 ? 'right' : 'full'
+          const w = widthOf(curStyle)
+          const from = getPos()
+          let tr = view.state.tr.delete(from, from + node.nodeSize)
+          const target = Math.min(tr.doc.content.size, tr.mapping.map(coords.pos))
+          tr = tr.insert(target, node.type.create({ ...node.attrs, style: FLOAT[align](w) }))
+          view.dispatch(tr)
+        }
+        document.addEventListener('mousemove', onMove)
+        document.addEventListener('mouseup', onUp)
+      })
+
       for (const pos of ['nw', 'ne', 'sw', 'se']) {
         const h = document.createElement('span')
         h.className = `rbe-img-handle rbe-h-${pos}`
@@ -130,7 +174,7 @@ const StyledImage = Image.extend({
           return true
         },
         ignoreMutation: () => true,
-        stopEvent: e => e.target?.classList?.contains?.('rbe-img-handle'),
+        stopEvent: () => true,
       }
     }
   },
