@@ -237,7 +237,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .print-header{display:none}
     .print-footer{display:none}
     .print-footer-override{display:none}
-    @page{margin:12mm 16mm 16mm 16mm}
+    @page{margin:14mm 14mm 24mm 14mm}
     @media print{
       html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
       *{font-family:'Trebuchet MS','Century Gothic',Arial,sans-serif !important}
@@ -251,9 +251,9 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       /* ── Header: normal flow, appears once on first page only ── */
       .print-header{display:flex !important;align-items:center;justify-content:space-between;position:relative;margin-bottom:24px;padding-bottom:16px;border-bottom:1.5px solid #0F1523}
       /* ── Footer: fixed, repeats on every page ── */
-      .print-footer{display:flex !important;align-items:center;justify-content:space-between;position:fixed;bottom:12mm;left:0;right:0;height:40px;padding:0;background:#fff;z-index:10}
+      .print-footer{display:flex !important;align-items:center;justify-content:space-between;position:fixed;bottom:9mm;left:0;right:0;height:auto;padding:0;background:#fff;z-index:10}
       /* ── Footer override: covers browser-generated URL footer ── */
-      .print-footer-override{display:block !important;position:fixed;bottom:0;left:0;right:0;height:12mm;background:#fff;z-index:100}
+      .print-footer-override{display:block !important;position:fixed;bottom:0;left:0;right:0;height:6mm;background:#fff;z-index:100}
       /* ── Layout: no top padding needed, header is in normal flow ── */
       .wrap{padding:0 0 20px !important}
       .groups{gap:24px !important}
@@ -268,7 +268,8 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       .task-row{break-after:avoid;page-break-after:avoid}
       .section-hdr{break-after:avoid;page-break-after:avoid}
       /* ── Task cards: never split across pages ── */
-      .task-card{background:#fff !important;border:none !important;border-left:3px solid #2563EB !important;padding:10px 14px !important;margin-bottom:10px !important;break-inside:avoid !important;page-break-inside:avoid !important;box-shadow:none !important;border-radius:0 !important}
+      .task-card{background:#fff !important;border:none !important;border-left:3px solid #2563EB !important;padding:10px 14px !important;margin-bottom:10px !important;break-inside:auto;page-break-inside:auto;box-shadow:none !important;border-radius:0 !important}
+      .task-card--simple{break-inside:avoid !important;page-break-inside:avoid !important}
       /* ── Simple task cards (no desc/images) ── */
       .task-card--simple{border-left:3px solid #BFDBFE !important;padding:9px 18px !important}
       /* ── Key badge ── */
@@ -747,6 +748,23 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       jiraUrl: user?.jiraUrl || '',
       date: previewDate || todayStr(),
     }, { sectionOverrides, sectionLabels })
+  }
+
+  // Export the preview iframe to PDF. Chrome names the file after the MAIN
+  // window's title, so swap it to the release-notes name, then restore.
+  function exportPdf() {
+    const f = document.getElementById('rn-preview-frame')
+    if (!f?.contentWindow) return
+    const name = (previewTitle || `${config.clientName || ''} ${config.version || ''}`.trim() || 'Release Notes').replace(/[\\/:*?"<>|]/g, '-')
+    const prev = document.title
+    let restored = false
+    const restore = () => { if (restored) return; restored = true; document.title = prev; window.removeEventListener('afterprint', restore) }
+    document.title = name
+    try { if (f.contentDocument) f.contentDocument.title = name } catch { /* cross-origin guard */ }
+    window.addEventListener('afterprint', restore)
+    setTimeout(restore, 3000)
+    f.contentWindow.focus()
+    f.contentWindow.print()
   }
 
   async function handlePublish(selectedClientIds, sectionName) {
@@ -1525,7 +1543,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <button onClick={() => setWizardStep(3)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button onClick={() => { const f = document.getElementById('rn-preview-frame'); if (f?.contentWindow) { f.contentWindow.focus(); f.contentWindow.print() } }} style={smallBtnStyle}>{t('rne.exportPdf')}</button>
+            <button onClick={exportPdf} style={smallBtnStyle}>{t('rne.exportPdf')}</button>
             <button onClick={openPublishModal} disabled={publishState?.loading}
               style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>
               {publishState?.loading ? t('app.loading') : 'Publish'}
