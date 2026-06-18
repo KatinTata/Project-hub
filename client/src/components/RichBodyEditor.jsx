@@ -182,6 +182,18 @@ const StyledImage = Image.extend({
 const widthOf = s => { const m = /width:\s*(\d+)%/.exec(s || ''); return m ? parseInt(m[1], 10) : 50 }
 const alignOf = s => (/float:\s*left/.test(s || '') ? 'left' : /float:\s*right/.test(s || '') ? 'right' : 'full')
 
+const aSvg = lines => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+    {lines.map(([x1, x2], i) => <line key={i} x1={x1} y1={4 + i * 4} x2={x2} y2={4 + i * 4} />)}
+  </svg>
+)
+const ALIGN_ICON = {
+  left: aSvg([[2.5, 13.5], [2.5, 9.5], [2.5, 11.5]]),
+  center: aSvg([[2.5, 13.5], [4.5, 11.5], [3.5, 12.5]]),
+  right: aSvg([[2.5, 13.5], [6.5, 13.5], [4.5, 13.5]]),
+  justify: aSvg([[2.5, 13.5], [2.5, 13.5], [2.5, 13.5]]),
+}
+
 const SWATCHES = ['#0F1523', '#2563EB', '#16A34A', '#D97706', '#DC2626', '#7C3AED']
 const TB = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 30, height: 28, padding: '0 8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', borderRadius: 6, cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 13, lineHeight: 1 }
 const active = on => on ? { ...TB, background: 'var(--accent)', color: '#fff', borderColor: 'var(--accent)' } : TB
@@ -298,7 +310,7 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
         .rbe .ProseMirror p.is-editor-empty:first-child::before{content:attr(data-placeholder);color:var(--textSubtle);float:left;height:0;pointer-events:none}
       `}</style>
 
-      <div onMouseDown={e => e.preventDefault()} style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: 6, borderBottom: '1px solid var(--border)', background: 'var(--surfaceAlt)' }}>
+      <div onMouseDown={e => { if (!/^(SELECT|OPTION)$/.test(e.target.tagName)) e.preventDefault() }} style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: 6, borderBottom: '1px solid var(--border)', background: 'var(--surfaceAlt)' }}>
         <button title="Poništi" style={TB} onClick={run(c => c.undo())}>↶</button>
         <button title="Ponovi" style={TB} onClick={run(c => c.redo())}>↷</button>
         {sep}
@@ -328,12 +340,9 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
         </div>
         <button title="Marker" style={active(editor.isActive('highlight'))} onClick={run(c => c.toggleHighlight())}>Marker</button>
         {sep}
-        <select value={alignValue} onChange={e => editor.chain().focus().setTextAlign(e.target.value).run()} style={{ ...TB, minWidth: 92, padding: '0 6px' }}>
-          <option value="left">Levo</option>
-          <option value="center">Centar</option>
-          <option value="right">Desno</option>
-          <option value="justify">Obostrano</option>
-        </select>
+        {[['left', 'Levo'], ['center', 'Centar'], ['right', 'Desno'], ['justify', 'Obostrano']].map(([a, lbl]) => (
+          <button key={a} title={lbl} style={active(alignValue === a)} onClick={run(c => c.setTextAlign(a))}>{ALIGN_ICON[a]}</button>
+        ))}
         <button title="Link" style={active(editor.isActive('link'))} onClick={setLink}>Link</button>
         <button title="Linija" style={TB} onClick={run(c => c.setHorizontalRule())}>—</button>
         <button title="Očisti stil" style={TB} onClick={run(c => c.unsetAllMarks().clearNodes())}>Očisti</button>
