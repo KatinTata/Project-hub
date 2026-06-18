@@ -208,7 +208,7 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Underline,
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
-      StyledImage.configure({ inline: false, allowBase64: true }),
+      StyledImage.configure({ inline: true, allowBase64: true }),
       TextStyle,
       Color,
       Highlight.configure({ HTMLAttributes: { style: 'background-color:#FEF08A' } }),
