@@ -1432,20 +1432,27 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         {/* Action bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
           <button onClick={() => setWizardStep(1)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
-          <button onClick={generateAllDescriptions} disabled={!!bulkProgress || !hasAiKey} style={{ ...smallBtnStyle, opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
-            {bulkProgress?.action === 'generate' ? `Generišem ${bulkProgress.current}/${bulkProgress.total}…` : <><IconSparkle /> Generiši sve</>}
-          </button>
-          <button onClick={translateAll} disabled={!!bulkProgress || !hasAiKey} style={{ ...smallBtnStyle, opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
-            {bulkProgress?.action === 'translate' ? `Prevodim ${bulkProgress.current}/${bulkProgress.total}…` : <><IconGlobe /> Prevedi sve</>}
-          </button>
-          {Object.keys(aiBackup).length > 0 && (
-            <button onClick={revertAllAi} title="Vrati sve AI izmene na original" style={{ ...smallBtnStyle }}>
-              ↶ Vrati sve ({Object.keys(aiBackup).length})
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <button onClick={generateAllDescriptions} disabled={!!bulkProgress || !hasAiKey}
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, cursor: 'pointer', border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
+              {bulkProgress?.action === 'generate' ? `Generišem ${bulkProgress.current}/${bulkProgress.total}…` : 'Generiši sve'}
             </button>
-          )}
-          <button onClick={goToStep3} style={{ marginLeft: 'auto', padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
-            Dalje: Pregled →
-          </button>
+            <button onClick={translateAll} disabled={!!bulkProgress || !hasAiKey}
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
+              {bulkProgress?.action === 'translate' ? `Prevodim ${bulkProgress.current}/${bulkProgress.total}…` : 'Prevedi sve'}
+            </button>
+            {Object.keys(aiBackup).length > 0 && (
+              <button onClick={revertAllAi} title="Vrati sve AI izmene na original"
+                style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)' }}>
+                Vrati sve ({Object.keys(aiBackup).length})
+              </button>
+            )}
+            <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 2px' }} />
+            <button onClick={goToStep3}
+              style={{ padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
+              Dalje: Pregled →
+            </button>
+          </div>
         </div>
         <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', marginBottom: 16 }}>
           Po kartici: dugme za AI opis i prevod, pa stilizuj tekst i ubaci slike · prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da preurediš redosled ili premestiš u drugu sekciju · klikni naziv sekcije da je preimenuješ.
@@ -1539,19 +1546,19 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                               <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && generateTaskDesc(task.id, { applyDirectly: true })}
                                 disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
                                 title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--accent)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
-                                <IconSparkle /> {aiLoadingIds.has(task.id) ? 'Generišem…' : 'Generiši tekst'}
+                                style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
+                                {aiLoadingIds.has(task.id) ? 'Generišem…' : 'Generiši tekst'}
                               </button>
                               <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && translateTask(task.id)}
                                 disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
                                 title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
-                                <IconGlobe /> Prevedi
+                                style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
+                                Prevedi
                               </button>
                               {aiBackup[task.id] && (
                                 <button onClick={() => revertAi(task.id)} title="Vrati tekst pre AI izmene"
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--textMuted)', cursor: 'pointer' }}>
-                                  ↶ Vrati original
+                                  style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', cursor: 'pointer' }}>
+                                  Vrati original
                                 </button>
                               )}
                             </div>
