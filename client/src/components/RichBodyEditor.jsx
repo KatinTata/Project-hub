@@ -200,8 +200,8 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
           onInput={emit}
           onBlur={emit}
           onClick={onClickEditor}
-          onDragOver={e => e.preventDefault()}
-          onDrop={e => { if (e.dataTransfer?.files?.length) { e.preventDefault(); insertImageFiles(e.dataTransfer.files, e) } }}
+          onDragOver={e => { if (e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); e.stopPropagation() } }}
+          onDrop={e => { if (e.dataTransfer?.files?.length) { e.preventDefault(); e.stopPropagation(); insertImageFiles(e.dataTransfer.files, e) } }}
           style={{ minHeight: 120, padding: '10px 14px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 13, lineHeight: 1.6, outline: 'none' }}
         />
       </div>

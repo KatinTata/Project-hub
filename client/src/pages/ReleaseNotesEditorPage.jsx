@@ -542,6 +542,13 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     setMaxStep(s => Math.max(s, 3))
   }
 
+  function goToStep4() {
+    if (!previewTitle) setPreviewTitle(`${config.clientName || ''} ${config.version || ''}`.trim() || selectedProject?.displayName || selectedProject?.epicKey || 'Release Notes')
+    if (!previewDate) setPreviewDate(todayStr())
+    setWizardStep(4)
+    setMaxStep(s => Math.max(s, 4))
+  }
+
   function removeFromSelection(taskId) {
     setSelectedIds(prev => { const n = new Set(prev); n.delete(taskId); return n })
   }
@@ -730,15 +737,20 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     }
   }
 
-  async function handlePublish(selectedClientIds, sectionName) {
+  // Single source for the final HTML — used by both the Pregled iframe and Publish.
+  function buildPublishHtml() {
     const selectedTasks = tasks.filter(t => selectedIds.has(t.id))
-    const html = generatePublishHtml(selectedTasks, taskEdits, config, {
+    return generatePublishHtml(selectedTasks, taskEdits, config, {
       clientName: config.clientName,
       version: config.version,
       productName: selectedProject?.displayName || selectedProject?.epicKey || '',
       jiraUrl: user?.jiraUrl || '',
       date: previewDate || todayStr(),
     }, { sectionOverrides, sectionLabels })
+  }
+
+  async function handlePublish(selectedClientIds, sectionName) {
+    const html = buildPublishHtml()
     setPublishState({ loading: true })
     const jt = localStorage.getItem('jt_token')
     try {
@@ -1376,34 +1388,17 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         `}</style>
 
         {/* Action bar */}
-        <div data-no-print="1" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <button onClick={() => setWizardStep(2)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button onClick={() => window.print()} style={smallBtnStyle}>{t('rne.exportPdf')}</button>
-            <button onClick={openPublishModal} disabled={publishState?.loading}
-              style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>
-              {publishState?.loading ? t('app.loading') : 'Publish'}
-            </button>
-          </div>
+          <button onClick={goToStep4} style={{ marginLeft: 'auto', padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
+            Dalje: Pregled →
+          </button>
+        </div>
+        <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', marginBottom: 16 }}>
+          Stilizuj tekst i ubaci slike unutar svake kartice · prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da preurediš redosled ili premestiš u drugu sekciju · klikni naziv sekcije da je preimenuješ.
         </div>
 
-        {publishState?.error && (
-          <div data-no-print="1" style={{ padding: '12px 16px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, fontSize: 13, color: 'var(--red)', fontFamily: 'DM Sans', marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-            <span>⚠️ {publishState.error}</span>
-            <button onClick={() => setPublishState(null)} style={{ background: 'transparent', border: 'none', color: 'var(--red)', cursor: 'pointer' }}>×</button>
-          </div>
-        )}
-
-        {/* Editable header fields */}
-        <div data-no-print="1" style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-          <input value={previewTitle} onChange={e => setPreviewTitle(e.target.value)}
-            placeholder={t('rne.titlePlaceholder')}
-            style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14, boxSizing: 'border-box' }} />
-          <input value={previewDate} onChange={e => setPreviewDate(e.target.value)}
-            style={{ width: 220, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Mono', fontSize: 13, boxSizing: 'border-box' }} />
-        </div>
-
-        {/* Preview document */}
+        {/* Document */}
         <div className="preview-wrap" style={{ maxWidth: 860, margin: '0 auto', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '40px 48px' }}>
           <div style={{ marginBottom: 40 }}>
             <div style={{ fontFamily: 'DM Mono', fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 8 }}>INTELISALE</div>
@@ -1472,34 +1467,25 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                             <div style={{ height: 3, borderRadius: 2, background: cfg.color, margin: '2px 0', opacity: 0.7 }} />
                           )}
                           <div
-                            draggable={true}
-                            onDragStart={e => {
-                              e.stopPropagation()
-                              dragTaskId.current = task.id
-                              dragFromPrefix.current = prefix
-                              e.dataTransfer.effectAllowed = 'move'
-                              e.dataTransfer.setData('text/plain', task.id)
-                            }}
-                            onDragEnd={() => { setDragOverPrefix(null); setDragOverTaskId(null) }}
                             onDragOver={e => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; if (dragOverTaskId !== task.id) setDragOverTaskId(task.id); if (dragOverPrefix !== prefix) setDragOverPrefix(prefix) }}
                             onDrop={e => { e.preventDefault(); e.stopPropagation(); applyDrop(prefix, task.id) }}
-                            style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', cursor: 'grab', marginBottom: 8, userSelect: 'none' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: (edit.description || (edit.images || []).length || helpLinks.length) ? 10 : 0 }}>
-                              <span data-no-print="1" style={{ color: 'var(--textSubtle)', fontSize: 14, flexShrink: 0, userSelect: 'none', letterSpacing: 2 }}>⠿</span>
+                            style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                              <span
+                                draggable={true}
+                                onDragStart={e => { dragTaskId.current = task.id; dragFromPrefix.current = prefix; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', task.id) }}
+                                onDragEnd={() => { setDragOverPrefix(null); setDragOverTaskId(null) }}
+                                title="Prevuci da preurediš ili premestiš"
+                                style={{ color: 'var(--textSubtle)', fontSize: 16, flexShrink: 0, userSelect: 'none', letterSpacing: 2, cursor: 'grab' }}>⠿</span>
                               <span style={{ fontFamily: 'DM Mono', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`, flexShrink: 0 }}>{task.key}</span>
                               <span style={{ fontFamily: 'DM Sans', fontSize: 14, fontWeight: 600, color: 'var(--text)', flex: 1 }}>{edit.name}</span>
                             </div>
-                            {edit.description && (
-                              <div style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--textMuted)', lineHeight: 1.75, marginBottom: ((edit.images || []).length || helpLinks.length) ? 10 : 0, whiteSpace: 'pre-wrap' }}>
-                                {edit.description}
-                              </div>
-                            )}
-                            {(edit.images || []).map((img, i) => (
-                              <div key={i} style={{ marginBottom: 8 }}>
-                                <img src={img.base64} alt={img.desc || ''} style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block' }} />
-                                {img.desc && <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', marginTop: 6, lineHeight: 1.5 }}>{img.desc}</div>}
-                              </div>
-                            ))}
+                            <RichBodyEditor
+                              value={migrateBodyHtml(edit)}
+                              onChange={html => updateBody(task.id, html)}
+                              placeholder="Dodaj opis, stil i slike…"
+                              onError={showToast}
+                            />
                             {helpLinks.map(link => (
                               <div key={link.key} style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8, marginTop: 4, borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
                                 <span style={{ color: 'var(--amber)', display: 'flex', alignItems: 'center' }}><IconLink /></span>
@@ -1531,6 +1517,43 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     )
   }
 
+  // ── Step 4: Pregled & Export ─────────────────────────────────────────────────
+  const renderStep4 = () => {
+    const html = buildPublishHtml()
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          <button onClick={() => setWizardStep(3)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <button onClick={() => { const f = document.getElementById('rn-preview-frame'); if (f?.contentWindow) { f.contentWindow.focus(); f.contentWindow.print() } }} style={smallBtnStyle}>{t('rne.exportPdf')}</button>
+            <button onClick={openPublishModal} disabled={publishState?.loading}
+              style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>
+              {publishState?.loading ? t('app.loading') : 'Publish'}
+            </button>
+          </div>
+        </div>
+
+        {publishState?.error && (
+          <div style={{ padding: '12px 16px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, fontSize: 13, color: 'var(--red)', fontFamily: 'DM Sans', marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+            <span>{publishState.error}</span>
+            <button onClick={() => setPublishState(null)} style={{ background: 'transparent', border: 'none', color: 'var(--red)', cursor: 'pointer' }}>×</button>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+          <input value={previewTitle} onChange={e => setPreviewTitle(e.target.value)}
+            placeholder={t('rne.titlePlaceholder')}
+            style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14, boxSizing: 'border-box' }} />
+          <input value={previewDate} onChange={e => setPreviewDate(e.target.value)}
+            style={{ width: 220, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Mono', fontSize: 13, boxSizing: 'border-box' }} />
+        </div>
+
+        <iframe id="rn-preview-frame" title="Pregled release notes" srcDoc={html}
+          style={{ width: '100%', height: '78vh', border: '1px solid var(--border)', borderRadius: 12, background: '#fff' }} />
+      </div>
+    )
+  }
+
   // ── Return ──────────────────────────────────────────────────────────────────
 
   return (
@@ -1552,6 +1575,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         {wizardStep === 1 && renderStep1()}
         {wizardStep === 2 && renderStep2()}
         {wizardStep === 3 && renderStep3()}
+        {wizardStep === 4 && renderStep4()}
       </div>
       {toast && <Toast message={toast.message} onClose={() => setToast(null)} />}
       {publishModal && (
@@ -1641,8 +1665,9 @@ function Step1Row({ task, selected, onToggle }) {
 function Stepper({ step, maxStep, onStepClick }) {
   const steps = [
     { n: 1, label: 'Selekcija' },
-    { n: 2, label: 'Uređivanje' },
-    { n: 3, label: 'Preview' },
+    { n: 2, label: 'Tekst' },
+    { n: 3, label: 'Stilizovanje' },
+    { n: 4, label: 'Pregled' },
   ]
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 20px' }}>
