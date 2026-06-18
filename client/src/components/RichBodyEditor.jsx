@@ -83,6 +83,7 @@ const SWATCHES = ['#0F1523', '#2563EB', '#16A34A', '#D97706', '#DC2626', '#7C3AE
 
 export default function RichBodyEditor({ value, onChange, placeholder, maxImageMB = 5, onError }) {
   const ref = useRef(null)
+  const dragImg = useRef(null)        // image being repositioned inside the editor
   const last = useRef(value || '')
   const [empty, setEmpty] = useState(!value)
   const [sel, setSel] = useState(null)       // selected <img> element
@@ -145,6 +146,50 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
   function bumpWidth(d) { applyImg(el => { const a = imgAlign(el); const w = Math.max(20, Math.min(100, imgWidth(el) + d)); el.setAttribute('style', FLOAT_PRESETS[a](w)) }) }
   function removeImg() { if (!sel) return; sel.remove(); setSel(null); emit() }
 
+  function caretRangeAt(x, y) {
+    if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y)
+    if (document.caretPositionFromPoint) {
+      const p = document.caretPositionFromPoint(x, y)
+      if (p) { const r = document.createRange(); r.setStart(p.offsetNode, p.offset); r.collapse(true); return r }
+    }
+    return null
+  }
+  // Dragging an existing image → MOVE it (native contentEditable drag copies it).
+  function onDragStartEditor(e) {
+    if (e.target.tagName === 'IMG') {
+      dragImg.current = e.target
+      e.dataTransfer.effectAllowed = 'move'
+      try { e.dataTransfer.setData('text/plain', '') } catch { /* some browsers require setData */ }
+    }
+  }
+  function onDragOverEditor(e) {
+    const isFile = e.dataTransfer?.types && Array.from(e.dataTransfer.types).includes('Files')
+    if (dragImg.current || isFile) {
+      e.preventDefault(); e.stopPropagation()
+      e.dataTransfer.dropEffect = dragImg.current ? 'move' : 'copy'
+    }
+  }
+  function onDropEditor(e) {
+    if (dragImg.current) {
+      e.preventDefault(); e.stopPropagation()
+      const img = dragImg.current
+      dragImg.current = null
+      const r = caretRangeAt(e.clientX, e.clientY)
+      if (r && r.startContainer !== img && !img.contains(r.startContainer)) {
+        img.remove()
+        r.insertNode(img)
+        const sel2 = window.getSelection(); sel2.removeAllRanges()
+        const after = document.createRange(); after.setStartAfter(img); after.collapse(true); sel2.addRange(after)
+      }
+      img.style.outline = ''
+      setSel(null)
+      emit()
+      return
+    }
+    if (e.dataTransfer?.files?.length) { e.preventDefault(); e.stopPropagation(); insertImageFiles(e.dataTransfer.files, e) }
+  }
+  function onDragEndEditor() { dragImg.current = null }
+
   const md = e => e.preventDefault() // keep selection on toolbar mousedown
 
   return (
@@ -200,8 +245,10 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
           onInput={emit}
           onBlur={emit}
           onClick={onClickEditor}
-          onDragOver={e => { if (e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); e.stopPropagation() } }}
-          onDrop={e => { if (e.dataTransfer?.files?.length) { e.preventDefault(); e.stopPropagation(); insertImageFiles(e.dataTransfer.files, e) } }}
+          onDragStart={onDragStartEditor}
+          onDragOver={onDragOverEditor}
+          onDrop={onDropEditor}
+          onDragEnd={onDragEndEditor}
           style={{ minHeight: 120, padding: '10px 14px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 13, lineHeight: 1.6, outline: 'none' }}
         />
       </div>
