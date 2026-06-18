@@ -173,7 +173,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#0A0C10;--surface:#111318;--border:#1E2433;--border2:#2D3550;--text:#E8EBF2;--muted:#6B7A99;--subtle:#3D4A66;--accent:#4F8EF7}
+    :root{--bg:#F0F2F8;--surface:#FFFFFF;--border:#E2E6F0;--border2:#C8CFDF;--text:#0F1523;--muted:#5A6480;--subtle:#A0AABF;--accent:#2563EB}
     body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
     .pbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 28px;gap:12px}
     .pbar-left{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}

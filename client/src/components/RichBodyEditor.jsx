@@ -1,44 +1,40 @@
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
+import Link from '@tiptap/extension-link'
+import Image from '@tiptap/extension-image'
+import TextStyle from '@tiptap/extension-text-style'
+import Color from '@tiptap/extension-color'
+import Highlight from '@tiptap/extension-highlight'
+import TextAlign from '@tiptap/extension-text-align'
+import Placeholder from '@tiptap/extension-placeholder'
 
-// Rich-text body editor for a release-note task.
-// Single flowing contentEditable so images can float and text wraps around them
-// (Word-like inline insert). No external library. Stores sanitized HTML.
+// Rich-text body editor (TipTap / ProseMirror). Stores sanitized HTML via
+// value/onChange. ProseMirror handles inline image drag-MOVE correctly.
 
-const ALLOWED_TAGS = new Set(['P', 'BR', 'DIV', 'H2', 'H3', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'UL', 'OL', 'LI', 'A', 'SPAN', 'IMG', 'FIGURE', 'FIGCAPTION'])
+const ALLOWED_TAGS = new Set(['P', 'BR', 'DIV', 'H1', 'H2', 'H3', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'STRIKE', 'UL', 'OL', 'LI', 'A', 'SPAN', 'IMG', 'FIGURE', 'FIGCAPTION', 'BLOCKQUOTE', 'CODE', 'PRE', 'MARK', 'HR'])
 const ALLOWED_STYLE = new Set(['color', 'background-color', 'float', 'width', 'max-width', 'margin', 'display', 'text-align'])
 
 function cleanStyle(value) {
-  return String(value || '')
-    .split(';')
-    .map(p => p.trim())
-    .filter(Boolean)
-    .filter(p => ALLOWED_STYLE.has(p.split(':')[0].trim().toLowerCase()))
-    .join('; ')
+  return String(value || '').split(';').map(p => p.trim()).filter(Boolean)
+    .filter(p => ALLOWED_STYLE.has(p.split(':')[0].trim().toLowerCase())).join('; ')
 }
 
-// Whitelist-sanitize an HTML fragment (runs in browser via DOMParser).
 export function sanitizeBodyHtml(html) {
   if (!html) return ''
   const doc = new DOMParser().parseFromString(`<div id="r">${html}</div>`, 'text/html')
   const root = doc.getElementById('r')
   const walk = node => {
     for (const child of Array.from(node.childNodes)) {
-      if (child.nodeType === 3) continue // text
+      if (child.nodeType === 3) continue
       if (child.nodeType !== 1) { child.remove(); continue }
       const tag = child.tagName
-      if (!ALLOWED_TAGS.has(tag)) {
-        // unwrap unknown element, keep its children
-        while (child.firstChild) node.insertBefore(child.firstChild, child)
-        child.remove()
-        continue
-      }
+      if (!ALLOWED_TAGS.has(tag)) { while (child.firstChild) node.insertBefore(child.firstChild, child); child.remove(); continue }
       for (const attr of Array.from(child.attributes)) {
         const n = attr.name.toLowerCase()
         if (n.startsWith('on')) { child.removeAttribute(attr.name); continue }
-        if (tag === 'A' && n === 'href') {
-          if (/^\s*javascript:/i.test(attr.value)) child.removeAttribute(attr.name)
-          continue
-        }
+        if (tag === 'A' && n === 'href') { if (/^\s*javascript:/i.test(attr.value)) child.removeAttribute(attr.name); continue }
         if (tag === 'IMG' && (n === 'src' || n === 'alt')) continue
         if (n === 'class') continue
         if (n === 'style') { const s = cleanStyle(attr.value); if (s) child.setAttribute('style', s); else child.removeAttribute('style'); continue }
@@ -54,204 +50,204 @@ export function sanitizeBodyHtml(html) {
 
 const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 
-// Plain text → safe HTML paragraphs (blank line = new paragraph).
 export function textToHtml(text) {
   const t = String(text || '').trim()
   if (!t) return ''
-  return t.split(/\n{2,}/).map(block => `<p>${esc(block).replace(/\n/g, '<br>')}</p>`).join('')
+  return t.split(/\n{2,}/).map(b => `<p>${esc(b).replace(/\n/g, '<br>')}</p>`).join('')
 }
 
-// HTML → plain text (for AI prompt context + the plain mirror).
 export function htmlToText(html) {
   if (!html) return ''
   const doc = new DOMParser().parseFromString(html, 'text/html')
   doc.querySelectorAll('br').forEach(br => br.replaceWith('\n'))
-  doc.querySelectorAll('p, div, h2, h3, li').forEach(el => el.append('\n'))
+  doc.querySelectorAll('p, div, h1, h2, h3, li, blockquote').forEach(el => el.append('\n'))
   return (doc.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim()
 }
 
-const FLOAT_PRESETS = {
-  left:  w => `float:left; width:${w}%; margin:4px 14px 8px 0; max-width:100%`,
-  right: w => `float:right; width:${w}%; margin:4px 0 8px 14px; max-width:100%`,
-  full:  w => `float:none; display:block; width:${w}%; margin:10px auto; max-width:100%`,
+// ── Image with float/width via a style attribute ─────────────────────────────
+const FLOAT = {
+  left: w => `float:left;width:${w}%;margin:4px 14px 8px 0;max-width:100%`,
+  right: w => `float:right;width:${w}%;margin:4px 0 8px 14px;max-width:100%`,
+  full: w => `float:none;display:block;width:${w}%;margin:10px auto;max-width:100%`,
 }
-function imgWidth(el) { const m = /width:\s*(\d+)%/.exec(el.getAttribute('style') || ''); return m ? parseInt(m[1], 10) : 50 }
-function imgAlign(el) { const s = el.getAttribute('style') || ''; if (/float:\s*left/.test(s)) return 'left'; if (/float:\s*right/.test(s)) return 'right'; return 'full' }
+const StyledImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: { default: FLOAT.right(45), parseHTML: el => el.getAttribute('style'), renderHTML: a => (a.style ? { style: a.style } : {}) },
+    }
+  },
+})
+const widthOf = s => { const m = /width:\s*(\d+)%/.exec(s || ''); return m ? parseInt(m[1], 10) : 50 }
+const alignOf = s => (/float:\s*left/.test(s || '') ? 'left' : /float:\s*right/.test(s || '') ? 'right' : 'full')
 
-const TB = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 30, height: 28, padding: '0 7px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', borderRadius: 6, cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 13, lineHeight: 1 }
 const SWATCHES = ['#0F1523', '#2563EB', '#16A34A', '#D97706', '#DC2626', '#7C3AED']
+const TB = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 30, height: 28, padding: '0 8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', borderRadius: 6, cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 13, lineHeight: 1 }
+const active = on => on ? { ...TB, background: 'var(--accent)', color: '#fff', borderColor: 'var(--accent)' } : TB
+const sep = <span style={{ width: 1, background: 'var(--border)', margin: '2px 2px', alignSelf: 'stretch' }} />
 
 export default function RichBodyEditor({ value, onChange, placeholder, maxImageMB = 5, onError }) {
-  const ref = useRef(null)
-  const dragImg = useRef(null)        // image being repositioned inside the editor
-  const last = useRef(value || '')
-  const [empty, setEmpty] = useState(!value)
-  const [sel, setSel] = useState(null)       // selected <img> element
-  const [colorOpen, setColorOpen] = useState(false)
+  const lastEmitted = useRef(value || '')
+  const colorRef = useRef(null)
 
-  useEffect(() => {
-    if (!ref.current) return
-    if ((value || '') !== last.current) {
-      ref.current.innerHTML = value || ''
-      last.current = value || ''
-      setEmpty(!ref.current.textContent.trim() && !ref.current.querySelector('img'))
-    }
-  }, [value])
-
-  useEffect(() => { if (ref.current) { ref.current.innerHTML = value || ''; setEmpty(!ref.current.textContent.trim() && !ref.current.querySelector('img')) } }, []) // eslint-disable-line
-
-  const emit = useCallback(() => {
-    if (!ref.current) return
-    const html = ref.current.innerHTML
-    last.current = html
-    setEmpty(!ref.current.textContent.trim() && !ref.current.querySelector('img'))
-    onChange?.(html)
-  }, [onChange])
-
-  const cmd = (command, arg) => { ref.current?.focus(); document.execCommand(command, false, arg); emit() }
-  const block = tag => { ref.current?.focus(); document.execCommand('formatBlock', false, tag); emit() }
-
-  function insertImageFiles(files, dropEvent) {
-    for (const file of Array.from(files || [])) {
-      if (!file.type.startsWith('image/')) continue
-      if (file.size > maxImageMB * 1024 * 1024) { onError?.(`Slika je prevelika (max ${maxImageMB}MB)`); continue }
-      const reader = new FileReader()
-      reader.onload = e => {
-        const html = `<img src="${e.target.result}" alt="" style="${FLOAT_PRESETS.right(45)}">`
-        ref.current?.focus()
-        if (dropEvent && document.caretRangeFromPoint) {
-          const r = document.caretRangeFromPoint(dropEvent.clientX, dropEvent.clientY)
-          if (r) { const s = window.getSelection(); s.removeAllRanges(); s.addRange(r) }
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+      Underline,
+      Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
+      StyledImage.configure({ inline: false, allowBase64: true }),
+      TextStyle,
+      Color,
+      Highlight.configure({ HTMLAttributes: { style: 'background-color:#FEF08A' } }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Placeholder.configure({ placeholder: placeholder || 'Piši ovde…' }),
+    ],
+    content: value || '',
+    onUpdate: ({ editor }) => { const html = editor.getHTML(); lastEmitted.current = html; onChange?.(html) },
+    editorProps: {
+      handleDrop(view, event, slice, moved) {
+        if (moved) return false // internal node move → let ProseMirror move it (no copy)
+        const files = Array.from(event.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'))
+        if (!files.length) return false
+        event.preventDefault()
+        const at = view.posAtCoords({ left: event.clientX, top: event.clientY })
+        for (const file of files) {
+          if (file.size > maxImageMB * 1024 * 1024) { onError?.(`Slika je prevelika (max ${maxImageMB}MB)`); continue }
+          const reader = new FileReader()
+          reader.onload = e => {
+            const node = view.state.schema.nodes.image.create({ src: e.target.result, style: FLOAT.right(45) })
+            view.dispatch(view.state.tr.insert(at ? at.pos : view.state.selection.from, node))
+          }
+          reader.readAsDataURL(file)
         }
-        document.execCommand('insertHTML', false, html + '<p></p>')
-        emit()
-      }
-      reader.readAsDataURL(file)
-    }
-  }
+        return true
+      },
+    },
+  }, [])
 
+  // External content changes (e.g. AI apply) — only when different from our own emit.
+  useEffect(() => {
+    if (!editor) return
+    if ((value || '') !== lastEmitted.current) {
+      editor.commands.setContent(value || '', false)
+      lastEmitted.current = value || ''
+    }
+  }, [value, editor])
+
+  if (!editor) return null
+
+  const run = fn => () => { fn(editor.chain().focus()).run() }
+  const headingValue = editor.isActive('heading', { level: 1 }) ? 'h1' : editor.isActive('heading', { level: 2 }) ? 'h2' : editor.isActive('heading', { level: 3 }) ? 'h3' : 'p'
+  const alignValue = ['left', 'center', 'right', 'justify'].find(a => editor.isActive({ textAlign: a })) || 'left'
+
+  function setHeading(v) {
+    const c = editor.chain().focus()
+    if (v === 'p') c.setParagraph().run()
+    else c.toggleHeading({ level: parseInt(v[1], 10) }).run()
+  }
   function pickImage() {
     const inp = document.createElement('input')
     inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true
-    inp.onchange = e => insertImageFiles(e.target.files)
+    inp.onchange = e => {
+      for (const file of Array.from(e.target.files || [])) {
+        if (file.size > maxImageMB * 1024 * 1024) { onError?.(`Slika je prevelika (max ${maxImageMB}MB)`); continue }
+        const reader = new FileReader()
+        reader.onload = ev => editor.chain().focus().setImage({ src: ev.target.result, style: FLOAT.right(45) }).run()
+        reader.readAsDataURL(file)
+      }
+    }
     inp.click()
   }
+  function setLink() {
+    const prev = editor.getAttributes('link').href || ''
+    const url = window.prompt('URL linka:', prev)
+    if (url === null) return
+    if (url === '') editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    else editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+  }
 
-  function onClickEditor(e) {
-    if (e.target.tagName === 'IMG') { setSel(e.target); e.target.style.outline = '2px solid var(--accent)' }
-    else if (sel) { sel.style.outline = ''; setSel(null) }
-  }
-  function applyImg(mut) { if (!sel) return; mut(sel); emit() }
-  function setAlign(a) { applyImg(el => el.setAttribute('style', FLOAT_PRESETS[a](imgWidth(el)))) }
-  function bumpWidth(d) { applyImg(el => { const a = imgAlign(el); const w = Math.max(20, Math.min(100, imgWidth(el) + d)); el.setAttribute('style', FLOAT_PRESETS[a](w)) }) }
-  function removeImg() { if (!sel) return; sel.remove(); setSel(null); emit() }
-
-  function caretRangeAt(x, y) {
-    if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y)
-    if (document.caretPositionFromPoint) {
-      const p = document.caretPositionFromPoint(x, y)
-      if (p) { const r = document.createRange(); r.setStart(p.offsetNode, p.offset); r.collapse(true); return r }
-    }
-    return null
-  }
-  // Dragging an existing image → MOVE it (native contentEditable drag copies it).
-  function onDragStartEditor(e) {
-    if (e.target.tagName === 'IMG') {
-      dragImg.current = e.target
-      e.dataTransfer.effectAllowed = 'move'
-      try { e.dataTransfer.setData('text/plain', '') } catch { /* some browsers require setData */ }
-    }
-  }
-  function onDragOverEditor(e) {
-    const isFile = e.dataTransfer?.types && Array.from(e.dataTransfer.types).includes('Files')
-    if (dragImg.current || isFile) {
-      e.preventDefault(); e.stopPropagation()
-      e.dataTransfer.dropEffect = dragImg.current ? 'move' : 'copy'
-    }
-  }
-  function onDropEditor(e) {
-    if (dragImg.current) {
-      e.preventDefault(); e.stopPropagation()
-      const img = dragImg.current
-      dragImg.current = null
-      const r = caretRangeAt(e.clientX, e.clientY)
-      if (r && r.startContainer !== img && !img.contains(r.startContainer)) {
-        img.remove()
-        r.insertNode(img)
-        const sel2 = window.getSelection(); sel2.removeAllRanges()
-        const after = document.createRange(); after.setStartAfter(img); after.collapse(true); sel2.addRange(after)
-      }
-      img.style.outline = ''
-      setSel(null)
-      emit()
-      return
-    }
-    if (e.dataTransfer?.files?.length) { e.preventDefault(); e.stopPropagation(); insertImageFiles(e.dataTransfer.files, e) }
-  }
-  function onDragEndEditor() { dragImg.current = null }
-
-  const md = e => e.preventDefault() // keep selection on toolbar mousedown
+  const imgActive = editor.isActive('image')
+  const imgStyle = imgActive ? (editor.getAttributes('image').style || '') : ''
+  const setImgStyle = s => editor.chain().focus().updateAttributes('image', { style: s }).run()
 
   return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: 'var(--bg)' }}>
-      <div onMouseDown={md} style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: 6, borderBottom: '1px solid var(--border)', background: 'var(--surfaceAlt)' }}>
-        <button style={{ ...TB, fontWeight: 700 }} title="Podebljano" onClick={() => cmd('bold')}>B</button>
-        <button style={{ ...TB, fontStyle: 'italic' }} title="Kurziv" onClick={() => cmd('italic')}>I</button>
-        <button style={{ ...TB, textDecoration: 'underline' }} title="Podvučeno" onClick={() => cmd('underline')}>U</button>
-        <span style={{ width: 1, background: 'var(--border)', margin: '2px 2px' }} />
-        <button style={TB} title="Naslov" onClick={() => block('H3')}>H</button>
-        <button style={TB} title="Običan pasus" onClick={() => block('P')}>¶</button>
-        <button style={TB} title="Lista" onClick={() => cmd('insertUnorderedList')}>• Lista</button>
-        <button style={TB} title="Numerisana lista" onClick={() => cmd('insertOrderedList')}>1. Lista</button>
-        <span style={{ width: 1, background: 'var(--border)', margin: '2px 2px' }} />
+    <div className="rbe" style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: 'var(--bg)' }}>
+      <style>{`
+        .rbe .ProseMirror{outline:none;min-height:130px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6;color:var(--text)}
+        .rbe .ProseMirror>*:first-child{margin-top:0}
+        .rbe .ProseMirror p{margin:0 0 8px}
+        .rbe .ProseMirror h1{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin:10px 0 6px}
+        .rbe .ProseMirror h2{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin:10px 0 4px}
+        .rbe .ProseMirror h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin:8px 0 4px}
+        .rbe .ProseMirror ul,.rbe .ProseMirror ol{padding-left:22px;margin:6px 0}
+        .rbe .ProseMirror li{margin:2px 0}
+        .rbe .ProseMirror blockquote{border-left:3px solid var(--border);padding-left:12px;color:var(--textMuted);margin:8px 0}
+        .rbe .ProseMirror code{background:var(--surfaceAlt);padding:1px 4px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px}
+        .rbe .ProseMirror a{color:var(--accent)}
+        .rbe .ProseMirror img{border-radius:5px}
+        .rbe .ProseMirror img.ProseMirror-selectednode{outline:2px solid var(--accent);outline-offset:1px}
+        .rbe .ProseMirror::after{content:"";display:block;clear:both}
+        .rbe .ProseMirror p.is-editor-empty:first-child::before{content:attr(data-placeholder);color:var(--textSubtle);float:left;height:0;pointer-events:none}
+      `}</style>
+
+      <div onMouseDown={e => e.preventDefault()} style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: 6, borderBottom: '1px solid var(--border)', background: 'var(--surfaceAlt)' }}>
+        <button title="Poništi" style={TB} onClick={run(c => c.undo())}>↶</button>
+        <button title="Ponovi" style={TB} onClick={run(c => c.redo())}>↷</button>
+        {sep}
+        <select value={headingValue} onChange={e => setHeading(e.target.value)} style={{ ...TB, minWidth: 96, padding: '0 6px' }}>
+          <option value="p">Tekst</option>
+          <option value="h1">Naslov 1</option>
+          <option value="h2">Naslov 2</option>
+          <option value="h3">Naslov 3</option>
+        </select>
+        {sep}
+        <button title="Podebljano" style={{ ...active(editor.isActive('bold')), fontWeight: 700 }} onClick={run(c => c.toggleBold())}>B</button>
+        <button title="Kurziv" style={{ ...active(editor.isActive('italic')), fontStyle: 'italic' }} onClick={run(c => c.toggleItalic())}>I</button>
+        <button title="Podvučeno" style={{ ...active(editor.isActive('underline')), textDecoration: 'underline' }} onClick={run(c => c.toggleUnderline())}>U</button>
+        <button title="Precrtano" style={{ ...active(editor.isActive('strike')), textDecoration: 'line-through' }} onClick={run(c => c.toggleStrike())}>S</button>
+        {sep}
+        <button title="Lista" style={active(editor.isActive('bulletList'))} onClick={run(c => c.toggleBulletList())}>• Lista</button>
+        <button title="Numerisana" style={active(editor.isActive('orderedList'))} onClick={run(c => c.toggleOrderedList())}>1. Lista</button>
+        <button title="Citat" style={active(editor.isActive('blockquote'))} onClick={run(c => c.toggleBlockquote())}>Citat</button>
+        <button title="Kod" style={active(editor.isActive('code'))} onClick={run(c => c.toggleCode())}>Kod</button>
+        {sep}
         <div style={{ position: 'relative' }}>
-          <button style={TB} title="Boja teksta" onClick={() => setColorOpen(o => !o)}><span style={{ color: 'var(--accent)', fontWeight: 700 }}>A</span> ▾</button>
-          {colorOpen && (
-            <div onMouseDown={md} style={{ position: 'absolute', top: 32, left: 0, zIndex: 20, display: 'flex', gap: 4, padding: 6, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
-              {SWATCHES.map(c => (
-                <button key={c} title={c} onClick={() => { cmd('foreColor', c); setColorOpen(false) }} style={{ width: 18, height: 18, borderRadius: 4, background: c, border: '1px solid var(--border)', cursor: 'pointer', padding: 0 }} />
-              ))}
-              <button title="Žuti marker" onClick={() => { document.execCommand('hiliteColor', false, '#FEF08A') || document.execCommand('backColor', false, '#FEF08A'); emit(); setColorOpen(false) }} style={{ ...TB, minWidth: 24, height: 18, background: '#FEF08A', color: '#713F12', fontSize: 11 }}>H</button>
-            </div>
-          )}
+          <button title="Boja teksta" style={TB} onClick={() => { const el = colorRef.current; if (el) el.style.display = el.style.display === 'flex' ? 'none' : 'flex' }}><span style={{ color: 'var(--accent)', fontWeight: 700 }}>A</span> ▾</button>
+          <div ref={colorRef} style={{ display: 'none', position: 'absolute', top: 32, left: 0, zIndex: 20, gap: 4, padding: 6, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
+            {SWATCHES.map(c => <button key={c} title={c} onMouseDown={e => e.preventDefault()} onClick={() => { editor.chain().focus().setColor(c).run(); colorRef.current.style.display = 'none' }} style={{ width: 18, height: 18, borderRadius: 4, background: c, border: '1px solid var(--border)', cursor: 'pointer', padding: 0 }} />)}
+            <button title="Bez boje" onMouseDown={e => e.preventDefault()} onClick={() => { editor.chain().focus().unsetColor().run(); colorRef.current.style.display = 'none' }} style={{ ...TB, minWidth: 24, height: 18, fontSize: 11 }}>×</button>
+          </div>
         </div>
-        <button style={TB} title="Link" onClick={() => { const u = window.prompt('URL linka:'); if (u) cmd('createLink', u) }}>Link</button>
-        <span style={{ width: 1, background: 'var(--border)', margin: '2px 2px' }} />
-        <button style={{ ...TB, color: 'var(--accent)', borderColor: 'var(--accent)' }} title="Ubaci sliku" onClick={pickImage}>＋ Slika</button>
+        <button title="Marker" style={active(editor.isActive('highlight'))} onClick={run(c => c.toggleHighlight())}>Marker</button>
+        {sep}
+        <select value={alignValue} onChange={e => editor.chain().focus().setTextAlign(e.target.value).run()} style={{ ...TB, minWidth: 92, padding: '0 6px' }}>
+          <option value="left">Levo</option>
+          <option value="center">Centar</option>
+          <option value="right">Desno</option>
+          <option value="justify">Obostrano</option>
+        </select>
+        <button title="Link" style={active(editor.isActive('link'))} onClick={setLink}>Link</button>
+        <button title="Linija" style={TB} onClick={run(c => c.setHorizontalRule())}>—</button>
+        <button title="Očisti stil" style={TB} onClick={run(c => c.unsetAllMarks().clearNodes())}>Očisti</button>
+        {sep}
+        <button title="Ubaci sliku" style={{ ...TB, color: 'var(--accent)', borderColor: 'var(--accent)' }} onClick={pickImage}>＋ Slika</button>
       </div>
 
-      {sel && (
-        <div onMouseDown={md} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderBottom: '1px solid var(--border)', background: 'rgba(79,142,247,0.08)', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>
+      {imgActive && (
+        <div onMouseDown={e => e.preventDefault()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderBottom: '1px solid var(--border)', background: 'rgba(79,142,247,0.08)', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>
           <span>Slika:</span>
           {[['left', 'Levo'], ['full', 'Centar / puna'], ['right', 'Desno']].map(([a, lbl]) => (
-            <button key={a} onClick={() => setAlign(a)} style={{ ...TB, height: 24, fontSize: 12, fontWeight: imgAlign(sel) === a ? 700 : 400, borderColor: imgAlign(sel) === a ? 'var(--accent)' : 'var(--border)', color: imgAlign(sel) === a ? 'var(--accent)' : 'var(--text)' }}>{lbl}</button>
+            <button key={a} onClick={() => setImgStyle(FLOAT[a](widthOf(imgStyle)))} style={{ ...active(alignOf(imgStyle) === a), height: 24, fontSize: 12 }}>{lbl}</button>
           ))}
-          <span style={{ width: 1, height: 18, background: 'var(--border)' }} />
-          <button onClick={() => bumpWidth(-10)} style={{ ...TB, height: 24, minWidth: 26 }}>−</button>
-          <span style={{ fontFamily: 'DM Mono', minWidth: 38, textAlign: 'center' }}>{imgWidth(sel)}%</span>
-          <button onClick={() => bumpWidth(10)} style={{ ...TB, height: 24, minWidth: 26 }}>＋</button>
-          <button onClick={removeImg} style={{ ...TB, height: 24, marginLeft: 'auto', color: 'var(--red)', borderColor: 'var(--red)' }}>Ukloni</button>
+          {sep}
+          <button onClick={() => setImgStyle(FLOAT[alignOf(imgStyle)](Math.max(20, widthOf(imgStyle) - 10)))} style={{ ...TB, height: 24, minWidth: 26 }}>−</button>
+          <span style={{ fontFamily: 'DM Mono', minWidth: 38, textAlign: 'center' }}>{widthOf(imgStyle)}%</span>
+          <button onClick={() => setImgStyle(FLOAT[alignOf(imgStyle)](Math.min(100, widthOf(imgStyle) + 10)))} style={{ ...TB, height: 24, minWidth: 26 }}>＋</button>
+          <button onClick={run(c => c.deleteSelection())} style={{ ...TB, height: 24, marginLeft: 'auto', color: 'var(--red)', borderColor: 'var(--red)' }}>Ukloni</button>
         </div>
       )}
 
-      <div style={{ position: 'relative' }}>
-        {empty && placeholder && (
-          <div style={{ position: 'absolute', top: 12, left: 14, color: 'var(--textSubtle)', fontFamily: 'DM Sans', fontSize: 13, pointerEvents: 'none' }}>{placeholder}</div>
-        )}
-        <div
-          ref={ref}
-          contentEditable
-          suppressContentEditableWarning
-          onInput={emit}
-          onBlur={emit}
-          onClick={onClickEditor}
-          onDragStart={onDragStartEditor}
-          onDragOver={onDragOverEditor}
-          onDrop={onDropEditor}
-          onDragEnd={onDragEndEditor}
-          style={{ minHeight: 120, padding: '10px 14px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 13, lineHeight: 1.6, outline: 'none' }}
-        />
-      </div>
+      <EditorContent editor={editor} />
     </div>
   )
 }
