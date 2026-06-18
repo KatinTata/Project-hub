@@ -71,20 +71,23 @@ const FLOAT = {
   full: w => `float:none;display:block;width:${w}%;margin:10px auto;max-width:100%`,
 }
 const StyledImage = Image.extend({
-  draggable: false,
+  draggable: true,
   addAttributes() {
     return {
       ...this.parent?.(),
       style: { default: FLOAT.right(45), parseHTML: el => el.getAttribute('style'), renderHTML: a => (a.style ? { style: a.style } : {}) },
     }
   },
-  // NodeView with corner resize handles → fluid drag-to-resize.
+  // NodeView: native ProseMirror drag to move (smooth, with drop indicator) +
+  // corner handles for fluid resize.
   addNodeView() {
     return ({ node, getPos, editor }) => {
       const dom = document.createElement('span')
       dom.className = 'rbe-img'
+      dom.draggable = true // let ProseMirror handle the drag/move natively
       const img = document.createElement('img')
       img.src = node.attrs.src
+      img.draggable = false
       if (node.attrs.alt) img.alt = node.attrs.alt
       dom.appendChild(img)
       const apply = style => dom.setAttribute('style', style || FLOAT.right(45))
@@ -92,54 +95,13 @@ const StyledImage = Image.extend({
 
       let curStyle = node.attrs.style
 
-      // Free drag: a "ghost" follows the cursor; on drop the image moves to that
-      // text position and floats left/center/right by where it was dropped.
-      img.addEventListener('mousedown', e => {
-        if (e.button !== 0 || e.target.classList.contains('rbe-img-handle')) return
-        e.preventDefault()
-        const sx = e.clientX, sy = e.clientY
-        let dragging = false, ghost = null
-        const onMove = ev => {
-          if (!dragging && Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) < 5) return
-          if (!dragging) {
-            dragging = true
-            ghost = img.cloneNode(true)
-            ghost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.75;width:${img.getBoundingClientRect().width}px;height:auto;border-radius:5px;box-shadow:0 8px 28px rgba(0,0,0,0.35)`
-            document.body.appendChild(ghost)
-            dom.style.opacity = '0.4'
-          }
-          ghost.style.left = (ev.clientX + 10) + 'px'
-          ghost.style.top = (ev.clientY + 10) + 'px'
-        }
-        const onUp = ev => {
-          document.removeEventListener('mousemove', onMove)
-          document.removeEventListener('mouseup', onUp)
-          if (ghost) ghost.remove()
-          dom.style.opacity = ''
-          if (typeof getPos !== 'function') return
-          if (!dragging) { editor.commands.setNodeSelection(getPos()); return }
-          const view = editor.view
-          const coords = view.posAtCoords({ left: ev.clientX, top: ev.clientY })
-          if (!coords) return
-          const rect = view.dom.getBoundingClientRect()
-          const rel = (ev.clientX - rect.left) / rect.width
-          const align = rel < 0.34 ? 'left' : rel > 0.66 ? 'right' : 'full'
-          const w = widthOf(curStyle)
-          const from = getPos()
-          let tr = view.state.tr.delete(from, from + node.nodeSize)
-          const target = Math.min(tr.doc.content.size, tr.mapping.map(coords.pos))
-          tr = tr.insert(target, node.type.create({ ...node.attrs, style: FLOAT[align](w) }))
-          view.dispatch(tr)
-        }
-        document.addEventListener('mousemove', onMove)
-        document.addEventListener('mouseup', onUp)
-      })
-
       for (const pos of ['nw', 'ne', 'sw', 'se']) {
         const h = document.createElement('span')
         h.className = `rbe-img-handle rbe-h-${pos}`
+        h.draggable = false
         h.addEventListener('mousedown', e => {
           e.preventDefault(); e.stopPropagation()
+          dom.draggable = false // don't start a node-drag while resizing
           const startX = e.clientX
           const startW = img.getBoundingClientRect().width
           const editorW = editor.view.dom.clientWidth || 600
@@ -154,6 +116,7 @@ const StyledImage = Image.extend({
           const onUp = () => {
             document.removeEventListener('mousemove', onMove)
             document.removeEventListener('mouseup', onUp)
+            dom.draggable = true
             if (typeof getPos === 'function') {
               editor.view.dispatch(editor.view.state.tr.setNodeMarkup(getPos(), undefined, { ...node.attrs, style: curStyle }))
             }
@@ -174,7 +137,8 @@ const StyledImage = Image.extend({
           return true
         },
         ignoreMutation: () => true,
-        stopEvent: () => true,
+        // Let PM handle drag (move) + click (select); only swallow resize-handle events.
+        stopEvent: e => e.target?.classList?.contains?.('rbe-img-handle'),
       }
     }
   },
@@ -205,7 +169,7 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3] }, dropcursor: { color: '#2563EB', width: 3 } }),
       Underline,
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
       StyledImage.configure({ inline: true, allowBase64: true }),
