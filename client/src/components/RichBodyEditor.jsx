@@ -183,7 +183,26 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
     onUpdate: ({ editor }) => { const html = editor.getHTML(); lastEmitted.current = html; onChange?.(html) },
     editorProps: {
       handleDrop(view, event, slice, moved) {
-        if (moved) return false // internal node move → let ProseMirror move it (no copy)
+        // Moving an existing image: place it at the drop point AND set its side
+        // (left/center/right) from where it was dropped horizontally.
+        if (moved) {
+          const dn = slice.content.firstChild
+          if (dn && dn.type.name === 'image') {
+            const coords = view.posAtCoords({ left: event.clientX, top: event.clientY })
+            if (!coords) return false
+            event.preventDefault()
+            const rect = view.dom.getBoundingClientRect()
+            const rel = (event.clientX - rect.left) / rect.width
+            const align = rel < 0.34 ? 'left' : rel > 0.66 ? 'right' : 'full'
+            const sel = view.state.selection
+            let tr = view.state.tr.delete(sel.from, sel.to)
+            const target = Math.min(tr.doc.content.size, tr.mapping.map(coords.pos))
+            tr = tr.insert(target, dn.type.create({ ...dn.attrs, style: FLOAT[align](widthOf(dn.attrs.style)) }))
+            view.dispatch(tr)
+            return true
+          }
+          return false
+        }
         const files = Array.from(event.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'))
         if (!files.length) return false
         event.preventDefault()
