@@ -197,7 +197,7 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
             event.preventDefault()
             const rect = view.dom.getBoundingClientRect()
             const rel = (event.clientX - rect.left) / rect.width
-            const align = rel < 0.34 ? 'left' : rel > 0.66 ? 'right' : 'full'
+            const align = rel < 0.42 ? 'left' : rel > 0.58 ? 'right' : 'full'
             let tr = view.state.tr.delete(sel.from, sel.to)
             const target = Math.min(tr.doc.content.size, tr.mapping.map(coords.pos))
             tr = tr.insert(target, dn.type.create({ ...dn.attrs, style: FLOAT[align](widthOf(dn.attrs.style)) }))
@@ -251,7 +251,7 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
       for (const file of Array.from(e.target.files || [])) {
         if (file.size > maxImageMB * 1024 * 1024) { onError?.(`Slika je prevelika (max ${maxImageMB}MB)`); continue }
         const reader = new FileReader()
-        reader.onload = ev => editor.chain().focus().setImage({ src: ev.target.result, style: FLOAT.right(45) }).run()
+        reader.onload = ev => editor.chain().focus().insertContentAt(editor.state.selection.to, { type: 'image', attrs: { src: ev.target.result, style: FLOAT.right(45) } }).run()
         reader.readAsDataURL(file)
       }
     }
