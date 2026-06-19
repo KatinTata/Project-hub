@@ -95,7 +95,7 @@ function getHelpLinks(task) {
   }))
 }
 
-function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOverrides = {}, sectionLabels = {} } = {}) {
+function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOverrides = {}, sectionLabels = {}, preview = false } = {}) {
   const dateStr = esc(meta.date || todayStr())
   const title = esc(`${meta.clientName || 'Release Notes'} ${config.version || ''}`.trim())
   const jiraBase = meta.jiraUrl ? 'https://' + meta.jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '') : null
@@ -268,7 +268,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       .task-row{break-after:avoid;page-break-after:avoid}
       .section-hdr{break-after:avoid;page-break-after:avoid}
       /* ── Task cards: never split across pages ── */
-      .task-card{background:#fff !important;border:none !important;border-left:3px solid #2563EB !important;padding:10px 14px !important;margin-bottom:10px !important;break-inside:auto;page-break-inside:auto;box-shadow:none !important;border-radius:0 !important}
+      .task-card{background:#fff !important;border:none !important;border-left:3px solid #2563EB !important;padding:10px 14px !important;margin-bottom:10px !important;break-inside:avoid !important;page-break-inside:avoid !important;box-shadow:none !important;border-radius:0 !important}
       .task-card--simple{break-inside:avoid !important;page-break-inside:avoid !important}
       /* ── Simple task cards (no desc/images) ── */
       .task-card--simple{border-left:3px solid #BFDBFE !important;padding:9px 18px !important}
@@ -335,10 +335,10 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     <img src="/favicon.png" alt="" class="print-footer-logo" style="height:18px;opacity:0.35">
   </div>
 
-  <div class="pbar">
+  ${preview ? '' : `<div class="pbar">
     <span class="pbar-left">${esc(meta.clientName || 'Intelisale')}${config.version ? ' · ' + esc(config.version) : ''} Release Notes</span>
     <button class="pbtn" onclick="window.print()">↓ Export PDF</button>
-  </div>
+  </div>`}
   <div class="wrap">
     <div class="doc-hdr">
       <div class="doc-hdr-top">
@@ -772,7 +772,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   }
 
   // Single source for the final HTML — used by both the Pregled iframe and Publish.
-  function buildPublishHtml() {
+  // `preview` omits the in-document Export PDF bar (we have our own button).
+  function buildPublishHtml(preview = false) {
     const selectedTasks = tasks.filter(t => selectedIds.has(t.id))
     return generatePublishHtml(selectedTasks, taskEdits, config, {
       clientName: config.clientName,
@@ -780,7 +781,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       productName: selectedProject?.displayName || selectedProject?.epicKey || '',
       jiraUrl: user?.jiraUrl || '',
       date: previewDate || todayStr(),
-    }, { sectionOverrides, sectionLabels })
+    }, { sectionOverrides, sectionLabels, preview })
   }
 
   // Export the preview iframe to PDF. Chrome names the file after the MAIN
@@ -1475,7 +1476,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           </div>
         </div>
         <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', marginBottom: 16 }}>
-          Po kartici: dugme za AI opis i prevod, pa stilizuj tekst i ubaci slike · prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da preurediš redosled ili premestiš u drugu sekciju · klikni naziv sekcije da je preimenuješ.
+          Po kartici: dugme za AI opis i prevod, pa stilizuj tekst i ubaci slike · klikni naziv sekcije da je preimenuješ · redosled taskova se menja na koraku „Pregled".
         </div>
 
         {/* Document */}
@@ -1551,12 +1552,6 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                             onDrop={e => { e.preventDefault(); e.stopPropagation(); applyDrop(prefix, task.id) }}
                             style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                              <span
-                                draggable={true}
-                                onDragStart={e => { dragTaskId.current = task.id; dragFromPrefix.current = prefix; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', task.id) }}
-                                onDragEnd={() => { setDragOverPrefix(null); setDragOverTaskId(null) }}
-                                title="Prevuci da preurediš ili premestiš"
-                                style={{ color: 'var(--textSubtle)', fontSize: 16, flexShrink: 0, userSelect: 'none', letterSpacing: 2, cursor: 'grab' }}>⠿</span>
                               <span style={{ fontFamily: 'DM Mono', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`, flexShrink: 0 }}>{task.key}</span>
                               <input value={edit.name || ''} onChange={e => updateEdit(task.id, 'name', e.target.value)} placeholder={t('rne.taskNamePlaceholder')}
                                 style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14, fontWeight: 600 }} />
@@ -1620,14 +1615,63 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   }
 
   // ── Step 4: Pregled & Export ─────────────────────────────────────────────────
+  // Compact reorder list for the Pregled step — small rows make drag reliable.
+  // Mutations flow into sectionOverrides/sectionTaskOrders, so the preview/PDF/
+  // publish all reflect the current order immediately.
+  const renderReorderList = () => {
+    const selTasks = tasks.filter(t => selectedIds.has(t.id))
+    const { groups, groupOrder } = buildGroups(selTasks)
+    return (
+      <div style={{ marginBottom: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
+          Redosled <span style={{ fontFamily: 'DM Sans', fontWeight: 400, fontSize: 12, color: 'var(--textMuted)' }}>— prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da promeniš redosled; pregled i PDF se odmah ažuriraju</span>
+        </div>
+        <div style={{ padding: 8 }}>
+          {groupOrder.map(prefix => {
+            const cfg = { ...(GROUP_CONFIG[prefix] || { label: prefix, color: '#8B99B5' }), label: getSectionLabel(prefix) }
+            return (
+              <div key={prefix}
+                onDragOver={e => { e.preventDefault(); if (dragOverPrefix !== prefix) setDragOverPrefix(prefix) }}
+                onDrop={e => { e.preventDefault(); applyDrop(prefix, null) }}
+                style={{ marginBottom: 6 }}>
+                <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: cfg.color, padding: '4px 6px' }}>{cfg.label}</div>
+                {groups[prefix].map(task => {
+                  const edit = taskEdits[task.id] || {}
+                  const isTarget = dragOverTaskId === task.id
+                  return (
+                    <div key={task.id}>
+                      {isTarget && <div style={{ height: 2, background: cfg.color, margin: '2px 6px', borderRadius: 2 }} />}
+                      <div
+                        onDragOver={e => { e.preventDefault(); e.stopPropagation(); if (dragOverTaskId !== task.id) setDragOverTaskId(task.id); if (dragOverPrefix !== prefix) setDragOverPrefix(prefix) }}
+                        onDrop={e => { e.preventDefault(); e.stopPropagation(); applyDrop(prefix, task.id) }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 4 }}>
+                        <span draggable={true}
+                          onDragStart={e => { dragTaskId.current = task.id; dragFromPrefix.current = prefix; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', task.id) }}
+                          onDragEnd={() => { setDragOverPrefix(null); setDragOverTaskId(null) }}
+                          title="Prevuci da promeniš redosled"
+                          style={{ cursor: 'grab', color: 'var(--textSubtle)', letterSpacing: 2, userSelect: 'none', flexShrink: 0 }}>⠿</span>
+                        <span style={{ fontFamily: 'DM Mono', fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{task.key}</span>
+                        <span style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{edit.name || task.fields?.summary || ''}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   const renderStep4 = () => {
-    const html = buildPublishHtml()
+    const html = buildPublishHtml(true)
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <button onClick={() => setWizardStep(2)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button onClick={exportPdf} style={smallBtnStyle}>{t('rne.exportPdf')}</button>
+            <button onClick={exportPdf} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.exportPdf')}</button>
             <button onClick={openPublishModal} disabled={publishState?.loading}
               style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>
               {publishState?.loading ? t('app.loading') : 'Publish'}
@@ -1649,6 +1693,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <input value={previewDate} onChange={e => setPreviewDate(e.target.value)}
             style={{ width: 220, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Mono', fontSize: 13, boxSizing: 'border-box' }} />
         </div>
+
+        {renderReorderList()}
 
         <iframe id="rn-preview-frame" title="Pregled release notes" srcDoc={html}
           style={{ width: '100%', height: '78vh', border: '1px solid var(--border)', borderRadius: 12, background: '#fff' }} />
@@ -1712,8 +1758,8 @@ const iconBtnStyle = {
 }
 
 const smallBtnStyle = {
-  background: 'transparent', border: '1px solid var(--border)', borderRadius: 8,
-  color: 'var(--text)', fontSize: 12, fontFamily: 'DM Sans', cursor: 'pointer', padding: '6px 14px',
+  background: 'var(--surfaceAlt)', border: '1px solid var(--borderHover)', borderRadius: 8,
+  color: 'var(--text)', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans', cursor: 'pointer', padding: '7px 16px',
   transition: 'all 0.2s ease', whiteSpace: 'nowrap',
 }
 
