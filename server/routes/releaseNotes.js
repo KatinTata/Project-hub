@@ -79,7 +79,8 @@ async function fetchTasksForProject(jira, project, customJql) {
     token = data.isLast ? null : (data.nextPageToken || null)
   } while (token)
 
-  return results.map(issue => ({
+  // Release notes are per main task — drop Jira subtasks (e.g. "… – Back/Web/Testing").
+  return results.filter(issue => !issue.fields?.issuetype?.subtask).map(issue => ({
     id: issue.id,
     key: issue.key,
     fields: {
