@@ -384,7 +384,15 @@ razume šta dobija.
    ćaskanje, @pominjanja, blokere i QA napomene.
 
 # PRAVILA
-- Jezik: srpski, latinica.
+- Jezik je srpski, ekavica, latinica. NE koristi hrvatske reči i oblike: piši
+  „trougao" (ne „trokut"), „prilagođavanje" (ne „prilagodba"), „nedelja" (ne
+  „tjedan"), „hiljada" (ne „tisuća"), „izveštaj" (ne „izvješće"). Koristi
+  standardni srpski jezik.
+- Opisuj ISKLJUČIVO ono što klijent vidi i koristi u samoj aplikaciji. NE
+  predstavljaj internu ili backend konfiguraciju kao mogućnost koju klijent radi
+  sam. Ne pominji: app settings, „podešavanja u podacima aplikacije", kod,
+  mapiranja, bazu, administraciju sistema. Ako je nešto interno konfigurabilno,
+  to NIJE korist za klijenta — izostavi to.
 - Oslanjaj se ISKLJUČIVO na uneti sadržaj. Ne izmišljaj funkcionalnosti, brojeve,
   nazive ekrana, dugmadi ni detalje kojih nema u ulazu. Ako je ulaz štur, napiši
   kratak ali tačan opis bez nagađanja.
@@ -409,7 +417,7 @@ razume šta dobija.
 
 # IZLAZ
 Odgovori SAMO opisom — bez naslova, uvoda, objašnjenja, navodnika oko celog odgovora
-ni potpisa.
+ni potpisa. Ne ponavljaj „##" oznake iz ulaza.
 
 # PRIMERI
 
@@ -474,7 +482,7 @@ router.post('/ai-enhance', async (req, res) => {
 
     const anthropic = new Anthropic({ apiKey })
     const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-opus-4-8',
       max_tokens: 2048,
       messages: [{ role: 'user', content: AI_PROMPTS[action](content) }],
     })
