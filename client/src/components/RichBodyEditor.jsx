@@ -166,10 +166,11 @@ const sep = <span style={{ width: 1, background: 'var(--border)', margin: '2px 2
 export default function RichBodyEditor({ value, onChange, placeholder, maxImageMB = 5, onError }) {
   const lastEmitted = useRef(value || '')
   const colorRef = useRef(null)
+  const dragLabelRef = useRef(null) // floating "Levo/Centar/Desno" hint while dragging an image
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] }, dropcursor: { color: '#2563EB', width: 3 } }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3] }, dropcursor: { color: '#2563EB', width: 4 } }),
       Underline,
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
       StyledImage.configure({ inline: true, allowBase64: true }),
@@ -220,6 +221,22 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
           reader.readAsDataURL(file)
         }
         return true
+      },
+      handleDOMEvents: {
+        dragover: (view, event) => {
+          const lbl = dragLabelRef.current
+          const isImg = view.dragging?.slice?.content?.firstChild?.type?.name === 'image'
+          if (!lbl || !isImg) return false
+          const rect = view.dom.getBoundingClientRect()
+          const rel = (event.clientX - rect.left) / rect.width
+          lbl.textContent = (rel < 0.42 ? 'Levo' : rel > 0.58 ? 'Desno' : 'Centar') + ' — pusti ovde'
+          lbl.style.left = (event.clientX + 16) + 'px'
+          lbl.style.top = (event.clientY + 16) + 'px'
+          lbl.style.display = 'block'
+          return false
+        },
+        drop: () => { if (dragLabelRef.current) dragLabelRef.current.style.display = 'none'; return false },
+        dragend: () => { if (dragLabelRef.current) dragLabelRef.current.style.display = 'none'; return false },
       },
     },
   }, [])
@@ -351,6 +368,7 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
       )}
 
       <EditorContent editor={editor} />
+      <div ref={dragLabelRef} style={{ display: 'none', position: 'fixed', zIndex: 9999, pointerEvents: 'none', background: 'var(--accent)', color: '#fff', fontFamily: 'DM Sans', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 6, boxShadow: '0 4px 14px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }} />
     </div>
   )
 }
