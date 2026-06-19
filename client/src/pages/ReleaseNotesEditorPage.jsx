@@ -95,7 +95,23 @@ function getHelpLinks(task) {
   }))
 }
 
-function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOverrides = {}, sectionLabels = {}, preview = false } = {}) {
+// Project-hub background animation (Brain mesh) as a standalone, fixed full-page
+// layer — repeats on every printed/PDF page. Pure SVG + CSS, tinted for light bg.
+const BRAIN_BG_HTML = `<div class="bg-anim" aria-hidden="true">
+  <svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;overflow:visible">
+    <defs>
+      <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4facfe"/><stop offset="50%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+      <path id="bgMesh" d="M 5 60 L 25 30 L 45 15 L 75 10 L 105 15 L 130 35 L 145 60 L 140 90 L 120 110 L 95 125 L 85 105 L 55 95 L 35 100 L 15 85 Z M 5 60 L 25 60 L 25 30 M 25 60 L 45 40 L 45 15 M 45 40 L 75 45 L 75 10 M 75 45 L 105 50 L 105 15 M 105 50 L 130 35 M 105 50 L 120 70 L 145 60 M 120 70 L 140 90 M 120 70 L 95 80 L 120 110 M 95 80 L 95 125 M 95 80 L 85 105 M 95 80 L 75 80 L 75 45 M 75 80 L 85 105 M 75 80 L 50 70 L 45 40 M 50 70 L 75 45 M 50 70 L 55 95 M 50 70 L 35 80 L 25 60 M 35 80 L 35 100 M 35 80 L 15 85 M 25 30 L 45 40"/>
+    </defs>
+    <use href="#bgMesh" class="bg-lines" fill="none" stroke="url(#bgGrad)" stroke-width="1.2" stroke-linejoin="round"/>
+    <g class="bg-nodes" fill="#3b82f6">
+      <circle cx="25" cy="60" r="1"/><circle cx="45" cy="40" r="1"/><circle cx="75" cy="45" r="1"/><circle cx="105" cy="50" r="1"/><circle cx="120" cy="70" r="1"/><circle cx="95" cy="80" r="1"/><circle cx="75" cy="80" r="1"/><circle cx="50" cy="70" r="1"/><circle cx="35" cy="80" r="1"/>
+      <circle cx="45" cy="15" r="0.8"/><circle cx="75" cy="10" r="0.8"/><circle cx="105" cy="15" r="0.8"/><circle cx="130" cy="35" r="0.8"/><circle cx="140" cy="90" r="0.8"/><circle cx="95" cy="125" r="0.8"/><circle cx="55" cy="95" r="0.8"/><circle cx="15" cy="85" r="0.8"/>
+    </g>
+  </svg>
+</div>`
+
+function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOverrides = {}, sectionLabels = {}, expanded = false, hideBar = false } = {}) {
   const dateStr = esc(meta.date || todayStr())
   const title = esc(`${meta.clientName || 'Release Notes'} ${config.version || ''}`.trim())
   const jiraBase = meta.jiraUrl ? 'https://' + meta.jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '') : null
@@ -144,9 +160,9 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
         <div class="task-row">
           <span class="key-badge" style="background:${keyC.bg};color:${keyC.color};border:1px solid ${keyC.border}">${key}</span>
           <span class="task-summary">${name}</span>
-          ${hasExpand ? `<button class="expand-btn${preview ? ' open' : ''}" onclick="toggle('${cardId}')" title="Prikaži/sakrij detalje">▾</button>` : ''}
+          ${hasExpand ? `<button class="expand-btn${expanded ? ' open' : ''}" onclick="toggle('${cardId}')" title="Prikaži/sakrij detalje">▾</button>` : ''}
         </div>
-        ${hasExpand ? `<div class="task-desc${preview ? ' open' : ''}" id="${cardId}-d">
+        ${hasExpand ? `<div class="task-desc${expanded ? ' open' : ''}" id="${cardId}-d">
           <div class="task-desc-inner rn-body">${bodyHtml}</div>
         </div>` : ''}
         ${helpHtml}
@@ -175,11 +191,16 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#F0F2F8;--surface:#FFFFFF;--border:#E2E6F0;--border2:#C8CFDF;--text:#0F1523;--muted:#5A6480;--subtle:#A0AABF;--accent:#2563EB}
     body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+    .bg-anim{position:fixed;inset:0;z-index:0;opacity:0.14;pointer-events:none;display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .bg-anim .bg-lines{stroke-dasharray:1500;stroke-dashoffset:1500;animation:bgDraw 10s ease-in-out infinite alternate}
+    .bg-anim .bg-nodes circle{animation:bgPulse 3s infinite alternate}
+    @keyframes bgDraw{0%{stroke-dashoffset:1500;opacity:.2}50%{opacity:.9}100%{stroke-dashoffset:0;opacity:.7}}
+    @keyframes bgPulse{0%{opacity:.3}100%{opacity:.8}}
     .pbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 28px;gap:12px}
     .pbar-left{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
     .pbtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:opacity 0.2s}
     .pbtn:hover{opacity:0.85}
-    .wrap{max-width:860px;margin:0 auto;padding:84px 28px 80px}
+    .wrap{max-width:860px;margin:0 auto;padding:84px 28px 80px;position:relative;z-index:1}
     .doc-hdr{margin-bottom:48px}
     .doc-hdr-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
     .brand{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:10px}
@@ -314,7 +335,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       .print-footer-logo{opacity:0.35}
     }
   </style>
-  ${preview ? '<style>.task-desc.open{max-height:none !important}</style>' : ''}
+  ${expanded ? '<style>.task-desc.open{max-height:none !important}</style>' : ''}
 </head>
 <body>
   <!-- Print-only: fixed header (hidden on screen) -->
@@ -336,10 +357,11 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     <img src="/favicon.png" alt="" class="print-footer-logo" style="height:18px;opacity:0.35">
   </div>
 
-  ${preview ? '' : `<div class="pbar">
+  ${hideBar ? '' : `<div class="pbar">
     <span class="pbar-left">${esc(meta.clientName || 'Intelisale')}${config.version ? ' · ' + esc(config.version) : ''} Release Notes</span>
     <button class="pbtn" onclick="window.print()">↓ Export PDF</button>
   </div>`}
+  ${BRAIN_BG_HTML}
   <div class="wrap">
     <div class="doc-hdr">
       <div class="doc-hdr-top">
@@ -772,9 +794,9 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     }
   }
 
-  // Single source for the final HTML — used by both the Pregled iframe and Publish.
-  // `preview` omits the in-document Export PDF bar (we have our own button).
-  function buildPublishHtml(preview = false) {
+  // Single source for the final HTML. `expanded` opens all cards; `hideBar`
+  // drops the in-document Export PDF bar (used for the in-app iframe).
+  function buildPublishHtml({ expanded = false, hideBar = false } = {}) {
     const selectedTasks = tasks.filter(t => selectedIds.has(t.id))
     return generatePublishHtml(selectedTasks, taskEdits, config, {
       clientName: config.clientName,
@@ -782,7 +804,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       productName: selectedProject?.displayName || selectedProject?.epicKey || '',
       jiraUrl: user?.jiraUrl || '',
       date: previewDate || todayStr(),
-    }, { sectionOverrides, sectionLabels, preview })
+    }, { sectionOverrides, sectionLabels, expanded, hideBar })
   }
 
   // Export the preview iframe to PDF. Chrome names the file after the MAIN
@@ -804,7 +826,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
   // Open the rendered release notes (expanded) in a new tab to verify the look.
   function openHtmlPreview() {
-    const blob = new Blob([buildPublishHtml(true)], { type: 'text/html' })
+    const blob = new Blob([buildPublishHtml({ expanded: true, hideBar: true })], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')
     setTimeout(() => URL.revokeObjectURL(url), 60000)
@@ -813,7 +835,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   // Download the standalone HTML file with every item expanded (no clicking).
   function exportHtml() {
     const name = (previewTitle || `${config.clientName || ''} ${config.version || ''}`.trim() || 'release-notes').replace(/[\\/:*?"<>|]/g, '-')
-    const blob = new Blob([buildPublishHtml(true)], { type: 'text/html' })
+    const blob = new Blob([buildPublishHtml({ expanded: true })], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -1692,7 +1714,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   }
 
   const renderStep4 = () => {
-    const html = buildPublishHtml(true)
+    const html = buildPublishHtml({ expanded: true, hideBar: true })
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
