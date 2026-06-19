@@ -144,9 +144,9 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
         <div class="task-row">
           <span class="key-badge" style="background:${keyC.bg};color:${keyC.color};border:1px solid ${keyC.border}">${key}</span>
           <span class="task-summary">${name}</span>
-          ${hasExpand ? `<button class="expand-btn" onclick="toggle('${cardId}')" title="Prikaži/sakrij detalje">▾</button>` : ''}
+          ${hasExpand ? `<button class="expand-btn${preview ? ' open' : ''}" onclick="toggle('${cardId}')" title="Prikaži/sakrij detalje">▾</button>` : ''}
         </div>
-        ${hasExpand ? `<div class="task-desc" id="${cardId}-d">
+        ${hasExpand ? `<div class="task-desc${preview ? ' open' : ''}" id="${cardId}-d">
           <div class="task-desc-inner rn-body">${bodyHtml}</div>
         </div>` : ''}
         ${helpHtml}
@@ -314,6 +314,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       .print-footer-logo{opacity:0.35}
     }
   </style>
+  ${preview ? '<style>.task-desc.open{max-height:none !important}</style>' : ''}
 </head>
 <body>
   <!-- Print-only: fixed header (hidden on screen) -->
@@ -801,6 +802,14 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     f.contentWindow.print()
   }
 
+  // Open the rendered release notes (expanded) in a new tab to verify the look.
+  function openHtmlPreview() {
+    const blob = new Blob([buildPublishHtml(true)], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  }
+
   async function handlePublish(selectedClientIds, sectionName) {
     const html = buildPublishHtml()
     setPublishState({ loading: true })
@@ -1111,19 +1120,23 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <input placeholder="Pretraži po imenu ili ključu..." value={search} onChange={e => setSearch(e.target.value)}
             style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 13, marginBottom: 10, boxSizing: 'border-box' }} />
 
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: 2 }}>Filter:</span>
             {[
               { key: 'all', label: `Svi (${countByStatus.all})` },
               { key: 'resolved', label: `Resolved (${countByStatus.resolved})` },
               { key: 'inprog', label: `In Progress (${countByStatus.inprog})` },
               { key: 'testing', label: `For Testing (${countByStatus.testing})` },
-            ].map(f => (
-              <button key={f.key} onClick={() => setStatusFilter(f.key)} style={{
-                padding: '4px 12px', borderRadius: 20, fontSize: 11, fontFamily: 'DM Mono', cursor: 'pointer', transition: 'all 0.2s ease',
-                border: statusFilter === f.key ? '1px solid var(--accent)' : '1px solid var(--border)',
-                color: statusFilter === f.key ? 'var(--accent)' : 'var(--textMuted)', background: 'transparent',
-              }}>{f.label}</button>
-            ))}
+            ].map(f => {
+              const on = statusFilter === f.key
+              return (
+                <button key={f.key} onClick={() => setStatusFilter(f.key)} style={{
+                  padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans', cursor: 'pointer', transition: 'all 0.2s ease',
+                  border: on ? '1px solid var(--accent)' : '1px solid var(--borderHover)',
+                  color: on ? '#fff' : 'var(--text)', background: on ? 'var(--accent)' : 'var(--surfaceAlt)',
+                }}>{f.label}</button>
+              )
+            })}
           </div>
         </div>
 
@@ -1671,7 +1684,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <button onClick={() => setWizardStep(2)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button onClick={exportPdf} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.exportPdf')}</button>
+            <button onClick={openHtmlPreview} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer' }}>Pregled HTML ↗</button>
+            <button onClick={exportPdf} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#7C3AED', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.exportPdf')}</button>
             <button onClick={openPublishModal} disabled={publishState?.loading}
               style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>
               {publishState?.loading ? t('app.loading') : 'Publish'}
@@ -1747,8 +1761,8 @@ const inputStyle = {
 }
 
 const pillBtnStyle = {
-  background: 'transparent', border: '1px solid var(--border)', borderRadius: 6,
-  color: 'var(--textMuted)', fontSize: 11, fontFamily: 'DM Mono', cursor: 'pointer', padding: '4px 10px',
+  background: 'var(--surfaceAlt)', border: '1px solid var(--borderHover)', borderRadius: 6,
+  color: 'var(--text)', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans', cursor: 'pointer', padding: '5px 12px',
   transition: 'all 0.2s ease', whiteSpace: 'nowrap',
 }
 
