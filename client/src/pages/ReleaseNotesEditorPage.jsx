@@ -631,8 +631,17 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     const jiraDetail = taskJiraDetails[taskId]
     setAiLoadingIds(prev => new Set([...prev, taskId]))
     try {
-      const jiraDesc = jiraDetail?.description || ''
-      const content = `Naziv taska: ${edit.name}${jiraDesc ? `\n\nOriginalni Jira opis:\n${jiraDesc}` : ''}`
+      const jiraDesc = (jiraDetail?.description || '').trim()
+      const comments = (jiraDetail?.comments || [])
+        .map(c => (c.text || '').replace(/\s*\n\s*/g, ' ').trim())
+        .filter(Boolean)
+        .map(t => `- ${t}`)
+      const content = [
+        '## Naziv taska:', edit.name || 'nema',
+        '', '## Opis (Jira):', jiraDesc || 'nema',
+        '', '## Subtaskovi:', 'nema',
+        '', '## Relevantni komentari (pomoćni kontekst):', comments.length ? comments.join('\n') : 'nema',
+      ].join('\n')
       const result = await aiEnhance('generate_description', content)
       if (applyDirectly) {
         applyAiText(taskId, result)

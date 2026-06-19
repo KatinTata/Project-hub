@@ -50,10 +50,26 @@ export function sanitizeBodyHtml(html) {
 
 const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 
+const inlineMd = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+
+// Plain/markdown-ish text → HTML. Recognizes "- " / "* " bullet lines as a real
+// <ul>, blank lines as paragraph breaks, and **bold**.
 export function textToHtml(text) {
-  const t = String(text || '').trim()
+  const t = String(text || '').replace(/\r\n/g, '\n').trim()
   if (!t) return ''
-  return t.split(/\n{2,}/).map(b => `<p>${esc(b).replace(/\n/g, '<br>')}</p>`).join('')
+  const out = []
+  let para = [], list = []
+  const flushPara = () => { if (para.length) { out.push(`<p>${para.map(inlineMd).join('<br>')}</p>`); para = [] } }
+  const flushList = () => { if (list.length) { out.push(`<ul>${list.map(li => `<li>${inlineMd(li)}</li>`).join('')}</ul>`); list = [] } }
+  for (const raw of t.split('\n')) {
+    const line = raw.trim()
+    const m = /^[-*]\s+(.+)$/.exec(line)
+    if (m) { flushPara(); list.push(m[1]) }
+    else if (!line) { flushPara(); flushList() }
+    else { flushList(); para.push(line) }
+  }
+  flushPara(); flushList()
+  return out.join('')
 }
 
 export function htmlToText(html) {

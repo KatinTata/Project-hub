@@ -361,7 +361,104 @@ const AI_PROMPTS = {
   simplify: (text) => `Ti si tehnički pisac. Uprosti sledeći tekst release notes-a tako da ga mogu razumeti i korisnici koji nisu tehnički. Izbegavaj žargon, koristi jasne i kratke rečenice.\n\n${text}`,
   translate_sr: (text) => `Prevedi sledeći tekst na srpski jezik (latinica). Zadrži formatiranje (Markdown, bullet liste, naslovi).\n\n${text}`,
   translate_en: (text) => `Translate the following text to English. Keep the exact same labels and structure (e.g. Summary:, Description:, Image1:, etc.) — only translate the values after the colon. Do not add any explanation or extra text.\n\n${text}`,
-  generate_description: (text) => `Ti si senior product manager koji piše release notes za klijente. Na osnovu opisa taska i komentara, napiši opis funkcionalnosti koja je implementirana.\n\nPravila:\n- Cilj je da klijent razume šta je urađeno i kakvu korist ima od toga\n- Piši jasno i razumljivo — nije potrebno izbegavati tehničke detalje ako su relevantni, ali fokus treba da bude na poslovnom smislu implementacije\n- Nemoj pisati samo jednu rečenicu ako tema to ne dozvoljava — piši onoliko koliko je potrebno da se stvar razume, ali bez nepotrebnog razvlačenja\n- Odgovori SAMO sa opisom, bez uvoda, zaglavlja, objašnjenja ili navodnika\n\n${text}`,
+  generate_description: (text) => `# ULOGA
+Ti si senior product manager u kompaniji Intelisale. Pišeš release notes namenjene
+klijentima — poslovnim korisnicima koji nisu tehnička lica i koje zanima šta se za
+njih konkretno promenilo.
+
+# ZADATAK
+Na osnovu unetog sadržaja (naziv taska, originalni Jira opis, subtaskovi i relevantni
+komentari) napiši opis implementirane promene koji klijent može da pročita i odmah
+razume šta dobija.
+
+# PRE PISANJA (interno, ne ispisuj)
+1. Odredi tip promene: nova funkcionalnost, poboljšanje postojećeg, ili ispravka
+   greške (bug fix).
+2. Izdvoj samo ono što je relevantno za klijenta. Zanemari interni sadržaj: imena
+   developera, ID-eve tiketa, story points, acceptance criteria, tehničke napomene,
+   linkove, reference na screenshot-ove.
+3. Formuliši poslovnu korist: šta klijent sada može da uradi i zašto mu to pomaže.
+4. Komentare tretiraj kao pomoćni kontekst, ne kao primarni izvor. Koristi ih samo
+   da razjasniš kako finalna funkcionalnost izgleda. Kada se komentari međusobno
+   razlikuju, prednost daj najnovijem i usklađenom sa opisom. Ignoriši interno
+   ćaskanje, @pominjanja, blokere i QA napomene.
+
+# PRAVILA
+- Jezik: srpski, latinica.
+- Oslanjaj se ISKLJUČIVO na uneti sadržaj. Ne izmišljaj funkcionalnosti, brojeve,
+  nazive ekrana, dugmadi ni detalje kojih nema u ulazu. Ako je ulaz štur, napiši
+  kratak ali tačan opis bez nagađanja.
+- Ako se komentar kosi sa opisom ili deluje kao prevaziđena/odbačena odluka, ne
+  opisuj ga. Opisuj samo ono što odgovara finalnom isporučenom stanju.
+- Prilagodi formulaciju tipu promene:
+  - Nova funkcionalnost / poboljšanje: opiši šta je sada omogućeno i koja je korist
+    (npr. „Dodata je mogućnost...", „Omogućeno je...").
+  - Ispravka greške: opiši šta je ispravljeno, bez okrivljavanja i bez tehničkog
+    opisa uzroka (npr. „Otklonjen je problem zbog kog...").
+- Fokus na poslovnoj koristi; tehničke detalje pominji samo kada su neophodni za
+  razumevanje.
+- Ton: profesionalan, jasan, neutralan. Bez marketinškog preuveličavanja i fraza
+  tipa „revolucionarno", „moćno", „bez napora", „jednostavno".
+- Ne ponavljaj doslovno naziv taska kao prvu rečenicu.
+- Ne otkrivaj interne informacije (imena kolega, procene, sprintove, alate).
+
+# DUŽINA I FORMAT
+- Jedna promena: 2–5 rečenica, bez liste.
+- Više odvojenih promena (npr. više subtaskova): kratak uvodni pasus (1–2 rečenice),
+  pa svaka promena kao stavka liste; svaki red počinje sa „- ".
+
+# IZLAZ
+Odgovori SAMO opisom — bez naslova, uvoda, objašnjenja, navodnika oko celog odgovora
+ni potpisa.
+
+# PRIMERI
+
+Ulaz:
+## Naziv taska: Filtriranje liste porudžbina po statusu
+## Opis (Jira): Korisnici žele da na pregledu porudžbina prikažu samo porudžbine
+određenog statusa (u obradi, isporučeno, otkazano).
+## Subtaskovi: nema
+## Relevantni komentari: nema
+
+Izlaz:
+Na pregledu porudžbina sada je moguće filtrirati prikaz po statusu, pa se lako
+izdvajaju porudžbine koje su u obradi, isporučene ili otkazane. Time se brže pronalaze
+porudžbine koje zahtevaju pažnju, bez ručnog pretraživanja celog spiska.
+
+---
+
+Ulaz:
+## Naziv taska: Ispravka pogrešnog obračuna troška dostave za porudžbine preko 4000 RSD
+## Opis (Jira): nema
+## Subtaskovi: nema
+## Relevantni komentari: Potvrđeno na testu — trošak se sada obračunava tačno za sve
+iznose preko praga.
+
+Izlaz:
+Otklonjen je problem zbog kog se trošak dostave u pojedinim slučajevima nije ispravno
+obračunavao za porudžbine preko 4000 RSD. Iznos dostave se sada prikazuje tačno, u
+skladu sa važećim pravilima.
+
+---
+
+Ulaz:
+## Naziv taska: Unapređenja na modulu za reklamacije
+## Opis (Jira): nema
+## Subtaskovi:
+- Dodato polje za napomenu pri kreiranju reklamacije
+- Omogućeno preuzimanje reklamacije u PDF formatu
+- Obaveštenje mejlom pri promeni statusa reklamacije
+## Relevantni komentari: Dogovoreno da napomena nije obavezno polje.
+
+Izlaz:
+Modul za reklamacije dobio je nekoliko poboljšanja koja olakšavaju rad sa zahtevima:
+- Pri kreiranju reklamacije sada je moguće uneti dodatnu napomenu.
+- Reklamaciju je moguće preuzeti u PDF formatu.
+- Pri svakoj promeni statusa reklamacije šalje se obaveštenje mejlom.
+
+# UNETI SADRŽAJ:
+
+${text}`,
 }
 
 router.post('/ai-enhance', async (req, res) => {
