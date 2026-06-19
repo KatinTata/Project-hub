@@ -810,6 +810,20 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     setTimeout(() => URL.revokeObjectURL(url), 60000)
   }
 
+  // Download the standalone HTML file (same as the published page).
+  function exportHtml() {
+    const name = (previewTitle || `${config.clientName || ''} ${config.version || ''}`.trim() || 'release-notes').replace(/[\\/:*?"<>|]/g, '-')
+    const blob = new Blob([buildPublishHtml(false)], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${name}.html`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  }
+
   async function handlePublish(selectedClientIds, sectionName) {
     const html = buildPublishHtml()
     setPublishState({ loading: true })
@@ -1685,6 +1699,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <button onClick={() => setWizardStep(2)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
             <button onClick={openHtmlPreview} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer' }}>Pregled HTML ↗</button>
+            <button onClick={exportHtml} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#EA580C', color: '#fff', border: 'none', cursor: 'pointer' }}>Export HTML</button>
             <button onClick={exportPdf} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#7C3AED', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.exportPdf')}</button>
             <button onClick={openPublishModal} disabled={publishState?.loading}
               style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>
