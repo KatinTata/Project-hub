@@ -810,10 +810,10 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     setTimeout(() => URL.revokeObjectURL(url), 60000)
   }
 
-  // Download the standalone HTML file (same as the published page).
+  // Download the standalone HTML file with every item expanded (no clicking).
   function exportHtml() {
     const name = (previewTitle || `${config.clientName || ''} ${config.version || ''}`.trim() || 'release-notes').replace(/[\\/:*?"<>|]/g, '-')
-    const blob = new Blob([buildPublishHtml(false)], { type: 'text/html' })
+    const blob = new Blob([buildPublishHtml(true)], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
