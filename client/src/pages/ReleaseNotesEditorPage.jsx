@@ -302,7 +302,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       .task-desc,.task-desc.open{max-height:none !important;overflow:visible !important;display:block !important}
       .task-desc-inner{font-size:12px !important;color:#374151 !important;line-height:1.65 !important;border-top:none !important;padding-top:8px !important;margin-top:8px !important}
       .rn-body{color:#0F1523 !important}
-      .rn-body img{page-break-inside:avoid;break-inside:avoid}
+      .rn-body img{page-break-inside:avoid;break-inside:avoid;max-height:130mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
       .rn-body figure{page-break-inside:avoid;break-inside:avoid}
       /* ── Images ── */
       .img-print-label{display:block !important;font-size:11px !important;font-weight:600 !important;color:#374151 !important;margin-bottom:4px}
@@ -437,6 +437,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   // config (step 1)
   const [config, setConfig] = useState({ clientName: '', version: '' })
   const [customJql, setCustomJql] = useState('')
+  // Quick filters that compose JQL (comma-separated values)
+  const [qf, setQf] = useState({ version: '', impact: '', requested: '' })
   const [fetchTrigger, setFetchTrigger] = useState(0)
 
   // step 1 selection
@@ -578,6 +580,17 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
   function removeFromSelection(taskId) {
     setSelectedIds(prev => { const n = new Set(prev); n.delete(taskId); return n })
+  }
+
+  // Compose JQL from the quick filters (comma-separated → quoted IN lists).
+  function applyQuickFilters() {
+    const list = s => s.split(',').map(v => v.trim().replace(/"/g, '')).filter(Boolean).map(v => `"${v}"`).join(', ')
+    const parts = []
+    if (qf.version.trim()) parts.push(`fixVersion in (${list(qf.version)})`)
+    if (qf.impact.trim()) parts.push(`"Client - Impact Scope" in (${list(qf.impact)})`)
+    if (qf.requested.trim()) parts.push(`"Client Requested" in (${list(qf.requested)})`)
+    if (!parts.length) { showToast('Popuni bar jedan brzi filter'); return }
+    setCustomJql(parts.join(' AND '))
   }
 
   function updateEdit(taskId, key, value) {
@@ -1028,6 +1041,23 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, alignItems: 'flex-start' }}>
           {/* JQL column */}
           <div style={{ flex: 1, width: isMobile ? '100%' : undefined }}>
+            <div style={{ marginBottom: 10 }}>
+              <span style={labelStyle}>Brzi filteri → JQL <span style={{ textTransform: 'none', fontFamily: 'DM Sans', color: 'var(--textSubtle)' }}>(više vrednosti odvoji zarezom)</span></span>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                {[
+                  ['version', 'Fix Version', 'npr. 6.6 Gallium, 6.5 ...'],
+                  ['impact', 'Client - Impact Scope', 'npr. General, Wurth Croatia'],
+                  ['requested', 'Client Requested', 'npr. Knjaz, Wurth'],
+                ].map(([k, lbl, ph]) => (
+                  <div key={k} style={{ flex: '1 1 160px', minWidth: 0 }}>
+                    <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)', display: 'block', marginBottom: 3 }}>{lbl}</span>
+                    <input value={qf[k]} onChange={e => setQf(p => ({ ...p, [k]: e.target.value }))} placeholder={ph}
+                      style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 12, boxSizing: 'border-box' }} />
+                  </div>
+                ))}
+                <button onClick={applyQuickFilters} style={{ ...smallBtnStyle, height: 34 }}>Sastavi JQL ↓</button>
+              </div>
+            </div>
             <label style={labelStyle}>Prilagođeni JQL (opciono)</label>
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
               <div style={{ flex: 1 }}>
