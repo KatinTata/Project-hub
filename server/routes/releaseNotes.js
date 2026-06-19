@@ -62,12 +62,14 @@ async function fetchTasksForProject(jira, project, customJql) {
   let jql
   if (customJql?.trim()) {
     jql = customJql.trim()
-  } else if (project.filter_type === 'jql' && project.filter_jql) {
+  } else if (project?.filter_type === 'jql' && project.filter_jql) {
     jql = project.filter_jql
-  } else if (project.filter_type === 'combined' && project.filter_jql) {
+  } else if (project?.filter_type === 'combined' && project.filter_jql) {
     jql = project.filter_jql
-  } else {
+  } else if (project) {
     jql = `parent = ${project.epic_key} ORDER BY created ASC`
+  } else {
+    throw new Error('Potreban je projekat ili JQL')
   }
 
   let results = []
@@ -124,10 +126,16 @@ router.post('/task-detail', async (req, res) => {
     const { taskKey, projectId } = req.body
     if (!taskKey) return res.status(400).json({ error: 'taskKey je obavezan' })
 
-    const project = getProject(req.userId, projectId)
-    if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
-
-    const jira = getOwnerJiraForProject(req.userId, projectId)
+    // With a project use its owner's Jira; without one (bare-JQL flow) use the
+    // requesting user's own Jira credentials.
+    let jira = null
+    if (projectId) {
+      const project = getProject(req.userId, projectId)
+      if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+      jira = getOwnerJiraForProject(req.userId, projectId)
+    } else {
+      jira = getUserJira(req.userId)
+    }
     if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
 
     const { jiraGet } = await import('../jiraClient.js')
@@ -164,16 +172,24 @@ router.post('/task-detail', async (req, res) => {
 router.post('/tasks', async (req, res) => {
   try {
     const { projectId, customJql } = req.body
-    if (!projectId) return res.status(400).json({ error: 'projectId je obavezan' })
+    const hasJql = !!customJql?.trim()
+    if (!projectId && !hasJql) return res.status(400).json({ error: 'Izaberi projekat ili unesi JQL' })
 
-    const project = getProject(req.userId, projectId)
-    if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
-
-    const jira = getOwnerJiraForProject(req.userId, projectId)
+    // With a project we use its owner's Jira; with a bare JQL we use the
+    // requesting user's own Jira credentials so they can pull anything.
+    let project = null
+    let jira = null
+    if (projectId) {
+      project = getProject(req.userId, projectId)
+      if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+      jira = getOwnerJiraForProject(req.userId, projectId)
+    } else {
+      jira = getUserJira(req.userId)
+    }
     if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
 
     const tasks = await fetchTasksForProject(jira, project, customJql)
-    res.json({ tasks, projectName: project.display_name || project.epic_key })
+    res.json({ tasks, projectName: project?.display_name || project?.epic_key || 'JQL' })
   } catch (err) {
     console.error('releaseNotes /tasks error:', err)
     res.status(500).json({ error: err.message })

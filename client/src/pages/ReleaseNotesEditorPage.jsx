@@ -479,7 +479,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
   // Normal project/JQL fetch — skipped when copy does it directly
   useEffect(() => {
-    if (!selectedProject) { setTasks([]); setTaskError(null); return }
+    if (!selectedProject && !customJql.trim()) { setTasks([]); setTaskError(null); return }
     if (skipNextFetchRef.current) { skipNextFetchRef.current = false; return }
     setLoadingTasks(true)
     setTaskError(null)
@@ -488,7 +488,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     fetch('/api/release-notes/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ projectId: selectedProject.id, ...(customJql.trim() ? { customJql: customJql.trim() } : {}) }),
+      body: JSON.stringify({ ...(selectedProject ? { projectId: selectedProject.id } : {}), ...(customJql.trim() ? { customJql: customJql.trim() } : {}) }),
     })
       .then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`); return d })
       .then(data => { setTasks(data.tasks || []) })
@@ -993,24 +993,29 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                   showPreview={false}
                 />
               </div>
-              <button
-                disabled={!selectedProject || (copiedEdits && tasks.length > 0 && !customJql.trim())}
-                title={!selectedProject ? 'Prvo izaberi projekat' : ''}
-                onClick={() => {
-                  if (copiedEdits && tasks.length > 0) handleAddByJql()
-                  else if (selectedProject) setFetchTrigger(n => n + 1)
-                }}
-                style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s ease',
-                  cursor: (!selectedProject || (copiedEdits && tasks.length > 0 && !customJql.trim())) ? 'not-allowed' : 'pointer',
-                  background: (!selectedProject || (copiedEdits && tasks.length > 0 && !customJql.trim())) ? 'var(--surfaceAlt)' : 'var(--accent)',
-                  color: (!selectedProject || (copiedEdits && tasks.length > 0 && !customJql.trim())) ? 'var(--textMuted)' : '#fff',
-                }}>
-                {copiedEdits && tasks.length > 0 ? t('rne.add') : t('rne.apply')}
-              </button>
+              {(() => {
+                const applyDisabled = (!selectedProject && !customJql.trim()) || (copiedEdits && tasks.length > 0 && !customJql.trim())
+                return (
+                  <button
+                    disabled={applyDisabled}
+                    title={applyDisabled ? 'Izaberi projekat ili unesi JQL' : ''}
+                    onClick={() => {
+                      if (copiedEdits && tasks.length > 0) handleAddByJql()
+                      else setFetchTrigger(n => n + 1)
+                    }}
+                    style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s ease',
+                      cursor: applyDisabled ? 'not-allowed' : 'pointer',
+                      background: applyDisabled ? 'var(--surfaceAlt)' : 'var(--accent)',
+                      color: applyDisabled ? 'var(--textMuted)' : '#fff',
+                    }}>
+                    {copiedEdits && tasks.length > 0 ? t('rne.add') : t('rne.apply')}
+                  </button>
+                )
+              })()}
             </div>
             {!selectedProject && (
-              <div style={{ marginTop: 6, fontFamily: 'DM Sans', fontSize: 12, color: 'var(--amber)' }}>
-                Prvo izaberi projekat — JQL koristi njegove Jira kredencijale.
+              <div style={{ marginTop: 6, fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>
+                Bez izabranog projekta, JQL povlači taskove preko tvojih Jira kredencijala (npr. <code>fixVersion = "EP 3.6"</code>).
               </div>
             )}
           </div>
@@ -1129,7 +1134,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             <div style={{ padding: 24, margin: 16, borderRadius: 8, background: 'var(--redTint)', border: '1px solid var(--red)', color: 'var(--red)', fontFamily: 'DM Sans', fontSize: 13 }}>
               <strong>Greška:</strong> {taskError}
             </div>
-          ) : !selectedProject ? (
+          ) : (!selectedProject && !customJql.trim()) ? (
             <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
           ) : filteredTasks.length === 0 ? (
             <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
