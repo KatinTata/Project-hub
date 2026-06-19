@@ -995,6 +995,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
               </div>
               <button
                 disabled={!selectedProject || (copiedEdits && tasks.length > 0 && !customJql.trim())}
+                title={!selectedProject ? 'Prvo izaberi projekat' : ''}
                 onClick={() => {
                   if (copiedEdits && tasks.length > 0) handleAddByJql()
                   else if (selectedProject) setFetchTrigger(n => n + 1)
@@ -1007,6 +1008,11 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                 {copiedEdits && tasks.length > 0 ? t('rne.add') : t('rne.apply')}
               </button>
             </div>
+            {!selectedProject && (
+              <div style={{ marginTop: 6, fontFamily: 'DM Sans', fontSize: 12, color: 'var(--amber)' }}>
+                Prvo izaberi projekat — JQL koristi njegove Jira kredencijale.
+              </div>
+            )}
           </div>
 
           {/* Copy from existing column */}
