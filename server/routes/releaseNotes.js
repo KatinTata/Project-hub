@@ -196,6 +196,28 @@ router.post('/tasks', async (req, res) => {
   }
 })
 
+// ── Route: JQL field value suggestions (for quick-filter dropdowns) ───────────
+router.post('/field-suggestions', async (req, res) => {
+  try {
+    const { projectId, fieldName, query } = req.body
+    if (!fieldName) return res.status(400).json({ error: 'fieldName je obavezan' })
+    const jira = projectId ? getOwnerJiraForProject(req.userId, projectId) : getUserJira(req.userId)
+    if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
+    const { jiraGet } = await import('../jiraClient.js')
+    const params = new URLSearchParams({ fieldName })
+    if (query) params.set('fieldValue', query)
+    const data = await jiraGet(jira.jiraUrl, `/jql/autocompletedata/suggestions?${params.toString()}`, jira.auth)
+    const results = (data.results || []).map(r => ({
+      value: r.value,
+      label: (r.displayName || r.value || '').replace(/<\/?b>/gi, ''),
+    }))
+    res.json({ results })
+  } catch (err) {
+    console.error('field-suggestions error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // ── Route 2: Export DOCX ──────────────────────────────────────────────────────
 
 const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }

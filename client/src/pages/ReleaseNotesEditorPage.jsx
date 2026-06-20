@@ -437,8 +437,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   // config (step 1)
   const [config, setConfig] = useState({ clientName: '', version: '' })
   const [customJql, setCustomJql] = useState('')
-  // Quick filters that compose JQL (comma-separated values)
-  const [qf, setQf] = useState({ version: '', impact: '', requested: '' })
+  // Quick filters that compose JQL (multi-select values per field)
+  const [qf, setQf] = useState({ version: [], impact: [], requested: [] })
   const [fetchTrigger, setFetchTrigger] = useState(0)
 
   // step 1 selection
@@ -582,15 +582,28 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     setSelectedIds(prev => { const n = new Set(prev); n.delete(taskId); return n })
   }
 
-  // Compose JQL from the quick filters (comma-separated → quoted IN lists).
+  // Compose JQL from the quick-filter selections (quoted IN lists).
   function applyQuickFilters() {
-    const list = s => s.split(',').map(v => v.trim().replace(/"/g, '')).filter(Boolean).map(v => `"${v}"`).join(', ')
+    const q = arr => arr.map(v => `"${String(v).replace(/"/g, '')}"`).join(', ')
     const parts = []
-    if (qf.version.trim()) parts.push(`fixVersion in (${list(qf.version)})`)
-    if (qf.impact.trim()) parts.push(`"Client - Impact Scope" in (${list(qf.impact)})`)
-    if (qf.requested.trim()) parts.push(`"Client Requested" in (${list(qf.requested)})`)
-    if (!parts.length) { showToast('Popuni bar jedan brzi filter'); return }
+    if (qf.version.length) parts.push(`fixVersion in (${q(qf.version)})`)
+    if (qf.impact.length) parts.push(`"Client - Impact Scope" in (${q(qf.impact)})`)
+    if (qf.requested.length) parts.push(`"Client Requested" in (${q(qf.requested)})`)
+    if (!parts.length) { showToast('Izaberi bar jednu vrednost u brzim filterima'); return }
     setCustomJql(parts.join(' AND '))
+  }
+
+  // Type-ahead values for a Jira field (uses JQL autocomplete suggestions).
+  async function fetchFieldSuggestions(fieldName, query) {
+    const token = localStorage.getItem('jt_token')
+    const res = await fetch('/api/release-notes/field-suggestions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ ...(selectedProject ? { projectId: selectedProject.id } : {}), fieldName, query }),
+    })
+    if (!res.ok) return []
+    const d = await res.json()
+    return d.results || []
   }
 
   function updateEdit(taskId, key, value) {
@@ -1044,17 +1057,9 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             <div style={{ marginBottom: 10 }}>
               <span style={labelStyle}>Brzi filteri → JQL <span style={{ textTransform: 'none', fontFamily: 'DM Sans', color: 'var(--textSubtle)' }}>(više vrednosti odvoji zarezom)</span></span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                {[
-                  ['version', 'Fix Version', 'npr. 6.6 Gallium, 6.5 ...'],
-                  ['impact', 'Client - Impact Scope', 'npr. General, Wurth Croatia'],
-                  ['requested', 'Client Requested', 'npr. Knjaz, Wurth'],
-                ].map(([k, lbl, ph]) => (
-                  <div key={k} style={{ flex: '1 1 160px', minWidth: 0 }}>
-                    <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)', display: 'block', marginBottom: 3 }}>{lbl}</span>
-                    <input value={qf[k]} onChange={e => setQf(p => ({ ...p, [k]: e.target.value }))} placeholder={ph}
-                      style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 12, boxSizing: 'border-box' }} />
-                  </div>
-                ))}
+                <JqlFieldSelect label="Fix Version" fieldName="fixVersion" values={qf.version} onChange={v => setQf(p => ({ ...p, version: v }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. 6.6 Gallium" />
+                <JqlFieldSelect label="Client - Impact Scope" fieldName="Client - Impact Scope" values={qf.impact} onChange={v => setQf(p => ({ ...p, impact: v }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. General" />
+                <JqlFieldSelect label="Client Requested" fieldName="Client Requested" values={qf.requested} onChange={v => setQf(p => ({ ...p, requested: v }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. Wurth" />
                 <button onClick={applyQuickFilters} style={{ ...smallBtnStyle, height: 34 }}>Sastavi JQL ↓</button>
               </div>
             </div>
@@ -1847,6 +1852,58 @@ const smallBtnStyle = {
 const labelStyle = {
   fontSize: 11, fontFamily: 'DM Mono', color: 'var(--textMuted)', textTransform: 'uppercase',
   display: 'block', marginBottom: 6, letterSpacing: '0.05em',
+}
+
+// ── JqlFieldSelect: type-ahead multi-select for a Jira field ─────────────────────
+
+function JqlFieldSelect({ label, fieldName, values, onChange, fetchSuggestions, placeholder }) {
+  const [q, setQ] = useState('')
+  const [open, setOpen] = useState(false)
+  const [opts, setOpts] = useState([])
+  const [loading, setLoading] = useState(false)
+  const tRef = useRef(null)
+  useEffect(() => {
+    if (!open) return undefined
+    clearTimeout(tRef.current)
+    tRef.current = setTimeout(async () => {
+      setLoading(true)
+      try { setOpts((await fetchSuggestions(fieldName, q)) || []) } catch { setOpts([]) } finally { setLoading(false) }
+    }, 250)
+    return () => clearTimeout(tRef.current)
+  }, [q, open]) // eslint-disable-line
+  const add = v => { const val = String(v).trim(); if (val && !values.includes(val)) onChange([...values, val]); setQ('') }
+  const remove = v => onChange(values.filter(x => x !== v))
+  const free = opts.filter(o => !values.includes(o.value))
+  return (
+    <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 0 }}>
+      <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)', display: 'block', marginBottom: 3 }}>{label}</span>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 6px', minHeight: 34, alignItems: 'center' }}>
+        {values.map(v => (
+          <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--text)' }}>
+            {v}<button onMouseDown={e => { e.preventDefault(); remove(v) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textMuted)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+          </span>
+        ))}
+        <input value={q} onChange={e => setQ(e.target.value)} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 160)}
+          onKeyDown={e => { if (e.key === 'Enter' && q.trim()) { e.preventDefault(); add(q) } }}
+          placeholder={values.length ? '' : placeholder}
+          style={{ flex: '1 1 60px', minWidth: 60, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 12, padding: '2px' }} />
+      </div>
+      {open && (loading || free.length > 0) && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.18)', maxHeight: 220, overflowY: 'auto' }}>
+          {loading && <div style={{ padding: '8px 10px', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>Učitavam…</div>}
+          {!loading && free.map(o => (
+            <button key={o.value} onMouseDown={e => { e.preventDefault(); add(o.value) }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--text)' }}>
+              {o.label}
+            </button>
+          ))}
+          {!loading && free.length === 0 && (
+            <div style={{ padding: '8px 10px', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>Nema predloga — Enter da dodaš ručno</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ── Step1Row ───────────────────────────────────────────────────────────────────
