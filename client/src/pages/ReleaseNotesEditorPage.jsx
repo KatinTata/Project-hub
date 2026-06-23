@@ -213,7 +213,8 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .pbtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:opacity 0.2s}
     .pbtn:hover{opacity:0.85}
     .wrap{max-width:860px;margin:0 auto;padding:84px 28px 80px;position:relative;z-index:1}
-    .hero{position:relative;overflow:hidden;border-radius:22px;padding:34px 38px;margin-bottom:44px;background:radial-gradient(80% 120% at 90% -10%, rgba(56,189,248,0.30) 0%, rgba(56,189,248,0) 55%), radial-gradient(70% 110% at 10% 110%, rgba(37,99,235,0.28) 0%, rgba(37,99,235,0) 55%), linear-gradient(135deg, #0b1a2f 0%, #0f2746 52%, #163e6b 100%);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .hero{position:relative;overflow:hidden;border-radius:22px;padding:34px 38px;margin-bottom:44px;background:radial-gradient(55% 95% at 96% -18%, rgba(56,189,248,0.45) 0%, rgba(56,189,248,0) 52%), radial-gradient(50% 100% at 2% 118%, rgba(37,99,235,0.42) 0%, rgba(37,99,235,0) 56%), radial-gradient(42% 85% at 72% 125%, rgba(124,92,246,0.26) 0%, rgba(124,92,246,0) 60%), radial-gradient(38% 70% at 38% -25%, rgba(45,212,191,0.18) 0%, rgba(45,212,191,0) 60%), linear-gradient(120deg, #081325 0%, #0c2140 38%, #133459 68%, #0a1c34 100%);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 30%);pointer-events:none}
     .hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
     .hero-logo-img{height:45px;width:auto;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .hero-kicker{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;color:#7dd3fc;white-space:nowrap}
