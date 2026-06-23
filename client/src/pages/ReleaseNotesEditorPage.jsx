@@ -450,8 +450,9 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   // config (step 1)
   const [config, setConfig] = useState({ clientName: '', version: '' })
   const [customJql, setCustomJql] = useState('')
-  // Quick filters that compose JQL (multi-select values per field)
+  // Quick filters that compose JQL (multi-select values + in/not-in operator per field)
   const [qf, setQf] = useState({ version: [], impact: [], requested: [] })
+  const [qfOp, setQfOp] = useState({ version: 'in', impact: 'in', requested: 'not in' })
   const [fetchTrigger, setFetchTrigger] = useState(0)
 
   // step 1 selection
@@ -595,13 +596,15 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     setSelectedIds(prev => { const n = new Set(prev); n.delete(taskId); return n })
   }
 
-  // Compose JQL from the quick-filter selections (quoted IN lists).
+  // Compose JQL from the quick-filter selections (quoted IN / NOT IN lists).
   function applyQuickFilters() {
     const q = arr => arr.map(v => `"${String(v).replace(/"/g, '')}"`).join(', ')
-    const parts = []
-    if (qf.version.length) parts.push(`fixVersion in (${q(qf.version)})`)
-    if (qf.impact.length) parts.push(`"Client - Impact Scope" in (${q(qf.impact)})`)
-    if (qf.requested.length) parts.push(`"Client Requested" in (${q(qf.requested)})`)
+    const clause = (field, op, vals) => vals.length ? `${field} ${op} (${q(vals)})` : null
+    const parts = [
+      clause('fixVersion', qfOp.version, qf.version),
+      clause('"Client - Impact Scope"', qfOp.impact, qf.impact),
+      clause('"Client Requested"', qfOp.requested, qf.requested),
+    ].filter(Boolean)
     if (!parts.length) { showToast('Izaberi bar jednu vrednost u brzim filterima'); return }
     setCustomJql(parts.join(' AND '))
   }
@@ -1070,9 +1073,9 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             <div style={{ marginBottom: 10 }}>
               <span style={labelStyle}>Brzi filteri → JQL <span style={{ textTransform: 'none', fontFamily: 'DM Sans', color: 'var(--textSubtle)' }}>(više vrednosti odvoji zarezom)</span></span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                <JqlFieldSelect label="Fix Version" fieldName="fixVersion" values={qf.version} onChange={v => setQf(p => ({ ...p, version: v }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. 6.6 Gallium" />
-                <JqlFieldSelect label="Client - Impact Scope" fieldName="Client - Impact Scope" values={qf.impact} onChange={v => setQf(p => ({ ...p, impact: v }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. General" />
-                <JqlFieldSelect label="Client Requested" fieldName="Client Requested" values={qf.requested} onChange={v => setQf(p => ({ ...p, requested: v }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. Wurth" />
+                <JqlFieldSelect label="Fix Version" fieldName="fixVersion" values={qf.version} onChange={v => setQf(p => ({ ...p, version: v }))} op={qfOp.version} onOpChange={o => setQfOp(p => ({ ...p, version: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. galijum" />
+                <JqlFieldSelect label="Client - Impact Scope" fieldName="Client - Impact Scope" values={qf.impact} onChange={v => setQf(p => ({ ...p, impact: v }))} op={qfOp.impact} onOpChange={o => setQfOp(p => ({ ...p, impact: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. General" />
+                <JqlFieldSelect label="Client Requested" fieldName="Client Requested" values={qf.requested} onChange={v => setQf(p => ({ ...p, requested: v }))} op={qfOp.requested} onOpChange={o => setQfOp(p => ({ ...p, requested: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. Intelisale" />
                 <button onClick={applyQuickFilters} style={{ ...smallBtnStyle, height: 34 }}>Sastavi JQL ↓</button>
               </div>
             </div>
@@ -1869,27 +1872,40 @@ const labelStyle = {
 
 // ── JqlFieldSelect: type-ahead multi-select for a Jira field ─────────────────────
 
-function JqlFieldSelect({ label, fieldName, values, onChange, fetchSuggestions, placeholder }) {
+function JqlFieldSelect({ label, fieldName, values, onChange, op, onOpChange, fetchSuggestions, placeholder }) {
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
-  const [opts, setOpts] = useState([])
+  const [opts, setOpts] = useState([])     // accumulated suggestions (merged across fetches)
   const [loading, setLoading] = useState(false)
   const tRef = useRef(null)
+  const mergeIn = list => setOpts(prev => { const m = new Map(prev.map(o => [o.value, o])); for (const o of (list || [])) m.set(o.value, o); return [...m.values()] })
+  // Fetch base list on open, then more as the user types — merge so values stay
+  // available for local (partial, contains) filtering even after re-typing.
   useEffect(() => {
     if (!open) return undefined
     clearTimeout(tRef.current)
     tRef.current = setTimeout(async () => {
       setLoading(true)
-      try { setOpts((await fetchSuggestions(fieldName, q)) || []) } catch { setOpts([]) } finally { setLoading(false) }
-    }, 250)
+      try { mergeIn(await fetchSuggestions(fieldName, q)) } catch { /* keep what we have */ } finally { setLoading(false) }
+    }, 200)
     return () => clearTimeout(tRef.current)
   }, [q, open]) // eslint-disable-line
   const add = v => { const val = String(v).trim(); if (val && !values.includes(val)) onChange([...values, val]); setQ('') }
   const remove = v => onChange(values.filter(x => x !== v))
-  const free = opts.filter(o => !values.includes(o.value))
+  const ql = q.trim().toLowerCase()
+  const free = opts.filter(o => !values.includes(o.value) && (!ql || `${o.label} ${o.value}`.toLowerCase().includes(ql)))
   return (
-    <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 0 }}>
-      <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)', display: 'block', marginBottom: 3 }}>{label}</span>
+    <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 3 }}>
+        <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)' }}>{label}</span>
+        {onOpChange && (
+          <select value={op} onChange={e => onOpChange(e.target.value)} title="Uključi ili isključi ove vrednosti"
+            style={{ fontFamily: 'DM Mono', fontSize: 10, padding: '1px 4px', borderRadius: 5, border: `1px solid ${op === 'not in' ? 'var(--red)' : 'var(--border)'}`, background: 'var(--bg)', color: op === 'not in' ? 'var(--red)' : 'var(--textMuted)', cursor: 'pointer' }}>
+            <option value="in">in</option>
+            <option value="not in">not in</option>
+          </select>
+        )}
+      </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 6px', minHeight: 34, alignItems: 'center' }}>
         {values.map(v => (
           <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--text)' }}>
