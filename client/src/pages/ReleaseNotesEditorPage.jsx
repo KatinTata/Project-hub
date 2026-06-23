@@ -155,19 +155,23 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
 
       const helpHtml = helpLinks.map(link => {
         const url = jiraBase ? `${jiraBase}/browse/${esc(link.key)}` : null
-        // No key badge, no status — just the (internally) linked task name.
+        // Keep the HELP key badge (important) + status removed; name is the link.
+        const keyBadge = `<span class="key-badge" style="background:rgba(245,158,11,0.15);color:#F59E0B;border:1px solid rgba(245,158,11,0.3)">${esc(link.key)}</span>`
         const linkName = esc(link.summary || link.key)
         return `<div class="help-link-row">
           <span>🔗</span>
-          ${url ? `<a class="help-key" href="${url}" target="_blank" rel="noopener noreferrer" title="${esc(link.key)}">${linkName}</a>` : `<span style="font-family:'DM Sans',sans-serif;font-size:13px;color:#6B7A99">${linkName}</span>`}
+          ${keyBadge}
+          ${url ? `<a class="help-key" href="${url}" target="_blank" rel="noopener noreferrer">${linkName}</a>` : `<span style="font-family:'DM Sans',sans-serif;font-size:13px;color:#6B7A99">${linkName}</span>`}
         </div>`
       }).join('')
 
+      const titleHtml = jiraBase
+        ? `<a class="task-summary task-link" href="${jiraBase}/browse/${key}" target="_blank" rel="noopener noreferrer">${name}</a>`
+        : `<span class="task-summary">${name}</span>`
       const isSimple = !hasExpand
       return `<div class="task-card${isSimple ? ' task-card--simple' : ''}" id="${cardId}" style="border-left:4px solid ${cfg.color} !important">
         <div class="task-row">
-          <span class="key-badge" style="background:${keyC.bg};color:${keyC.color};border:1px solid ${keyC.border}">${key}</span>
-          <span class="task-summary">${name}</span>
+          ${titleHtml}
           ${hasExpand ? `<button class="expand-btn${expanded ? ' open' : ''}" onclick="toggle('${cardId}')" title="Prikaži/sakrij detalje">▾</button>` : ''}
         </div>
         ${hasExpand ? `<div class="task-desc${expanded ? ' open' : ''}" id="${cardId}-d">
@@ -232,6 +236,8 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .task-row{display:flex;align-items:center;gap:12px}
     .key-badge{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:3px 9px;border-radius:6px;flex-shrink:0;letter-spacing:0.04em;white-space:nowrap}
     .task-summary{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);flex:1;line-height:1.4}
+    a.task-link{text-decoration:none;color:var(--text)}
+    a.task-link:hover{color:var(--accent);text-decoration:underline}
     .expand-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:0 2px;flex-shrink:0;transition:transform 0.25s ease,color 0.2s;display:flex;align-items:center;line-height:1}
     .expand-btn:hover{color:var(--text)}
     .expand-btn.open{transform:rotate(180deg);color:var(--accent)}
