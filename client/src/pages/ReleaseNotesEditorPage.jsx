@@ -215,11 +215,11 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .wrap{max-width:860px;margin:0 auto;padding:84px 28px 80px;position:relative;z-index:1}
     .hero{position:relative;overflow:hidden;border-radius:22px;padding:34px 38px;margin-bottom:44px;background:radial-gradient(80% 120% at 90% -10%, rgba(56,189,248,0.30) 0%, rgba(56,189,248,0) 55%), radial-gradient(70% 110% at 10% 110%, rgba(37,99,235,0.28) 0%, rgba(37,99,235,0) 55%), linear-gradient(135deg, #0b1a2f 0%, #0f2746 52%, #163e6b 100%);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
-    .hero-logo-img{height:30px;width:auto;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .hero-logo-img{height:45px;width:auto;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .hero-kicker{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;color:#7dd3fc;white-space:nowrap}
     .hero-eyebrow{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#38bdf8;text-transform:uppercase;display:flex;align-items:center;gap:9px;margin-bottom:12px}
     .hero-eyebrow .dot{width:7px;height:7px;border-radius:50%;background:#38bdf8;display:inline-block}
-    .hero-title{font-family:'Syne',sans-serif;font-weight:800;font-size:42px;line-height:1.04;letter-spacing:-0.01em;margin-bottom:14px}
+    .hero-title{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;line-height:1.04;letter-spacing:-0.01em;margin-bottom:14px}
     .hero-sub{font-family:'DM Sans',sans-serif;font-size:15px;color:#9fb2c9;max-width:580px;line-height:1.55;margin-bottom:8px}
     .hero-divider{height:1px;background:rgba(255,255,255,0.13);margin:22px 0 18px}
     .hero-meta{display:flex;flex-wrap:wrap;gap:18px 40px}
@@ -385,7 +385,6 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     <div class="hero">
       <div class="hero-top">
         <img class="hero-logo-img" src="${esc(meta.origin || '')}/logo-white.png" alt="intelisale">
-        <div class="hero-kicker">RELEASE NOTES</div>
       </div>
       <div class="hero-eyebrow"><span class="dot"></span> PREGLED NOVIH FUNKCIONALNOSTI I ISPRAVKI</div>
       <div class="hero-title">Release Notes</div>
