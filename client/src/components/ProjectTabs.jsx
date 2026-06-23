@@ -241,9 +241,10 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                   onArchiveConfirm={handleArchiveConfirm}
                 />
               ))}
+            </div>
 
-              {/* Overflow "Vidi više" button */}
-              {visibleCount !== null && (
+            {/* Overflow "+N" button — sibling of the list so its dropdown isn't clipped by overflow:hidden */}
+            {visibleCount !== null && (
                 <div ref={overflowRef} style={{ position: 'relative', flexShrink: 0 }}>
                   <button
                     onClick={() => setOverflowOpen(o => !o)}
@@ -332,7 +333,6 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                   )}
                 </div>
               )}
-            </div>
 
             {(onOpenArchive || onAdd || onOpenSettings) && (
               <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 16, borderLeft: projects.length > 0 ? '1px solid var(--border)' : 'none', marginLeft: 8 }}>
