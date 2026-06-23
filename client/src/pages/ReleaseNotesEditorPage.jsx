@@ -70,13 +70,20 @@ function todayStr() {
   return new Date().toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-const PREFIX_ORDER = ['ECOM', 'DB', 'DEVOPS', 'SRC']
+// Sections are grouped by Jira ISSUE TYPE (not key prefix). Order + colors below;
+// unknown types fall back to a neutral default and keep their raw type name.
+const PREFIX_ORDER = ['New Feature', 'Story', 'Improvement', 'Task', 'Bug', 'Sub-task']
 const GROUP_CONFIG = {
-  ECOM:   { label: 'Funkcionalnosti i UI',   icon: '🎨', color: '#4F8EF7' },
-  DB:     { label: 'Backend & Baza',          icon: '🗄️', color: '#A855F7' },
-  DEVOPS: { label: 'DevOps & Infrastruktura', icon: '⚙️', color: '#F59E0B' },
-  SRC:    { label: 'Support & Ostalo',        icon: '🛠️', color: '#22C55E' },
+  'New Feature': { label: 'New Feature', color: '#22C55E' },
+  'Story':       { label: 'Story',       color: '#4F8EF7' },
+  'Improvement': { label: 'Improvement', color: '#A855F7' },
+  'Task':        { label: 'Task',        color: '#0EA5E9' },
+  'Bug':         { label: 'Bug',         color: '#EF4444' },
+  'Sub-task':    { label: 'Sub-task',    color: '#8B99B5' },
 }
+// Section/group key for a task = its issue type. Key-badge color stays by key prefix.
+const groupKeyOf = task => (task.fields?.issuetype?.name || 'Ostalo')
+const keyPrefixOf = task => (task.key || '').split('-')[0].toUpperCase()
 const KEY_COLORS = {
   ECOM:   { bg: 'rgba(79,142,247,0.15)',  color: '#4F8EF7', border: 'rgba(79,142,247,0.35)'  },
   DB:     { bg: 'rgba(168,85,247,0.15)',  color: '#A855F7', border: 'rgba(168,85,247,0.35)'  },
@@ -118,7 +125,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
 
   const groups = {}
   for (const task of selectedTasks) {
-    const prefix = sectionOverrides[task.id] || (task.key || '').split('-')[0].toUpperCase()
+    const prefix = sectionOverrides[task.id] || groupKeyOf(task)
     if (!groups[prefix]) groups[prefix] = []
     groups[prefix].push(task)
   }
@@ -130,11 +137,11 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
   const sectionsHtml = groupOrder.map(prefix => {
     const baseCfg = GROUP_CONFIG[prefix] || { label: prefix, icon: '📋', color: '#8B99B5' }
     const cfg = { ...baseCfg, label: sectionLabels[prefix] || baseCfg.label }
-    const keyC = KEY_COLORS[prefix] || KEY_COLORS.OTHER
     const cardsHtml = groups[prefix].map((task, idx) => {
       const edit = taskEdits[task.id] || {}
       const key = esc(task.key || '')
       const name = esc(edit.name || task.fields?.summary || task.summary || '')
+      const keyC = KEY_COLORS[keyPrefixOf(task)] || KEY_COLORS.OTHER
       const cardId = `c-${prefix}-${idx}`
       const bodyHtml = sanitizeBodyHtml(migrateBodyHtml(edit))
       const helpLinks = getHelpLinks(task)
@@ -146,12 +153,12 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
         const stBg  = isDone ? 'rgba(34,197,94,0.12)'  : 'rgba(79,142,247,0.12)'
         const stCol = isDone ? '#22C55E' : '#4F8EF7'
         const stBor = isDone ? 'rgba(34,197,94,0.3)'   : 'rgba(79,142,247,0.3)'
+        const keyBadge = `<span class="key-badge" style="background:rgba(245,158,11,0.15);color:#F59E0B;border:1px solid rgba(245,158,11,0.3)">${esc(link.key)}</span>`
         return `<div class="help-link-row">
           <span>🔗</span>
-          <span class="key-badge" style="background:rgba(245,158,11,0.15);color:#F59E0B;border:1px solid rgba(245,158,11,0.3)">${esc(link.key)}</span>
+          ${url ? `<a class="help-key" href="${url}" target="_blank" rel="noopener noreferrer" title="Otvori ${esc(link.key)}">${keyBadge}</a>` : keyBadge}
           ${link.summary ? `<span style="font-family:'DM Sans',sans-serif;font-size:13px;color:#6B7A99;flex:1">${esc(link.summary)}</span>` : ''}
           ${link.status ? `<span class="key-badge" style="background:${stBg};color:${stCol};border:1px solid ${stBor}">${esc(link.status)}</span>` : ''}
-          ${url ? `<a class="help-open" href="${url}" target="_blank" rel="noopener noreferrer">↗ Otvori</a>` : ''}
         </div>`
       }).join('')
 
@@ -252,6 +259,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .img-side-desc{color:var(--muted);font-style:italic}
     .help-link-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap}
     .help-open{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;padding:3px 8px;border:1px solid rgba(79,142,247,0.3);border-radius:6px;white-space:nowrap;flex-shrink:0}
+    .help-key{text-decoration:none;flex-shrink:0}
     .help-open:hover{background:rgba(79,142,247,0.1)}
     .footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--border);text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--subtle);letter-spacing:0.1em;text-transform:uppercase}
     .cover-page{display:none}
@@ -861,7 +869,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   // Download the standalone HTML file with every item expanded (no clicking).
   function exportHtml() {
     const name = (previewTitle || `${config.clientName || ''} ${config.version || ''}`.trim() || 'release-notes').replace(/[\\/:*?"<>|]/g, '-')
-    const blob = new Blob([buildPublishHtml({ expanded: true })], { type: 'text/html' })
+    const blob = new Blob([buildPublishHtml({ expanded: false })], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -1018,7 +1026,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       (t.fields?.summary || t.summary || '').toLowerCase().includes(search.toLowerCase())
     const matchFilter = statusFilter === 'all' || statusCat(t) === statusFilter
     return matchSearch && matchFilter
-  })
+  }).sort((a, b) => (b.billable ? 1 : 0) - (a.billable ? 1 : 0)) // billable first
 
   const countByStatus = {
     all: tasks.length,
@@ -1433,7 +1441,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   function buildGroups(taskList) {
     const groups = {}
     for (const task of taskList) {
-      const prefix = sectionOverrides[task.id] || (task.key || '').split('-')[0].toUpperCase()
+      const prefix = sectionOverrides[task.id] || groupKeyOf(task)
       if (!groups[prefix]) groups[prefix] = []
       groups[prefix].push(task)
     }
@@ -1480,7 +1488,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       for (const task of selTasks) {
         const p = (fromPrefix !== toPrefix && task.id === fromTaskId)
           ? toPrefix
-          : (sectionOverrides[task.id] || (task.key || '').split('-')[0].toUpperCase())
+          : (sectionOverrides[task.id] || groupKeyOf(task))
         if (!snap[p]) snap[p] = []
         snap[p].push(task.id)
       }
@@ -1577,7 +1585,6 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             {groupOrder.map(prefix => {
               const baseCfg = GROUP_CONFIG[prefix] || { label: prefix, icon: '📋', color: '#8B99B5' }
               const cfg = { ...baseCfg, label: getSectionLabel(prefix) }
-              const keyC = KEY_COLORS[prefix] || KEY_COLORS.OTHER
               const isDropTarget = dragOverPrefix === prefix
               return (
                 <div
@@ -1624,6 +1631,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                     {groups[prefix].map(task => {
                       const edit = taskEdits[task.id] || {}
                       const helpLinks = getHelpLinks(task)
+                      const keyC = KEY_COLORS[keyPrefixOf(task)] || KEY_COLORS.OTHER
                       const isInsertTarget = dragOverTaskId === task.id
                       return (
                         <div key={task.id}>

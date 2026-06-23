@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { randomBytes } from 'crypto'
 import db from '../db.js'
-import { decryptToken, makeJiraAuth, jiraPost } from '../jiraClient.js'
+import { decryptToken, makeJiraAuth, jiraPost, detectBillableField, parseBillableValue } from '../jiraClient.js'
 import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, BorderStyle, AlignmentType, HeadingLevel, ShadingType,
@@ -58,7 +58,9 @@ function getProject(userId, projectId) {
 }
 
 async function fetchTasksForProject(jira, project, customJql) {
+  const billableKey = await detectBillableField(jira.jiraUrl, jira.auth)
   const fields = ['summary', 'status', 'issuetype', 'description', 'assignee', 'components', 'issuelinks']
+  if (billableKey) fields.push(billableKey)
   let jql
   if (customJql?.trim()) {
     jql = customJql.trim()
@@ -85,6 +87,7 @@ async function fetchTasksForProject(jira, project, customJql) {
   return results.filter(issue => !issue.fields?.issuetype?.subtask).map(issue => ({
     id: issue.id,
     key: issue.key,
+    billable: billableKey ? parseBillableValue(issue.fields[billableKey]) : false,
     fields: {
       summary: issue.fields.summary || '',
       status: { name: issue.fields.status?.name || '' },
