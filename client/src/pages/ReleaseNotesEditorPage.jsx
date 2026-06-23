@@ -163,7 +163,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       }).join('')
 
       const isSimple = !hasExpand
-      return `<div class="task-card${isSimple ? ' task-card--simple' : ''}" id="${cardId}">
+      return `<div class="task-card${isSimple ? ' task-card--simple' : ''}" id="${cardId}" style="border-left:4px solid ${cfg.color} !important">
         <div class="task-row">
           <span class="key-badge" style="background:${keyC.bg};color:${keyC.color};border:1px solid ${keyC.border}">${key}</span>
           <span class="task-summary">${name}</span>
@@ -208,15 +208,19 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .pbtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:opacity 0.2s}
     .pbtn:hover{opacity:0.85}
     .wrap{max-width:860px;margin:0 auto;padding:84px 28px 80px;position:relative;z-index:1}
-    .doc-hdr{margin-bottom:48px}
-    .doc-hdr-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
-    .brand{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:10px}
-    .doc-title{font-family:'Syne',sans-serif;font-weight:800;font-size:40px;color:var(--text);line-height:1.1;letter-spacing:-0.02em}
-    .meta-col{display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-top:4px}
-    .badge-accent{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;padding:5px 12px;border-radius:6px;background:rgba(79,142,247,0.1);color:var(--accent);border:1px solid rgba(79,142,247,0.25)}
-    .badge-green{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;padding:5px 12px;border-radius:6px;background:rgba(34,197,94,0.1);color:#22C55E;border:1px solid rgba(34,197,94,0.25)}
-    .doc-date,.doc-client{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
-    .divider{height:2px;margin-top:24px;background:linear-gradient(90deg,var(--accent) 0%,transparent 70%);border-radius:2px;opacity:0.35}
+    .hero{position:relative;overflow:hidden;border-radius:22px;padding:34px 38px;margin-bottom:44px;background:radial-gradient(120% 150% at 82% 8%, #21436b 0%, #102135 46%, #0a1626 100%);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
+    .hero-logo{display:flex;align-items:center;gap:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:19px;color:#fff}
+    .hero-logo-i{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9px;background:#fff;color:#2563EB;font-family:'Syne',sans-serif;font-weight:800;font-size:19px}
+    .hero-kicker{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;color:#7dd3fc;white-space:nowrap}
+    .hero-eyebrow{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#38bdf8;text-transform:uppercase;display:flex;align-items:center;gap:9px;margin-bottom:12px}
+    .hero-eyebrow .dot{width:7px;height:7px;border-radius:50%;background:#38bdf8;display:inline-block}
+    .hero-title{font-family:'Syne',sans-serif;font-weight:800;font-size:42px;line-height:1.04;letter-spacing:-0.01em;margin-bottom:14px}
+    .hero-sub{font-family:'DM Sans',sans-serif;font-size:15px;color:#9fb2c9;max-width:580px;line-height:1.55;margin-bottom:8px}
+    .hero-divider{height:1px;background:rgba(255,255,255,0.13);margin:22px 0 18px}
+    .hero-meta{display:flex;flex-wrap:wrap;gap:18px 40px}
+    .hm-l{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.14em;color:#38bdf8;text-transform:uppercase;margin-bottom:6px}
+    .hm-v{font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;color:#fff}
     .groups{display:flex;flex-direction:column;gap:44px}
     .section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid}
     .sec-icon{font-size:20px;line-height:1}
@@ -278,7 +282,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       .doc-hdr{display:none !important}
       .footer{display:none !important}
       /* ── Header: normal flow, appears once on first page only ── */
-      .print-header{display:flex !important;align-items:center;justify-content:space-between;position:relative;margin-bottom:24px;padding-bottom:16px;border-bottom:1.5px solid #0F1523}
+      .print-header{display:none !important}
       /* ── Footer: fixed, repeats on every page ── */
       .print-footer{display:flex !important;align-items:center;justify-content:space-between;position:fixed;bottom:9mm;left:0;right:0;height:auto;padding:0;background:#fff;z-index:10}
       /* ── Footer override: covers browser-generated URL footer ── */
@@ -371,20 +375,21 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
   </div>`}
   ${BRAIN_BG_HTML}
   <div class="wrap">
-    <div class="doc-hdr">
-      <div class="doc-hdr-top">
-        <div>
-          <div class="brand">INTELISALE</div>
-          <div class="doc-title">Release Notes</div>
-        </div>
-        <div class="meta-col">
-          ${meta.productName ? `<span class="badge-accent">${esc(meta.productName)}</span>` : ''}
-          ${config.version ? `<span class="badge-green">${esc(config.version)}</span>` : ''}
-          <span class="doc-date">${dateStr}</span>
-          ${meta.clientName ? `<span class="doc-client">${esc(meta.clientName)}</span>` : ''}
-        </div>
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-logo"><span class="hero-logo-i">i</span> intelisale</div>
+        <div class="hero-kicker">RELEASE NOTES</div>
       </div>
-      <div class="divider"></div>
+      <div class="hero-eyebrow"><span class="dot"></span> ${esc((meta.clientName || 'Intelisale'))}${config.version ? ' &middot; ' + esc(config.version) : ''} &middot; ${dateStr}</div>
+      <div class="hero-title">Release Notes</div>
+      ${meta.productName ? `<div class="hero-sub">${esc(meta.productName)}</div>` : ''}
+      <div class="hero-divider"></div>
+      <div class="hero-meta">
+        ${meta.clientName ? `<div><div class="hm-l">Klijent</div><div class="hm-v">${esc(meta.clientName)}</div></div>` : ''}
+        ${config.version ? `<div><div class="hm-l">Verzija</div><div class="hm-v">${esc(config.version)}</div></div>` : ''}
+        <div><div class="hm-l">Datum</div><div class="hm-v">${dateStr}</div></div>
+        ${meta.productName ? `<div><div class="hm-l">Proizvod</div><div class="hm-v">${esc(meta.productName)}</div></div>` : ''}
+      </div>
     </div>
     <div class="groups">
       ${sectionsHtml || '<p style="color:var(--muted);font-family:DM Sans,sans-serif;text-align:center;padding:40px 0">Nema taskova.</p>'}
