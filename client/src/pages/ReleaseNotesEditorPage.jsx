@@ -84,6 +84,15 @@ const GROUP_CONFIG = {
 // Section/group key for a task = its issue type. Key-badge color stays by key prefix.
 const groupKeyOf = task => (task.fields?.issuetype?.name || 'Ostalo')
 const keyPrefixOf = task => (task.key || '').split('-')[0].toUpperCase()
+
+// Order present groups: known order first, then unknown types, with Bug always last.
+function orderGroups(groups) {
+  const present = Object.keys(groups).filter(p => groups[p]?.length)
+  const known = PREFIX_ORDER.filter(p => p !== 'Bug' && present.includes(p))
+  const unknown = present.filter(p => p !== 'Bug' && !PREFIX_ORDER.includes(p))
+  const bug = present.includes('Bug') ? ['Bug'] : []
+  return [...known, ...unknown, ...bug]
+}
 const KEY_COLORS = {
   ECOM:   { bg: 'rgba(79,142,247,0.15)',  color: '#4F8EF7', border: 'rgba(79,142,247,0.35)'  },
   DB:     { bg: 'rgba(168,85,247,0.15)',  color: '#A855F7', border: 'rgba(168,85,247,0.35)'  },
@@ -129,10 +138,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     if (!groups[prefix]) groups[prefix] = []
     groups[prefix].push(task)
   }
-  const groupOrder = [
-    ...PREFIX_ORDER.filter(p => groups[p]?.length),
-    ...Object.keys(groups).filter(p => !PREFIX_ORDER.includes(p) && groups[p]?.length),
-  ]
+  const groupOrder = orderGroups(groups)
 
   const sectionsHtml = groupOrder.map(prefix => {
     const baseCfg = GROUP_CONFIG[prefix] || { label: prefix, icon: '📋', color: '#8B99B5' }
@@ -149,16 +155,11 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
 
       const helpHtml = helpLinks.map(link => {
         const url = jiraBase ? `${jiraBase}/browse/${esc(link.key)}` : null
-        const isDone = ['Done', 'Closed', 'Resolved'].includes(link.status)
-        const stBg  = isDone ? 'rgba(34,197,94,0.12)'  : 'rgba(79,142,247,0.12)'
-        const stCol = isDone ? '#22C55E' : '#4F8EF7'
-        const stBor = isDone ? 'rgba(34,197,94,0.3)'   : 'rgba(79,142,247,0.3)'
-        const keyBadge = `<span class="key-badge" style="background:rgba(245,158,11,0.15);color:#F59E0B;border:1px solid rgba(245,158,11,0.3)">${esc(link.key)}</span>`
+        // No key badge, no status — just the (internally) linked task name.
+        const linkName = esc(link.summary || link.key)
         return `<div class="help-link-row">
           <span>🔗</span>
-          ${url ? `<a class="help-key" href="${url}" target="_blank" rel="noopener noreferrer" title="Otvori ${esc(link.key)}">${keyBadge}</a>` : keyBadge}
-          ${link.summary ? `<span style="font-family:'DM Sans',sans-serif;font-size:13px;color:#6B7A99;flex:1">${esc(link.summary)}</span>` : ''}
-          ${link.status ? `<span class="key-badge" style="background:${stBg};color:${stCol};border:1px solid ${stBor}">${esc(link.status)}</span>` : ''}
+          ${url ? `<a class="help-key" href="${url}" target="_blank" rel="noopener noreferrer" title="${esc(link.key)}">${linkName}</a>` : `<span style="font-family:'DM Sans',sans-serif;font-size:13px;color:#6B7A99">${linkName}</span>`}
         </div>`
       }).join('')
 
@@ -262,7 +263,8 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .img-side-desc{color:var(--muted);font-style:italic}
     .help-link-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap}
     .help-open{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;padding:3px 8px;border:1px solid rgba(79,142,247,0.3);border-radius:6px;white-space:nowrap;flex-shrink:0}
-    .help-key{text-decoration:none;flex-shrink:0}
+    .help-key{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none}
+    .help-key:hover{text-decoration:underline}
     .help-open:hover{background:rgba(79,142,247,0.1)}
     .footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--border);text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--subtle);letter-spacing:0.1em;text-transform:uppercase}
     .cover-page{display:none}
@@ -1466,10 +1468,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         })
       }
     }
-    const groupOrder = [
-      ...PREFIX_ORDER.filter(p => groups[p]?.length),
-      ...Object.keys(groups).filter(p => !PREFIX_ORDER.includes(p) && groups[p]?.length),
-    ]
+    const groupOrder = orderGroups(groups)
     return { groups, groupOrder }
   }
 
