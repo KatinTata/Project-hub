@@ -522,12 +522,23 @@ router.post('/ai-enhance', async (req, res) => {
     const apiKey = userRow?.anthropic_key ? decryptToken(userRow.anthropic_key) : process.env.ANTHROPIC_API_KEY
     if (!apiKey) return res.status(503).json({ aiAvailable: false, error: 'Anthropic API ključ nije podešen' })
 
-    const anthropic = new Anthropic({ apiKey })
-    const message = await anthropic.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 2048,
-      messages: [{ role: 'user', content: AI_PROMPTS[action](content) }],
-    })
+    const anthropic = new Anthropic({ apiKey, maxRetries: 4 })
+    const messages = [{ role: 'user', content: AI_PROMPTS[action](content) }]
+    const isOverloaded = e => e?.status === 529 || /overloaded/i.test(e?.message || '')
+
+    // Opus is preferred; if Anthropic is overloaded (529) even after SDK retries,
+    // fall back to Sonnet (more capacity). Other errors surface immediately.
+    let message, lastErr
+    for (const model of ['claude-opus-4-8', 'claude-sonnet-4-6']) {
+      try {
+        message = await anthropic.messages.create({ model, max_tokens: 2048, messages })
+        break
+      } catch (e) {
+        lastErr = e
+        if (!isOverloaded(e)) throw e
+      }
+    }
+    if (!message) throw lastErr
 
     const result = message.content?.[0]?.text || ''
     res.json({ result })
