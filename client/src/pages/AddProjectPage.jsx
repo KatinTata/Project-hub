@@ -29,6 +29,8 @@ export default function AddProjectPage({ onAdd, onCancel }) {
 
   // Combined tab state
   const [cEpicKey, setCEpicKey] = useState('')
+  const [cProject, setCProject] = useState([])             // [{ value, label }]
+  const [cStatus, setCStatus] = useState([])               // [{ value, label }]
   const [cFixVersion, setCFixVersion] = useState([])       // [{ value, label }]
   const [cClientScope, setCClientScope] = useState([])     // [{ value, label }]
   const [cClientRequested, setCClientRequested] = useState([]) // [{ value, label }]
@@ -42,13 +44,13 @@ export default function AddProjectPage({ onAdd, onCancel }) {
   useEffect(() => { setError(''); setTestResult(null); setTestError('') }, [tab])
 
   // Build JQL from combined filters
-  const combinedJql = buildCombinedJql({ epicKey: cEpicKey, fixVersion: cFixVersion, clientScope: cClientScope, clientRequested: cClientRequested, dateFrom: cDateFrom, dateTo: cDateTo, sprints: cSprints })
+  const combinedJql = buildCombinedJql({ epicKey: cEpicKey, project: cProject, fixVersion: cFixVersion, clientScope: cClientScope, clientRequested: cClientRequested, sprints: cSprints, status: cStatus, dateFrom: cDateFrom, dateTo: cDateTo })
 
-  // Sync JqlEditor when auto-built JQL changes
-  useEffect(() => { if (tab === 'combined') setCJql(combinedJql) }, [combinedJql])
+  // Sync JqlEditor when the auto-built JQL changes (manual edits survive until a filter changes)
+  useEffect(() => { setCJql(combinedJql) }, [combinedJql])
 
   async function handleTestJql() {
-    const q = tab === 'jql' ? jqlQuery : combinedJql
+    const q = cJql || combinedJql
     if (!q.trim()) return
     setTestLoading(true)
     setTestResult(null)
@@ -68,19 +70,10 @@ export default function AddProjectPage({ onAdd, onCancel }) {
     setError('')
     setLoading(true)
     try {
-      if (tab === 'epic') {
-        if (!epicKey.trim()) { setError(t('addProject.err.epicRequired')); setLoading(false); return }
-        await onAdd({ epicKey: epicKey.trim(), displayName: epicName.trim() || undefined, filterType: 'epic' })
-      } else if (tab === 'jql') {
-        if (!jqlQuery.trim()) { setError(t('addProject.err.jqlRequired')); setLoading(false); return }
-        if (!jqlName.trim()) { setError(t('addProject.err.nameRequired')); setLoading(false); return }
-        await onAdd({ displayName: jqlName.trim(), filterType: 'jql', filterJql: jqlQuery.trim() })
-      } else {
-        if (!cJql.trim()) { setError(t('addProject.err.filterRequired')); setLoading(false); return }
-        if (!cName.trim()) { setError(t('addProject.err.nameRequired')); setLoading(false); return }
-        const meta = { epicKey: cEpicKey, fixVersion: cFixVersion, clientScope: cClientScope, clientRequested: cClientRequested, dateFrom: cDateFrom, dateTo: cDateTo }
-        await onAdd({ displayName: cName.trim(), filterType: 'combined', filterJql: cJql.trim(), filterMeta: meta, epicKey: cEpicKey || undefined })
-      }
+      if (!cJql.trim()) { setError(t('addProject.err.filterRequired')); setLoading(false); return }
+      if (!cName.trim()) { setError(t('addProject.err.nameRequired')); setLoading(false); return }
+      const meta = { epicKey: cEpicKey, project: cProject, fixVersion: cFixVersion, clientScope: cClientScope, clientRequested: cClientRequested, sprints: cSprints, status: cStatus, dateFrom: cDateFrom, dateTo: cDateTo }
+      await onAdd({ displayName: cName.trim(), filterType: 'combined', filterJql: cJql.trim(), filterMeta: meta, epicKey: cEpicKey || undefined })
     } catch (err) {
       setError(err.message)
       setLoading(false)
@@ -108,62 +101,26 @@ export default function AddProjectPage({ onAdd, onCancel }) {
             {t('addProject.subtitle')}
           </p>
 
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)' }}>
-            {TABS.map(tabItem => (
-              <button
-                key={tabItem.id}
-                onClick={() => setTab(tabItem.id)}
-                style={{
-                  padding: '10px 20px',
-                  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-                  fontWeight: tab === tabItem.id ? 600 : 400,
-                  fontSize: 14,
-                  color: tab === tabItem.id ? 'var(--accent)' : 'var(--textMuted)',
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: tab === tabItem.id ? '2px solid var(--accent)' : '2px solid transparent',
-                  marginBottom: -1,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                {tabItem.label}
-              </button>
-            ))}
-          </div>
         </div>
 
-        {/* Body */}
+        {/* Body — single unified form */}
         <form onSubmit={handleSubmit} style={{ padding: '24px 32px 28px' }}>
-          {tab === 'epic' && (
-            <EpicTab t={t} epicKey={epicKey} setEpicKey={setEpicKey} displayName={epicName} setDisplayName={setEpicName} />
-          )}
-          {tab === 'jql' && (
-            <JqlTab
-              t={t}
-              jql={jqlQuery} setJql={setJqlQuery}
-              name={jqlName} setName={setJqlName}
-              onTest={handleTestJql} testLoading={testLoading}
-              testResult={testResult} testError={testError}
-            />
-          )}
-          {tab === 'combined' && (
-            <CombinedTab
-              t={t}
-              epicKey={cEpicKey} setEpicKey={setCEpicKey}
-              fixVersion={cFixVersion} setFixVersion={setCFixVersion}
-              clientScope={cClientScope} setClientScope={setCClientScope}
-              clientRequested={cClientRequested} setClientRequested={setCClientRequested}
-              dateFrom={cDateFrom} setDateFrom={setCDateFrom}
-              dateTo={cDateTo} setDateTo={setCDateTo}
-              sprints={cSprints} setSprints={setCSprints}
-              name={cName} setName={setCName}
-              jql={cJql} setJql={setCJql}
-              onTest={handleTestJql} testLoading={testLoading}
-              testResult={testResult} testError={testError}
-            />
-          )}
+          <CombinedTab
+            t={t}
+            epicKey={cEpicKey} setEpicKey={setCEpicKey}
+            project={cProject} setProject={setCProject}
+            status={cStatus} setStatus={setCStatus}
+            fixVersion={cFixVersion} setFixVersion={setCFixVersion}
+            clientScope={cClientScope} setClientScope={setCClientScope}
+            clientRequested={cClientRequested} setClientRequested={setCClientRequested}
+            dateFrom={cDateFrom} setDateFrom={setCDateFrom}
+            dateTo={cDateTo} setDateTo={setCDateTo}
+            sprints={cSprints} setSprints={setCSprints}
+            name={cName} setName={setCName}
+            jql={cJql} setJql={setCJql}
+            onTest={handleTestJql} testLoading={testLoading}
+            testResult={testResult} testError={testError}
+          />
 
           {error && (
             <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 8, color: 'var(--red)', fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
@@ -230,10 +187,14 @@ function JqlTab({ t, jql, setJql, name, setName, onTest, testLoading, testResult
   )
 }
 
-function CombinedTab({ t, epicKey, setEpicKey, fixVersion, setFixVersion, clientScope, setClientScope, clientRequested, setClientRequested, dateFrom, setDateFrom, dateTo, setDateTo, sprints, setSprints, name, setName, jql, setJql, onTest, testLoading, testResult, testError }) {
+function CombinedTab({ t, epicKey, setEpicKey, project, setProject, status, setStatus, fixVersion, setFixVersion, clientScope, setClientScope, clientRequested, setClientRequested, dateFrom, setDateFrom, dateTo, setDateTo, sprints, setSprints, name, setName, jql, setJql, onTest, testLoading, testResult, testError }) {
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div>
+          <label style={labelStyle}>Projekat</label>
+          <FieldSelect fieldName="project" values={project} onChange={setProject} placeholder="npr. Pricing project" />
+        </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.epicKey')}</label>
           <input value={epicKey} onChange={e => setEpicKey(e.target.value)} placeholder="PROJECT-184" style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
@@ -249,6 +210,10 @@ function CombinedTab({ t, epicKey, setEpicKey, fixVersion, setFixVersion, client
         <div>
           <label style={labelStyle}>{t('addProject.combined.clientRequested')}</label>
           <FieldSelect fieldName="Client Requested" values={clientRequested} onChange={setClientRequested} placeholder="npr. Wurth" />
+        </div>
+        <div>
+          <label style={labelStyle}>Status</label>
+          <FieldSelect fieldName="status" values={status} onChange={setStatus} placeholder="npr. Resolved, Closed" />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div>
@@ -454,13 +419,15 @@ function jqlList(arr) {
     return /^\d+$/.test(s) ? s : `"${s.replace(/"/g, '')}"`
   }).join(', ')
 }
-function buildCombinedJql({ epicKey, fixVersion, clientScope, clientRequested, dateFrom, dateTo, sprints }) {
+function buildCombinedJql({ epicKey, project, fixVersion, clientScope, clientRequested, sprints, status, dateFrom, dateTo }) {
   const parts = []
+  if (project?.length) parts.push(`project in (${jqlList(project)})`)
   if (epicKey?.trim()) parts.push(`parent = ${epicKey.trim().toUpperCase()}`)
   if (fixVersion?.length) parts.push(`fixVersion in (${jqlList(fixVersion)})`)
   if (clientScope?.length) parts.push(`"Client - Impact Scope" in (${jqlList(clientScope)})`)
   if (clientRequested?.length) parts.push(`"Client Requested" in (${jqlList(clientRequested)})`)
   if (sprints?.length) parts.push(`Sprint in (${jqlList(sprints)})`)
+  if (status?.length) parts.push(`status in (${jqlList(status)})`)
   if (dateFrom) parts.push(`created >= "${dateFrom}"`)
   if (dateTo) parts.push(`created <= "${dateTo}"`)
   return parts.length ? parts.join(' AND ') + ' ORDER BY created ASC' : ''
