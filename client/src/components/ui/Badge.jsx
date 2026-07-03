@@ -19,6 +19,11 @@ export default function Badge({ color = 'gray', children }) {
       fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif, sans-serif",
       fontWeight: 500,
       whiteSpace: 'nowrap',
+      maxWidth: '100%',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      verticalAlign: 'middle',
+      boxSizing: 'border-box',
     }}>
       {children}
     </span>

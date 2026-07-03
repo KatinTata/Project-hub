@@ -13,10 +13,10 @@ function statusColor(name) {
   return 'gray'
 }
 
-const COL_DESKTOP        = '130px 1fr 130px 160px 80px 100px'
-const COL_DESKTOP_CLIENT = '130px 1fr 130px 160px'
-const COL_TABLET         = '120px 1fr 120px 140px 90px'
-const COL_TABLET_CLIENT  = '120px 1fr 120px 140px'
+const COL_DESKTOP        = '130px 1fr 165px 160px 80px 100px'
+const COL_DESKTOP_CLIENT = '130px 1fr 165px 160px'
+const COL_TABLET         = '120px 1fr 140px 140px 90px'
+const COL_TABLET_CLIENT  = '120px 1fr 140px 140px'
 const COL_MOBILE         = '90px 1fr 90px'
 
 function TaskKey({ taskKey, jiraUrl, over, isClient }) {
@@ -147,8 +147,10 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           {task.summary}
         </div>
 
-        {/* Status */}
-        <div><Badge color={statusColor(task.status)}>{task.status}</Badge></div>
+        {/* Status — minWidth 0 + hidden overflow so long statuses truncate instead of overlapping Napredak */}
+        <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={task.status}>
+          <Badge color={statusColor(task.status)}>{task.status}</Badge>
+        </div>
 
         {/* Progress — tablet + desktop */}
         {!isMobile && (
@@ -258,7 +260,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
             {sub.components?.length > 0 && <Badge color="gray">{sub.components[0]}</Badge>}
             <span>{sub.summary}</span>
           </div>
-          <div><Badge color={statusColor(sub.status)}>{sub.status}</Badge></div>
+          <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={sub.status}><Badge color={statusColor(sub.status)}>{sub.status}</Badge></div>
           <div />
           {!isClient && !isTablet && (
             <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>
