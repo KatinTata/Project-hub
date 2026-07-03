@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { api } from '../api.js'
 import JqlEditor from '../components/JqlEditor.jsx'
@@ -34,6 +34,7 @@ export default function AddProjectPage({ onAdd, onCancel }) {
   const [cClientRequested, setCClientRequested] = useState('')
   const [cDateFrom, setCDateFrom] = useState('')
   const [cDateTo, setCDateTo] = useState('')
+  const [cSprints, setCSprints] = useState([]) // [{ value, label }] — sprint picked by name, JQL uses the id
   const [cName, setCName] = useState('')
   const [cJql, setCJql] = useState('')
 
@@ -41,7 +42,7 @@ export default function AddProjectPage({ onAdd, onCancel }) {
   useEffect(() => { setError(''); setTestResult(null); setTestError('') }, [tab])
 
   // Build JQL from combined filters
-  const combinedJql = buildCombinedJql({ epicKey: cEpicKey, fixVersion: cFixVersion, clientScope: cClientScope, clientRequested: cClientRequested, dateFrom: cDateFrom, dateTo: cDateTo })
+  const combinedJql = buildCombinedJql({ epicKey: cEpicKey, fixVersion: cFixVersion, clientScope: cClientScope, clientRequested: cClientRequested, dateFrom: cDateFrom, dateTo: cDateTo, sprints: cSprints })
 
   // Sync JqlEditor when auto-built JQL changes
   useEffect(() => { if (tab === 'combined') setCJql(combinedJql) }, [combinedJql])
@@ -156,6 +157,7 @@ export default function AddProjectPage({ onAdd, onCancel }) {
               clientRequested={cClientRequested} setClientRequested={setCClientRequested}
               dateFrom={cDateFrom} setDateFrom={setCDateFrom}
               dateTo={cDateTo} setDateTo={setCDateTo}
+              sprints={cSprints} setSprints={setCSprints}
               name={cName} setName={setCName}
               jql={cJql} setJql={setCJql}
               onTest={handleTestJql} testLoading={testLoading}
@@ -228,7 +230,7 @@ function JqlTab({ t, jql, setJql, name, setName, onTest, testLoading, testResult
   )
 }
 
-function CombinedTab({ t, epicKey, setEpicKey, fixVersion, setFixVersion, clientScope, setClientScope, clientRequested, setClientRequested, dateFrom, setDateFrom, dateTo, setDateTo, name, setName, jql, setJql, onTest, testLoading, testResult, testError }) {
+function CombinedTab({ t, epicKey, setEpicKey, fixVersion, setFixVersion, clientScope, setClientScope, clientRequested, setClientRequested, dateFrom, setDateFrom, dateTo, setDateTo, sprints, setSprints, name, setName, jql, setJql, onTest, testLoading, testResult, testError }) {
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
@@ -258,6 +260,12 @@ function CombinedTab({ t, epicKey, setEpicKey, fixVersion, setFixVersion, client
             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
           </div>
         </div>
+      </div>
+
+      {/* Sprint — picked by name, JQL uses the id (so you never type sprint ids) */}
+      <div style={{ marginBottom: 12 }}>
+        <label style={labelStyle}>Sprint</label>
+        <SprintSelect values={sprints} onChange={setSprints} />
       </div>
 
       {/* JQL editor */}
@@ -384,12 +392,65 @@ function TestResult({ t, result, error, jql }) {
   )
 }
 
-function buildCombinedJql({ epicKey, fixVersion, clientScope, clientRequested, dateFrom, dateTo }) {
+// Sprint picker: type the name, we resolve it to Jira's value (id) via autocomplete.
+function SprintSelect({ values, onChange }) {
+  const [q, setQ] = useState('')
+  const [open, setOpen] = useState(false)
+  const [opts, setOpts] = useState([])
+  const [loading, setLoading] = useState(false)
+  const tRef = useRef(null)
+  const mergeIn = list => setOpts(prev => { const m = new Map(prev.map(o => [o.value, o])); for (const o of (list || [])) m.set(o.value, o); return [...m.values()] })
+  useEffect(() => {
+    if (!open) return undefined
+    clearTimeout(tRef.current)
+    tRef.current = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const r = await api.getJqlSuggestions('Sprint', q)
+        mergeIn((r || []).map(x => ({ value: x.value, label: (x.displayName || x.value || '').replace(/<\/?b>/gi, '') })))
+      } catch { /* keep */ } finally { setLoading(false) }
+    }, 220)
+    return () => clearTimeout(tRef.current)
+  }, [q, open]) // eslint-disable-line
+  const chosen = new Set(values.map(v => v.value))
+  const ql = q.trim().toLowerCase()
+  const free = opts.filter(o => !chosen.has(o.value) && (!ql || o.label.toLowerCase().includes(ql)))
+  const add = o => { if (!chosen.has(o.value)) onChange([...values, o]); setQ('') }
+  const remove = v => onChange(values.filter(x => x.value !== v))
+  const chip = { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 8px', minHeight: 38, alignItems: 'center' }}>
+        {values.map(v => (
+          <span key={v.value} style={chip}>{v.label}<button type="button" onMouseDown={e => { e.preventDefault(); remove(v.value) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textMuted)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button></span>
+        ))}
+        <input value={q} onChange={e => setQ(e.target.value)} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 160)}
+          placeholder={values.length ? '' : 'Kucaj ime sprinta (npr. grooming)…'}
+          style={{ flex: '1 1 120px', minWidth: 100, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", fontSize: 13, padding: '2px' }} />
+      </div>
+      {open && (loading || free.length > 0) && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.18)', maxHeight: 240, overflowY: 'auto' }}>
+          {loading && <div style={{ padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Učitavam…</div>}
+          {!loading && free.map(o => (
+            <button key={o.value} type="button" onMouseDown={e => { e.preventDefault(); add(o) }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'var(--text)' }}>
+              {o.label}
+            </button>
+          ))}
+          {!loading && free.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema sprinta za taj upit</div>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function buildCombinedJql({ epicKey, fixVersion, clientScope, clientRequested, dateFrom, dateTo, sprints }) {
   const parts = []
   if (epicKey?.trim()) parts.push(`parent = ${epicKey.trim().toUpperCase()}`)
   if (fixVersion?.trim()) parts.push(`fixVersion = "${fixVersion.trim()}"`)
   if (clientScope?.trim()) parts.push(`cf[11529] = "${clientScope.trim()}"`)
   if (clientRequested?.trim()) parts.push(`"Client Requested" = "${clientRequested.trim()}"`)
+  if (sprints?.length) parts.push(`Sprint in (${sprints.map(s => /^\d+$/.test(String(s.value)) ? s.value : `"${String(s.value).replace(/"/g, '')}"`).join(', ')})`)
   if (dateFrom) parts.push(`created >= "${dateFrom}"`)
   if (dateTo) parts.push(`created <= "${dateTo}"`)
   return parts.length ? parts.join(' AND ') + ' ORDER BY created ASC' : ''
