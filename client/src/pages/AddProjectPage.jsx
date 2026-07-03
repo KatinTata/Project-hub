@@ -8,11 +8,11 @@ export default function AddProjectPage({ onAdd, onCancel }) {
   const t = useT()
 
   const TABS = [
+    { id: 'combined', label: t('addProject.tab.combined') },
     { id: 'epic', label: t('addProject.tab.epic') },
     { id: 'jql', label: t('addProject.tab.jql') },
-    { id: 'combined', label: t('addProject.tab.combined') },
   ]
-  const [tab, setTab] = useState('epic')
+  const [tab, setTab] = useState('combined')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -29,12 +29,12 @@ export default function AddProjectPage({ onAdd, onCancel }) {
 
   // Combined tab state
   const [cEpicKey, setCEpicKey] = useState('')
-  const [cFixVersion, setCFixVersion] = useState('')
-  const [cClientScope, setCClientScope] = useState('')
-  const [cClientRequested, setCClientRequested] = useState('')
+  const [cFixVersion, setCFixVersion] = useState([])       // [{ value, label }]
+  const [cClientScope, setCClientScope] = useState([])     // [{ value, label }]
+  const [cClientRequested, setCClientRequested] = useState([]) // [{ value, label }]
   const [cDateFrom, setCDateFrom] = useState('')
   const [cDateTo, setCDateTo] = useState('')
-  const [cSprints, setCSprints] = useState([]) // [{ value, label }] — sprint picked by name, JQL uses the id
+  const [cSprints, setCSprints] = useState([])             // [{ value, label }] — JQL uses the id
   const [cName, setCName] = useState('')
   const [cJql, setCJql] = useState('')
 
@@ -240,15 +240,15 @@ function CombinedTab({ t, epicKey, setEpicKey, fixVersion, setFixVersion, client
         </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.fixVersion')}</label>
-          <input value={fixVersion} onChange={e => setFixVersion(e.target.value)} placeholder={t('addProject.combined.fixVersionPlaceholder')} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+          <FieldSelect fieldName="fixVersion" values={fixVersion} onChange={setFixVersion} placeholder="npr. 6.6 Gallium" />
         </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.clientScope')}</label>
-          <input value={clientScope} onChange={e => setClientScope(e.target.value)} placeholder={t('addProject.combined.clientRequestedPlaceholder')} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+          <FieldSelect fieldName="Client - Impact Scope" values={clientScope} onChange={setClientScope} placeholder="npr. General" />
         </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.clientRequested')}</label>
-          <input value={clientRequested} onChange={e => setClientRequested(e.target.value)} placeholder={t('addProject.combined.clientRequestedPlaceholder')} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+          <FieldSelect fieldName="Client Requested" values={clientRequested} onChange={setClientRequested} placeholder="npr. Wurth" />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div>
@@ -265,7 +265,7 @@ function CombinedTab({ t, epicKey, setEpicKey, fixVersion, setFixVersion, client
       {/* Sprint — picked by name, JQL uses the id (so you never type sprint ids) */}
       <div style={{ marginBottom: 12 }}>
         <label style={labelStyle}>Sprint</label>
-        <SprintSelect values={sprints} onChange={setSprints} />
+        <FieldSelect fieldName="Sprint" values={sprints} onChange={setSprints} placeholder="npr. grooming" />
       </div>
 
       {/* JQL editor */}
@@ -392,8 +392,9 @@ function TestResult({ t, result, error, jql }) {
   )
 }
 
-// Sprint picker: type the name, we resolve it to Jira's value (id) via autocomplete.
-function SprintSelect({ values, onChange }) {
+// Generic Jira field picker: type a value, we resolve it via JQL autocomplete.
+// Stores [{ value, label }] — value goes into JQL, label is shown as a chip.
+function FieldSelect({ fieldName, values, onChange, placeholder }) {
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [opts, setOpts] = useState([])
@@ -406,7 +407,7 @@ function SprintSelect({ values, onChange }) {
     tRef.current = setTimeout(async () => {
       setLoading(true)
       try {
-        const r = await api.getJqlSuggestions('Sprint', q)
+        const r = await api.getJqlSuggestions(fieldName, q)
         mergeIn((r || []).map(x => ({ value: x.value, label: (x.displayName || x.value || '').replace(/<\/?b>/gi, '') })))
       } catch { /* keep */ } finally { setLoading(false) }
     }, 220)
@@ -416,6 +417,7 @@ function SprintSelect({ values, onChange }) {
   const ql = q.trim().toLowerCase()
   const free = opts.filter(o => !chosen.has(o.value) && (!ql || o.label.toLowerCase().includes(ql)))
   const add = o => { if (!chosen.has(o.value)) onChange([...values, o]); setQ('') }
+  const addManual = () => { const val = q.trim(); if (val && !values.some(v => v.value === val)) onChange([...values, { value: val, label: val }]); setQ('') }
   const remove = v => onChange(values.filter(x => x.value !== v))
   const chip = { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }
   return (
@@ -425,7 +427,8 @@ function SprintSelect({ values, onChange }) {
           <span key={v.value} style={chip}>{v.label}<button type="button" onMouseDown={e => { e.preventDefault(); remove(v.value) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textMuted)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button></span>
         ))}
         <input value={q} onChange={e => setQ(e.target.value)} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 160)}
-          placeholder={values.length ? '' : 'Kucaj ime sprinta (npr. grooming)…'}
+          onKeyDown={e => { if (e.key === 'Enter' && q.trim()) { e.preventDefault(); addManual() } }}
+          placeholder={values.length ? '' : (placeholder || 'Kucaj za pretragu…')}
           style={{ flex: '1 1 120px', minWidth: 100, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", fontSize: 13, padding: '2px' }} />
       </div>
       {open && (loading || free.length > 0) && (
@@ -437,20 +440,27 @@ function SprintSelect({ values, onChange }) {
               {o.label}
             </button>
           ))}
-          {!loading && free.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema sprinta za taj upit</div>}
+          {!loading && free.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema predloga — Enter da dodaš ručno</div>}
         </div>
       )}
     </div>
   )
 }
 
+// Quote each picked value for JQL: numeric ids unquoted (e.g. sprint), rest quoted.
+function jqlList(arr) {
+  return (arr || []).map(v => {
+    const s = String(v.value)
+    return /^\d+$/.test(s) ? s : `"${s.replace(/"/g, '')}"`
+  }).join(', ')
+}
 function buildCombinedJql({ epicKey, fixVersion, clientScope, clientRequested, dateFrom, dateTo, sprints }) {
   const parts = []
   if (epicKey?.trim()) parts.push(`parent = ${epicKey.trim().toUpperCase()}`)
-  if (fixVersion?.trim()) parts.push(`fixVersion = "${fixVersion.trim()}"`)
-  if (clientScope?.trim()) parts.push(`cf[11529] = "${clientScope.trim()}"`)
-  if (clientRequested?.trim()) parts.push(`"Client Requested" = "${clientRequested.trim()}"`)
-  if (sprints?.length) parts.push(`Sprint in (${sprints.map(s => /^\d+$/.test(String(s.value)) ? s.value : `"${String(s.value).replace(/"/g, '')}"`).join(', ')})`)
+  if (fixVersion?.length) parts.push(`fixVersion in (${jqlList(fixVersion)})`)
+  if (clientScope?.length) parts.push(`"Client - Impact Scope" in (${jqlList(clientScope)})`)
+  if (clientRequested?.length) parts.push(`"Client Requested" in (${jqlList(clientRequested)})`)
+  if (sprints?.length) parts.push(`Sprint in (${jqlList(sprints)})`)
   if (dateFrom) parts.push(`created >= "${dateFrom}"`)
   if (dateTo) parts.push(`created <= "${dateTo}"`)
   return parts.length ? parts.join(' AND ') + ' ORDER BY created ASC' : ''
