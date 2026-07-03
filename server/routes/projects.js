@@ -250,4 +250,20 @@ router.put('/reorder', (req, res) => {
   }
 })
 
+// Update a project's filter criteria / name. Defined AFTER /reorder so that
+// PUT /projects/reorder never matches :id.
+router.put('/:id', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const { displayName, filterType, filterJql, filterMeta, epicKey } = req.body
+  if (!filterJql?.trim() && filterType !== 'epic') return res.status(400).json({ error: 'JQL je obavezan' })
+  db.prepare('UPDATE projects SET display_name = ?, filter_type = ?, filter_jql = ?, filter_meta = ?, epic_key = COALESCE(?, epic_key) WHERE id = ?')
+    .run(displayName?.trim() || null, filterType || 'combined', filterJql || null, filterMeta ? JSON.stringify(filterMeta) : null, epicKey?.trim() || null, req.params.id)
+  const updated = db.prepare(
+    'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta, created_at as createdAt FROM projects WHERE id = ?'
+  ).get(req.params.id)
+  res.json({ project: updated })
+})
+
 export default router

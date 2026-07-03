@@ -21,6 +21,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   const [errorProjects, setErrorProjects] = useState({})
   const [archiveOpen, setArchiveOpen] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
+  const [editingProject, setEditingProject] = useState(null) // project being edited (filter criteria)
   const [initialized, setInitialized] = useState(false)
   const [lastRefresh, setLastRefresh] = useState({})
   const [refreshing, setRefreshing] = useState(false)
@@ -236,6 +237,16 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     fetchProjectData(project)
   }
 
+  async function handleUpdateProject(payload) {
+    const { project } = await api.updateProject(editingProject.id, payload)
+    const next = projectsRef.current.map(p => p.id === project.id ? project : p)
+    setProjects(next)
+    projectsRef.current = next
+    setEditingProject(null)
+    localStorage.removeItem(`jt_cache_${project.id}`)
+    fetchProjectData(project)
+  }
+
   async function handleArchiveProject(id) {
     try {
       await api.archiveProject(id)
@@ -295,6 +306,16 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
       <AddProjectPage
         onAdd={handleAddProject}
         onCancel={() => setAddingProject(false)}
+      />
+    )
+  }
+
+  if (editingProject) {
+    return (
+      <AddProjectPage
+        editProject={editingProject}
+        onAdd={handleUpdateProject}
+        onCancel={() => setEditingProject(null)}
       />
     )
   }
@@ -393,6 +414,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               jiraUrl={user.jiraUrl}
               autoRefreshTime={autoRefreshTime}
               onOpenMessages={() => onGoToMessages?.(activeProject?.id || null)}
+              onEditProject={hasJira && !isClient ? () => setEditingProject(activeProject) : undefined}
             />
           )}
         </div>

@@ -4,50 +4,52 @@ import { api } from '../api.js'
 import JqlEditor from '../components/JqlEditor.jsx'
 import { useT } from '../lang.jsx'
 
-export default function AddProjectPage({ onAdd, onCancel }) {
-  const t = useT()
+// Normalize a stored filterMeta value to picker shape [{ value, label }].
+// Old projects stored plain strings; new ones store arrays already.
+function asPick(v) {
+  if (Array.isArray(v)) return v.filter(x => x && x.value != null)
+  const s = String(v || '').trim()
+  return s ? [{ value: s, label: s }] : []
+}
+function parseMeta(project) {
+  if (!project?.filterMeta) return {}
+  try { return typeof project.filterMeta === 'string' ? JSON.parse(project.filterMeta) : project.filterMeta } catch { return {} }
+}
 
-  const TABS = [
-    { id: 'combined', label: t('addProject.tab.combined') },
-    { id: 'epic', label: t('addProject.tab.epic') },
-    { id: 'jql', label: t('addProject.tab.jql') },
-  ]
-  const [tab, setTab] = useState('combined')
+export default function AddProjectPage({ onAdd, onCancel, editProject = null }) {
+  const t = useT()
+  const initMeta = parseMeta(editProject)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  // Epic tab state
-  const [epicKey, setEpicKey] = useState('')
-  const [epicName, setEpicName] = useState('')
-
-  // JQL tab state
-  const [jqlQuery, setJqlQuery] = useState('')
-  const [jqlName, setJqlName] = useState('')
   const [testLoading, setTestLoading] = useState(false)
   const [testResult, setTestResult] = useState(null)
   const [testError, setTestError] = useState('')
 
-  // Combined tab state
-  const [cEpicKey, setCEpicKey] = useState('')
-  const [cProject, setCProject] = useState([])             // [{ value, label }]
-  const [cStatus, setCStatus] = useState([])               // [{ value, label }]
-  const [cFixVersion, setCFixVersion] = useState([])       // [{ value, label }]
-  const [cClientScope, setCClientScope] = useState([])     // [{ value, label }]
-  const [cClientRequested, setCClientRequested] = useState([]) // [{ value, label }]
-  const [cDateFrom, setCDateFrom] = useState('')
-  const [cDateTo, setCDateTo] = useState('')
-  const [cSprints, setCSprints] = useState([])             // [{ value, label }] — JQL uses the id
-  const [cName, setCName] = useState('')
-  const [cJql, setCJql] = useState('')
-
-  // Reset results when tab changes
-  useEffect(() => { setError(''); setTestResult(null); setTestError('') }, [tab])
+  // Combined state — prefilled from editProject's filterMeta when editing
+  const [cEpicKey, setCEpicKey] = useState(initMeta.epicKey || (editProject?.filterType === 'epic' ? editProject?.epicKey || '' : ''))
+  const [cProject, setCProject] = useState(asPick(initMeta.project))
+  const [cStatus, setCStatus] = useState(asPick(initMeta.status))
+  const [cFixVersion, setCFixVersion] = useState(asPick(initMeta.fixVersion))
+  const [cClientScope, setCClientScope] = useState(asPick(initMeta.clientScope))
+  const [cClientRequested, setCClientRequested] = useState(asPick(initMeta.clientRequested))
+  const [cDateFrom, setCDateFrom] = useState(initMeta.dateFrom || '')
+  const [cDateTo, setCDateTo] = useState(initMeta.dateTo || '')
+  const [cSprints, setCSprints] = useState(asPick(initMeta.sprints))
+  const [cName, setCName] = useState(editProject ? (editProject.displayName || editProject.epicKey || '') : '')
+  const [cJql, setCJql] = useState(editProject?.filterJql || '')
 
   // Build JQL from combined filters
   const combinedJql = buildCombinedJql({ epicKey: cEpicKey, project: cProject, fixVersion: cFixVersion, clientScope: cClientScope, clientRequested: cClientRequested, sprints: cSprints, status: cStatus, dateFrom: cDateFrom, dateTo: cDateTo })
 
-  // Sync JqlEditor when the auto-built JQL changes (manual edits survive until a filter changes)
-  useEffect(() => { setCJql(combinedJql) }, [combinedJql])
+  // Sync JqlEditor when the auto-built JQL changes (manual edits survive until a
+  // filter changes). In edit mode skip the mount sync so the stored JQL isn't
+  // overwritten (legacy JQL-only projects have empty meta → empty combinedJql).
+  const skipFirstSync = useRef(!!editProject)
+  useEffect(() => {
+    if (skipFirstSync.current) { skipFirstSync.current = false; return }
+    setCJql(combinedJql)
+  }, [combinedJql])
 
   async function handleTestJql() {
     const q = cJql || combinedJql
@@ -96,7 +98,7 @@ export default function AddProjectPage({ onAdd, onCancel }) {
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 560, background: 'var(--surface)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 16px 48px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '28px 32px 0' }}>
-          <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 22, color: 'var(--text)', marginBottom: 4 }}>{t('addProject.title')}</h1>
+          <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 22, color: 'var(--text)', marginBottom: 4 }}>{editProject ? 'Izmeni projekat' : t('addProject.title')}</h1>
           <p style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, marginBottom: 20 }}>
             {t('addProject.subtitle')}
           </p>
@@ -133,7 +135,7 @@ export default function AddProjectPage({ onAdd, onCancel }) {
             disabled={loading}
             style={{ width: '100%', background: 'var(--accent)', color: '#fff', borderRadius: 8, padding: '11px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', border: 'none', opacity: loading ? 0.7 : 1, transition: 'all 0.2s ease' }}
           >
-            {loading ? t('addProject.submitting') : t('addProject.submit')}
+            {loading ? t('addProject.submitting') : (editProject ? 'Sačuvaj izmene' : t('addProject.submit'))}
           </button>
         </form>
       </div>

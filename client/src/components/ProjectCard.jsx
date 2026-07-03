@@ -265,7 +265,7 @@ export default function ProjectCard({
   project, data, onArchive, loading, error,
   hasJira, refreshing, lastRefresh, onRefresh,
   previousData, previousTime, isClient, onOpenMessages, jiraUrl,
-  autoRefreshTime, isSuperAdmin,
+  autoRefreshTime, isSuperAdmin, onEditProject,
 }) {
   const { isMobile, isTablet } = useWindowSize()
   const t = useT()
@@ -414,6 +414,18 @@ export default function ProjectCard({
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <Badge color={statusColor}>{statusLabel}</Badge>
               <FilterBadge project={project} />
+              {onEditProject && (
+                <button
+                  onClick={onEditProject}
+                  title="Izmeni kriterijume projekta"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, border: '1px solid var(--border)', background: 'transparent', color: 'var(--accent)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'rgba(79,142,247,0.08)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent' }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  Izmeni
+                </button>
+              )}
               <span style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textMuted)' }}>
                 {total} taskova
               </span>

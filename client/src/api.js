@@ -52,6 +52,7 @@ export const api = {
   // Projects
   getProjects: () => request('GET', '/projects'),
   addProject: (body) => request('POST', '/projects', body),
+  updateProject: (id, body) => request('PUT', `/projects/${id}`, body),
   archiveProject: (id) => request('DELETE', `/projects/${id}`),
   getArchivedProjects: () => request('GET', '/projects/archived'),
   restoreProject: (id) => request('PUT', `/projects/${id}/restore`),
