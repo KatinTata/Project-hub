@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { randomBytes } from 'crypto'
 import db from '../db.js'
 import { decryptToken, makeJiraAuth, jiraPost, detectBillableField, parseBillableValue } from '../jiraClient.js'
+import { preparePublishedHtml } from '../publishedHtml.js'
 import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, BorderStyle, AlignmentType, HeadingLevel, ShadingType,
@@ -643,12 +644,7 @@ router.get('/public/:token', (req, res) => {
   const row = db.prepare('SELECT html, title FROM published_notes WHERE token = ?').get(req.params.token)
   if (!row) return res.status(404).send('<h1>Not found</h1>')
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
-  // Strip legacy Jira task-title links (see /rn/:token in index.js)
-  const cleaned = row.html.replace(
-    /<a class="task-summary task-link"[^>]*>([\s\S]*?)<\/a>/g,
-    '<span class="task-summary">$1</span>'
-  )
-  res.send(cleaned)
+  res.send(preparePublishedHtml(row.html))
 })
 
 // ── Route: List notes (admin) ─────────────────────────────────────────────────

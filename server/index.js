@@ -5,6 +5,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { authMiddleware } from './auth.js'
 import db from './db.js'
+import { preparePublishedHtml } from './publishedHtml.js'
 import authRoutes from './routes/auth.js'
 import projectRoutes from './routes/projects.js'
 import jiraRoutes from './routes/jira.js'
@@ -40,13 +41,7 @@ app.get('/rn/:token', (req, res) => {
   const row = db.prepare('SELECT html FROM published_notes WHERE token = ?').get(req.params.token)
   if (!row) return res.status(404).send('<!DOCTYPE html><html><body><h2>Release notes nisu pronađeni.</h2></body></html>')
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
-  // Legacy notes were published while task titles linked to our Jira — strip
-  // those anchors on the way out (clients must not get Jira links).
-  const cleaned = row.html.replace(
-    /<a class="task-summary task-link"[^>]*>([\s\S]*?)<\/a>/g,
-    '<span class="task-summary">$1</span>'
-  )
-  res.send(cleaned)
+  res.send(preparePublishedHtml(row.html))
 })
 
 if (process.env.NODE_ENV === 'production') {
