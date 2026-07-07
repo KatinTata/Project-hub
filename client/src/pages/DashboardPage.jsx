@@ -32,10 +32,9 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   const projectsRef = useRef([])
 
   const t = useT()
-  const hasJira = !!(user.jiraUrl && user.jiraEmail)
-  // Demo only when there is truly nothing to show (no own creds AND no shared
-  // projects). Admins without own creds still see the shared workspace — the
-  // server falls back to the project owner's / super-admin's Jira credentials.
+  const hasJira = !!(user.jiraUrl && user.jiraEmail) || !!user.sharedJira
+  // Demo only when there is truly no Jira access (no own creds and no shared
+  // super-admin connection) and no projects to show.
   const [demoMode, setDemoMode] = useState(false)
   const isClient = user.role === 'client'
   const { isMobile } = useWindowSize()
