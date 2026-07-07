@@ -47,13 +47,8 @@ function getOwnerJiraForProject(userId, projectId) {
 
 function getProject(userId, projectId) {
   const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
-  if (role === 'super_admin') {
-    return db.prepare(`
-      SELECT p.* FROM projects p JOIN users u ON u.id = p.user_id
-      WHERE p.id = ? AND (u.role IS NULL OR u.role IN ('admin', 'super_admin'))
-    `).get(projectId)
-  }
   if (isAdminRole(role)) {
+    // Strictly per-user — every admin (incl. super_admin) uses only own projects
     return db.prepare('SELECT * FROM projects WHERE id = ? AND user_id = ?').get(projectId, userId)
   }
   return db.prepare(`

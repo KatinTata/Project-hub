@@ -11,18 +11,10 @@ function isAdminRole(role) {
   return role === 'admin' || role === 'super_admin'
 }
 
-// Ownership: projects belong to their creator. Admins manage only their own;
-// super_admins manage every admin-owned project. Connections (Jira/AI) are
-// still inherited from super-admins elsewhere.
+// Ownership is strictly per-user for every admin role: each admin (including
+// super_admins) sees and manages only the projects they created. Connections
+// (Jira credentials, AI key) are still inherited from super-admins elsewhere.
 function findAdminProject(projectId, userId) {
-  const role = getUserRole(userId)
-  if (role === 'super_admin') {
-    return db.prepare(`
-      SELECT p.id, p.user_id FROM projects p
-      JOIN users u ON u.id = p.user_id
-      WHERE p.id = ? AND (u.role IS NULL OR u.role IN ('admin', 'super_admin'))
-    `).get(projectId)
-  }
   return db.prepare('SELECT id, user_id FROM projects WHERE id = ? AND user_id = ?').get(projectId, userId)
 }
 
@@ -39,18 +31,7 @@ router.get('/', (req, res) => {
     `).all(req.userId)
     return res.json(projects)
   }
-  // Projects are per-user: admins see their own; super_admins see everything.
-  if (role === 'super_admin') {
-    const projects = db.prepare(`
-      SELECT p.id, p.epic_key as epicKey, p.display_name as displayName, p.position,
-             p.filter_type as filterType, p.filter_jql as filterJql, p.filter_meta as filterMeta, p.created_at as createdAt
-      FROM projects p
-      JOIN users u ON u.id = p.user_id
-      WHERE (u.role IS NULL OR u.role IN ('admin', 'super_admin')) AND (p.archived IS NULL OR p.archived = 0)
-      ORDER BY p.position ASC, p.id ASC
-    `).all()
-    return res.json(projects)
-  }
+  // Projects are strictly per-user — every admin sees only their own.
   const projects = db.prepare(
     'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta, created_at as createdAt FROM projects WHERE user_id = ? AND (archived IS NULL OR archived = 0) ORDER BY position ASC, id ASC'
   ).all(req.userId)
@@ -107,16 +88,7 @@ router.delete('/:id', (req, res) => {
 
 // Get archived projects
 router.get('/archived', (req, res) => {
-  const role = getUserRole(req.userId)
-  if (!isAdminRole(role)) return res.status(403).json({ error: 'Forbidden' })
-  if (role === 'super_admin') {
-    const projects = db.prepare(
-      `SELECT p.id, p.epic_key as epicKey, p.display_name as displayName, p.archived_at as archivedAt, p.filter_type as filterType
-       FROM projects p JOIN users u ON u.id = p.user_id
-       WHERE (u.role IS NULL OR u.role IN ('admin', 'super_admin')) AND p.archived = 1 ORDER BY p.archived_at DESC`
-    ).all()
-    return res.json(projects)
-  }
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   const projects = db.prepare(
     'SELECT id, epic_key as epicKey, display_name as displayName, archived_at as archivedAt, filter_type as filterType FROM projects WHERE user_id = ? AND archived = 1 ORDER BY archived_at DESC'
   ).all(req.userId)
@@ -270,18 +242,14 @@ router.get('/:id/snapshots', (req, res) => {
 })
 
 router.put('/reorder', (req, res) => {
-  const role = getUserRole(req.userId)
-  if (!isAdminRole(role)) return res.status(403).json({ error: 'Forbidden' })
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   try {
     const { ids } = req.body
     if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids mora biti niz' })
 
-    // super_admin may reorder any project; admins only their own
-    const update = role === 'super_admin'
-      ? db.prepare('UPDATE projects SET position = ? WHERE id = ?')
-      : db.prepare('UPDATE projects SET position = ? WHERE id = ? AND user_id = ?')
+    const update = db.prepare('UPDATE projects SET position = ? WHERE id = ? AND user_id = ?')
     const updateMany = db.transaction((ids) => {
-      ids.forEach((id, idx) => role === 'super_admin' ? update.run(idx, id) : update.run(idx, id, req.userId))
+      ids.forEach((id, idx) => update.run(idx, id, req.userId))
     })
     updateMany(ids)
     res.json({ ok: true })
