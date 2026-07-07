@@ -165,9 +165,9 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
         </div>`
       }).join('')
 
-      const titleHtml = jiraBase
-        ? `<a class="task-summary task-link" href="${jiraBase}/browse/${key}" target="_blank" rel="noopener noreferrer">${name}</a>`
-        : `<span class="task-summary">${name}</span>`
+      // No Jira link on the task title — the output goes to clients who can't
+      // access our Jira. HELP-desk links below stay (clients can open those).
+      const titleHtml = `<span class="task-summary">${name}</span>`
       const isSimple = !hasExpand
       return `<div class="task-card${isSimple ? ' task-card--simple' : ''}" id="${cardId}" style="border-left:4px solid ${cfg.color} !important">
         <div class="task-row">
@@ -237,8 +237,6 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .task-row{display:flex;align-items:center;gap:12px}
     .key-badge{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:3px 9px;border-radius:6px;flex-shrink:0;letter-spacing:0.04em;white-space:nowrap}
     .task-summary{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);flex:1;line-height:1.4}
-    a.task-link{text-decoration:none;color:var(--text)}
-    a.task-link:hover{color:var(--accent);text-decoration:underline}
     .expand-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:0 2px;flex-shrink:0;transition:transform 0.25s ease,color 0.2s;display:flex;align-items:center;line-height:1}
     .expand-btn:hover{color:var(--text)}
     .expand-btn.open{transform:rotate(180deg);color:var(--accent)}

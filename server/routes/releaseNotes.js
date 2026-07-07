@@ -521,9 +521,12 @@ router.post('/ai-enhance', async (req, res) => {
     if (!content?.trim()) return res.status(400).json({ error: 'content je obavezan' })
     if (!AI_PROMPTS[action]) return res.status(400).json({ error: `Nepoznata akcija: ${action}. Dozvoljeno: ${Object.keys(AI_PROMPTS).join(', ')}` })
 
-    // Try user's DB key first, fallback to env
+    // Key resolution: user's own → any super-admin's (shared workspace) → env
     const userRow = db.prepare('SELECT anthropic_key FROM users WHERE id = ?').get(req.userId)
-    const apiKey = userRow?.anthropic_key ? decryptToken(userRow.anthropic_key) : process.env.ANTHROPIC_API_KEY
+    const saRow = userRow?.anthropic_key ? null : db.prepare("SELECT anthropic_key FROM users WHERE role = 'super_admin' AND anthropic_key IS NOT NULL LIMIT 1").get()
+    const apiKey = userRow?.anthropic_key ? decryptToken(userRow.anthropic_key)
+      : saRow?.anthropic_key ? decryptToken(saRow.anthropic_key)
+      : process.env.ANTHROPIC_API_KEY
     if (!apiKey) return res.status(503).json({ aiAvailable: false, error: 'Anthropic API ključ nije podešen' })
 
     const anthropic = new Anthropic({ apiKey, maxRetries: 4 })
