@@ -212,6 +212,8 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .pbar-left{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
     .pbtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:opacity 0.2s}
     .pbtn:hover{opacity:0.85}
+    .pbtn--html{background:#EA580C}
+    .pbtn--pdf{background:#7C3AED}
     .wrap{max-width:860px;margin:0 auto;padding:84px 28px 80px;position:relative;z-index:1}
     .hero{position:relative;overflow:hidden;border-radius:22px;padding:34px 38px;margin-bottom:44px;background:radial-gradient(55% 95% at 96% -18%, rgba(56,189,248,0.45) 0%, rgba(56,189,248,0) 52%), radial-gradient(50% 100% at 2% 118%, rgba(37,99,235,0.42) 0%, rgba(37,99,235,0) 56%), radial-gradient(42% 85% at 72% 125%, rgba(124,92,246,0.26) 0%, rgba(124,92,246,0) 60%), radial-gradient(38% 70% at 38% -25%, rgba(45,212,191,0.18) 0%, rgba(45,212,191,0) 60%), linear-gradient(120deg, #081325 0%, #0c2140 38%, #133459 68%, #0a1c34 100%);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 30%);pointer-events:none}
@@ -377,7 +379,10 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
 
   ${hideBar ? '' : `<div class="pbar">
     <span class="pbar-left">${esc(meta.clientName || 'Intelisale')}${config.version ? ' · ' + esc(config.version) : ''} Release Notes</span>
-    <button class="pbtn" onclick="window.print()">↓ Export PDF</button>
+    <div style="display:flex;gap:8px">
+      <button class="pbtn pbtn--html" onclick="exportHtml()">⤓ Export HTML</button>
+      <button class="pbtn pbtn--pdf" onclick="window.print()">↓ Export PDF</button>
+    </div>
   </div>`}
   ${BRAIN_BG_HTML}
   <div class="wrap">
@@ -403,6 +408,23 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
   <div class="print-footer-override"></div>
   <script>
     function toggle(id){var card=document.getElementById(id),desc=document.getElementById(id+'-d'),btn=card?card.querySelector('.expand-btn'):null;if(!desc)return;var open=desc.classList.contains('open');desc.classList.toggle('open',!open);if(btn)btn.classList.toggle('open',!open);if(card)card.classList.toggle('open',!open)}
+    // Download this page as a standalone HTML file with every card expanded.
+    function exportHtml(){
+      var descs=document.querySelectorAll('.task-desc'),btns=document.querySelectorAll('.expand-btn');
+      var dPrev=[],bPrev=[];
+      descs.forEach(function(d,i){dPrev[i]=d.classList.contains('open');d.classList.add('open')});
+      btns.forEach(function(b,i){bPrev[i]=b.classList.contains('open');b.classList.add('open')});
+      var html='<!DOCTYPE html>\\n'+document.documentElement.outerHTML;
+      html=html.replace('</head>','<style>.task-desc.open{max-height:none !important}</style></head>');
+      descs.forEach(function(d,i){if(!dPrev[i])d.classList.remove('open')});
+      btns.forEach(function(b,i){if(!bPrev[i])b.classList.remove('open')});
+      var blob=new Blob([html],{type:'text/html'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=(document.title||'release-notes').replace(/[\\\\/:*?"<>|]/g,'-')+'.html';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(a.href)},60000);
+    }
   </script>
 </body>
 </html>`
