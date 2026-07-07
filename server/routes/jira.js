@@ -152,7 +152,7 @@ router.post('/test-jql', async (req, res) => {
     const { jql } = req.body
     if (!jql?.trim()) return res.status(400).json({ error: 'JQL je obavezan' })
 
-    const jira = getUserJira(req.userId)
+    const jira = getUserJira(req.userId) || getSuperAdminJira()
     if (!jira) return res.status(400).json({ error: 'Jira nije konfigurisan' })
 
     let data
@@ -193,7 +193,7 @@ router.post('/test-jql', async (req, res) => {
 // GET /api/jira/jql-fields — returns list of JQL field names for autocomplete
 router.get('/jql-fields', async (req, res) => {
   try {
-    const jira = getUserJira(req.userId)
+    const jira = getUserJira(req.userId) || getSuperAdminJira()
     if (!jira) return res.json([])
     try {
       const data = await jiraGet(jira.jiraUrl, '/jql/autocompletedata', jira.auth)
@@ -213,7 +213,7 @@ router.get('/jql-suggestions', async (req, res) => {
   try {
     const { fieldName, fieldValue = '' } = req.query
     if (!fieldName) return res.json([])
-    const jira = getUserJira(req.userId)
+    const jira = getUserJira(req.userId) || getSuperAdminJira()
     if (!jira) return res.json([])
     try {
       const data = await jiraGet(

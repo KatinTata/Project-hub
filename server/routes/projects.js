@@ -11,6 +11,16 @@ function isAdminRole(role) {
   return role === 'admin' || role === 'super_admin'
 }
 
+// Shared admin workspace: any admin can see/manage any admin-owned project.
+// Returns the project row or undefined.
+function findAdminProject(projectId) {
+  return db.prepare(`
+    SELECT p.id, p.user_id FROM projects p
+    JOIN users u ON u.id = p.user_id
+    WHERE p.id = ? AND (u.role IS NULL OR u.role IN ('admin', 'super_admin'))
+  `).get(projectId)
+}
+
 router.get('/', (req, res) => {
   const role = getUserRole(req.userId)
   if (role === 'user') {
@@ -24,9 +34,15 @@ router.get('/', (req, res) => {
     `).all(req.userId)
     return res.json(projects)
   }
-  const projects = db.prepare(
-    'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta, created_at as createdAt FROM projects WHERE user_id = ? AND (archived IS NULL OR archived = 0) ORDER BY position ASC, id ASC'
-  ).all(req.userId)
+  // Shared admin workspace — every admin sees all admin-owned projects
+  const projects = db.prepare(`
+    SELECT p.id, p.epic_key as epicKey, p.display_name as displayName, p.position,
+           p.filter_type as filterType, p.filter_jql as filterJql, p.filter_meta as filterMeta, p.created_at as createdAt
+    FROM projects p
+    JOIN users u ON u.id = p.user_id
+    WHERE (u.role IS NULL OR u.role IN ('admin', 'super_admin')) AND (p.archived IS NULL OR p.archived = 0)
+    ORDER BY p.position ASC, p.id ASC
+  `).all()
   res.json(projects)
 })
 
@@ -48,7 +64,7 @@ router.post('/', (req, res) => {
       return res.status(400).json({ error: 'Naziv projekta je obavezan' })
     }
 
-    const maxPos = db.prepare('SELECT MAX(position) as m FROM projects WHERE user_id = ?').get(req.userId)
+    const maxPos = db.prepare('SELECT MAX(position) as m FROM projects').get()
     const position = (maxPos?.m ?? -1) + 1
 
     const result = db.prepare(
@@ -71,7 +87,7 @@ router.post('/', (req, res) => {
 // Archive (soft delete)
 router.delete('/:id', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const now = new Date().toISOString()
   db.prepare('UPDATE projects SET archived = 1, archived_at = ? WHERE id = ?').run(now, req.params.id)
@@ -82,15 +98,17 @@ router.delete('/:id', (req, res) => {
 router.get('/archived', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   const projects = db.prepare(
-    'SELECT id, epic_key as epicKey, display_name as displayName, archived_at as archivedAt, filter_type as filterType FROM projects WHERE user_id = ? AND archived = 1 ORDER BY archived_at DESC'
-  ).all(req.userId)
+    `SELECT p.id, p.epic_key as epicKey, p.display_name as displayName, p.archived_at as archivedAt, p.filter_type as filterType
+     FROM projects p JOIN users u ON u.id = p.user_id
+     WHERE (u.role IS NULL OR u.role IN ('admin', 'super_admin')) AND p.archived = 1 ORDER BY p.archived_at DESC`
+  ).all()
   res.json(projects)
 })
 
 // Restore from archive
 router.put('/:id/restore', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   db.prepare('UPDATE projects SET archived = 0, archived_at = NULL WHERE id = ?').run(req.params.id)
   const restored = db.prepare(
@@ -102,7 +120,7 @@ router.put('/:id/restore', (req, res) => {
 // Permanent delete
 router.delete('/:id/permanent', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   db.prepare('DELETE FROM projects WHERE id = ?').run(req.params.id)
   res.json({ ok: true })
@@ -111,7 +129,7 @@ router.delete('/:id/permanent', (req, res) => {
 // Get billable task keys for a project
 router.get('/:id/billable', (req, res) => {
   console.log('[billable GET] projectId:', req.params.id, 'userId:', req.userId)
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   console.log('[billable GET] project found:', !!project)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const rows = db.prepare('SELECT task_key FROM task_billable WHERE project_id = ?').all(req.params.id)
@@ -123,7 +141,7 @@ router.get('/:id/billable', (req, res) => {
 router.put('/:id/billable', (req, res) => {
   console.log('[billable PUT] projectId:', req.params.id, 'userId:', req.userId, 'body:', req.body)
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   console.log('[billable PUT] project found:', !!project)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const { taskKey, billable } = req.body
@@ -142,7 +160,7 @@ const VALID_STACKS = ['Backend', 'Frontend', 'Testing', 'Ostalo']
 router.get('/:id/stack-people', (req, res) => {
   const role = getUserRole(req.userId)
   const access = isAdminRole(role)
-    ? db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    ? findAdminProject(req.params.id)
     : db.prepare('SELECT p.id FROM project_clients pc JOIN projects p ON p.id = pc.project_id WHERE pc.client_user_id = ? AND p.id = ?').get(req.userId, req.params.id)
   if (!access) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const rows = db.prepare('SELECT stack, people FROM project_stack_people WHERE project_id = ?').all(req.params.id)
@@ -153,7 +171,7 @@ router.get('/:id/stack-people', (req, res) => {
 
 router.put('/:id/stack-people', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const people = req.body?.people || {}
   const up = db.prepare('INSERT INTO project_stack_people (project_id, stack, people) VALUES (?, ?, ?) ON CONFLICT(project_id, stack) DO UPDATE SET people = excluded.people')
@@ -174,7 +192,7 @@ router.put('/:id/stack-people', (req, res) => {
 router.get('/:id/team', (req, res) => {
   const role = getUserRole(req.userId)
   const access = isAdminRole(role)
-    ? db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    ? findAdminProject(req.params.id)
     : db.prepare('SELECT p.id FROM project_clients pc JOIN projects p ON p.id = pc.project_id WHERE pc.client_user_id = ? AND p.id = ?').get(req.userId, req.params.id)
   if (!access) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const rows = db.prepare('SELECT id, name, stack FROM project_team WHERE project_id = ? ORDER BY stack, name').all(req.params.id)
@@ -183,7 +201,7 @@ router.get('/:id/team', (req, res) => {
 
 router.post('/:id/team', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const name = (req.body?.name || '').trim()
   const stack = req.body?.stack
@@ -200,7 +218,7 @@ router.post('/:id/team', (req, res) => {
 
 router.delete('/:id/team/:memberId', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   db.prepare('DELETE FROM project_team WHERE id = ? AND project_id = ?').run(req.params.memberId, req.params.id)
   res.json({ ok: true })
@@ -209,7 +227,7 @@ router.delete('/:id/team/:memberId', (req, res) => {
 // Daily snapshots (history / trends)
 router.post('/:id/snapshot', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const payload = req.body?.payload
   if (!payload || typeof payload !== 'object') return res.status(400).json({ error: 'payload je obavezan' })
@@ -222,7 +240,7 @@ router.post('/:id/snapshot', (req, res) => {
 router.get('/:id/snapshots', (req, res) => {
   const role = getUserRole(req.userId)
   const access = isAdminRole(role)
-    ? db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    ? findAdminProject(req.params.id)
     : db.prepare('SELECT p.id FROM project_clients pc JOIN projects p ON p.id = pc.project_id WHERE pc.client_user_id = ? AND p.id = ?').get(req.userId, req.params.id)
   if (!access) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const rows = db.prepare('SELECT day, payload FROM project_snapshots WHERE project_id = ? ORDER BY day ASC').all(req.params.id)
@@ -239,9 +257,9 @@ router.put('/reorder', (req, res) => {
     const { ids } = req.body
     if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids mora biti niz' })
 
-    const update = db.prepare('UPDATE projects SET position = ? WHERE id = ? AND user_id = ?')
+    const update = db.prepare('UPDATE projects SET position = ? WHERE id = ?')
     const updateMany = db.transaction((ids) => {
-      ids.forEach((id, idx) => update.run(idx, id, req.userId))
+      ids.forEach((id, idx) => update.run(idx, id))
     })
     updateMany(ids)
     res.json({ ok: true })
@@ -254,7 +272,7 @@ router.put('/reorder', (req, res) => {
 // PUT /projects/reorder never matches :id.
 router.put('/:id', (req, res) => {
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+  const project = findAdminProject(req.params.id)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const { displayName, filterType, filterJql, filterMeta, epicKey } = req.body
   if (!filterJql?.trim() && filterType !== 'epic') return res.status(400).json({ error: 'JQL je obavezan' })

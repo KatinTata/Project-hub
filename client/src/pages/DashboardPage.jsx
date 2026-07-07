@@ -33,6 +33,10 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
 
   const t = useT()
   const hasJira = !!(user.jiraUrl && user.jiraEmail)
+  // Demo only when there is truly nothing to show (no own creds AND no shared
+  // projects). Admins without own creds still see the shared workspace — the
+  // server falls back to the project owner's / super-admin's Jira credentials.
+  const [demoMode, setDemoMode] = useState(false)
   const isClient = user.role === 'client'
   const { isMobile } = useWindowSize()
 
@@ -86,7 +90,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
 
   // Notification polling — every 60s
   useEffect(() => {
-    if (!hasJira && !isClient) return
+    if (demoMode) return
     async function loadNotifications() {
       try {
         const [{ count }, messages] = await Promise.all([
@@ -105,7 +109,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     loadNotifications()
     const interval = setInterval(loadNotifications, 60000)
     return () => clearInterval(interval)
-  }, [hasJira, isClient])
+  }, [demoMode, isClient])
 
   function saveProjectCache(projectId, data) {
     try {
@@ -120,23 +124,24 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     } catch { return null }
   }
 
-  async function loadProjects() {
-    if (!hasJira && !isClient) {
-      setProjects(DEMO_PROJECTS)
-      projectsRef.current = DEMO_PROJECTS
-      setActiveId(DEMO_PROJECTS[0].id)
-      const demoData = {}
-      const demoTs = {}
-      const now = Date.now()
-      DEMO_PROJECTS.forEach(p => { demoData[p.id] = p.data; demoTs[p.id] = now })
-      setProjectData(demoData)
-      setLastRefresh(demoTs)
-      setInitialized(true)
-      return
-    }
+  function enterDemoMode() {
+    setDemoMode(true)
+    setProjects(DEMO_PROJECTS)
+    projectsRef.current = DEMO_PROJECTS
+    setActiveId(DEMO_PROJECTS[0].id)
+    const demoData = {}
+    const demoTs = {}
+    const now = Date.now()
+    DEMO_PROJECTS.forEach(p => { demoData[p.id] = p.data; demoTs[p.id] = now })
+    setProjectData(demoData)
+    setLastRefresh(demoTs)
+    setInitialized(true)
+  }
 
+  async function loadProjects() {
     try {
       const list = await api.getProjects()
+      if (!isClient && list.length === 0 && !hasJira) { enterDemoMode(); return }
       setProjects(list)
       projectsRef.current = list
       localStorage.setItem('jt_project_count', list.length)
@@ -173,6 +178,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
       }
     } catch (err) {
       console.error('Failed to load projects', err)
+      if (!isClient && !hasJira) { enterDemoMode(); return }
     } finally {
       setInitialized(true)
     }
@@ -217,7 +223,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   }
 
   async function refreshAll(list) {
-    if (!hasJira && !isClient) return
+    if (demoMode) return
     setRefreshing(true)
     await Promise.all(list.map(p => fetchProjectData(p)))
     setRefreshing(false)
@@ -353,7 +359,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
         onArchiveProject={isClient ? undefined : handleArchiveProject}
         onOpenArchive={isClient ? undefined : () => setArchiveOpen(true)}
         projectData={projectData}
-        onAddProject={hasJira && !isClient ? () => setAddingProject(true) : undefined}
+        onAddProject={!isClient && !demoMode ? () => setAddingProject(true) : undefined}
       />
 
       {projects.length > 0 && (
@@ -361,7 +367,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           projects={projects}
           activeId={activeId}
           onSelect={setActiveId}
-          onAdd={hasJira && !isClient ? () => setAddingProject(true) : undefined}
+          onAdd={!isClient && !demoMode ? () => setAddingProject(true) : undefined}
           onArchive={isClient ? undefined : handleArchiveProject}
           onOpenArchive={isClient ? undefined : () => setArchiveOpen(true)}
           projectData={projectData}
@@ -370,7 +376,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
 
       {projects.length > 0 ? (
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '16px' : '28px' }}>
-          {!hasJira && !isClient && (
+          {demoMode && !isClient && (
             <div className="glass-card" style={{
               marginBottom: 20,
               padding: '12px 16px',
@@ -403,7 +409,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               loading={!!loadingProjects[activeProject.id]}
               error={errorProjects[activeProject.id]}
               onArchive={() => handleArchiveProject(activeProject.id)}
-              hasJira={hasJira || isClient}
+              hasJira={!demoMode}
               refreshing={refreshing}
               lastRefresh={lastRefresh[activeProject.id] || null}
               onRefresh={handleRefreshClick}
@@ -414,7 +420,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               jiraUrl={user.jiraUrl}
               autoRefreshTime={autoRefreshTime}
               onOpenMessages={() => onGoToMessages?.(activeProject?.id || null)}
-              onEditProject={hasJira && !isClient ? () => setEditingProject(activeProject) : undefined}
+              onEditProject={!isClient && !demoMode ? () => setEditingProject(activeProject) : undefined}
             />
           )}
         </div>

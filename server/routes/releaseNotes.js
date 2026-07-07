@@ -48,7 +48,11 @@ function getOwnerJiraForProject(userId, projectId) {
 function getProject(userId, projectId) {
   const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
   if (isAdminRole(role)) {
-    return db.prepare('SELECT * FROM projects WHERE id = ? AND user_id = ?').get(projectId, userId)
+    // Shared admin workspace — any admin can use any admin-owned project
+    return db.prepare(`
+      SELECT p.* FROM projects p JOIN users u ON u.id = p.user_id
+      WHERE p.id = ? AND (u.role IS NULL OR u.role IN ('admin', 'super_admin'))
+    `).get(projectId)
   }
   return db.prepare(`
     SELECT p.* FROM project_clients pc
@@ -137,7 +141,7 @@ router.post('/task-detail', async (req, res) => {
       if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
       jira = getOwnerJiraForProject(req.userId, projectId)
     } else {
-      jira = getUserJira(req.userId)
+      jira = getUserJira(req.userId) || getSuperAdminJira()
     }
     if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
 
@@ -187,7 +191,7 @@ router.post('/tasks', async (req, res) => {
       if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
       jira = getOwnerJiraForProject(req.userId, projectId)
     } else {
-      jira = getUserJira(req.userId)
+      jira = getUserJira(req.userId) || getSuperAdminJira()
     }
     if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
 
@@ -204,7 +208,7 @@ router.post('/field-suggestions', async (req, res) => {
   try {
     const { projectId, fieldName, query } = req.body
     if (!fieldName) return res.status(400).json({ error: 'fieldName je obavezan' })
-    const jira = projectId ? getOwnerJiraForProject(req.userId, projectId) : getUserJira(req.userId)
+    const jira = projectId ? getOwnerJiraForProject(req.userId, projectId) : (getUserJira(req.userId) || getSuperAdminJira())
     if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
     const { jiraGet } = await import('../jiraClient.js')
     const params = new URLSearchParams({ fieldName })
