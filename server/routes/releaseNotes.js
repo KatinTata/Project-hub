@@ -643,7 +643,12 @@ router.get('/public/:token', (req, res) => {
   const row = db.prepare('SELECT html, title FROM published_notes WHERE token = ?').get(req.params.token)
   if (!row) return res.status(404).send('<h1>Not found</h1>')
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
-  res.send(row.html)
+  // Strip legacy Jira task-title links (see /rn/:token in index.js)
+  const cleaned = row.html.replace(
+    /<a class="task-summary task-link"[^>]*>([\s\S]*?)<\/a>/g,
+    '<span class="task-summary">$1</span>'
+  )
+  res.send(cleaned)
 })
 
 // ── Route: List notes (admin) ─────────────────────────────────────────────────
