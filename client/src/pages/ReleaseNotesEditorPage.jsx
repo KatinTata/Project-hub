@@ -169,7 +169,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       // access our Jira. HELP-desk links below stay (clients can open those).
       const titleHtml = `<span class="task-summary">${name}</span>`
       const isSimple = !hasExpand
-      return `<div class="task-card${isSimple ? ' task-card--simple' : ''}" id="${cardId}" style="border-left:4px solid ${cfg.color} !important">
+      return `<div class="task-card${isSimple ? ' task-card--simple' : ''}" id="${cardId}" data-key="${key}" style="border-left:4px solid ${cfg.color} !important">
         <div class="task-row">
           ${titleHtml}
           ${hasExpand ? `<button class="expand-btn${expanded ? ' open' : ''}" onclick="toggle('${cardId}')" title="Prikaži/sakrij detalje">▾</button>` : ''}
@@ -956,11 +956,18 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     const doc = new DOMParser().parseFromString(html, 'text/html')
     const result = {}
     doc.querySelectorAll('.task-card').forEach(card => {
-      const keyEl = card.querySelector('.task-row .key-badge')
       const summaryEl = card.querySelector('.task-summary')
       const descInner = card.querySelector('.task-desc-inner')
-      if (!keyEl) return
-      const key = keyEl.textContent.trim()
+      // Task key across note generations: data-key (current) → key badge in the
+      // title row (old) → /browse/KEY href from the brief linked-title era.
+      let key = (card.dataset?.key || '').trim()
+      if (!key) key = card.querySelector('.task-row .key-badge')?.textContent.trim() || ''
+      if (!key) {
+        const href = card.querySelector('a.task-link')?.getAttribute('href') || ''
+        const m = /\/browse\/([A-Z][A-Z0-9]+-\d+)/i.exec(href)
+        if (m) key = m[1]
+      }
+      if (!key) return
       const name = summaryEl?.textContent.trim() || ''
       let description = ''
       if (descInner) {
