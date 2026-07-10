@@ -145,7 +145,7 @@ router.put('/:id/billable', (req, res) => {
 })
 
 // Per-project team size per stack (capacity planning)
-const VALID_STACKS = ['Backend', 'Frontend', 'Testing', 'Ostalo']
+const VALID_STACKS = ['Backend', 'Frontend', 'Database', 'Testing', 'Ostalo']
 
 router.get('/:id/stack-people', (req, res) => {
   const role = getUserRole(req.userId)

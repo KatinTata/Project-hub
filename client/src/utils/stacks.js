@@ -6,7 +6,7 @@
 // The matrix reconciles exactly to processEpicData totals: for every task,
 // (parent-own est/spent) + Σ(included subtask est/spent) === task.est / task.spent.
 
-export const STACKS = ['Backend', 'Frontend', 'Testing', 'Ostalo']
+export const STACKS = ['Backend', 'Frontend', 'Database', 'Testing', 'Ostalo']
 
 // Status-aware remaining effort for one unit (task-own or subtask).
 // Completion is driven by Jira STATUS, not by burned hours:
@@ -28,6 +28,7 @@ export function normalizeStack(name) {
   if (!clean) return 'Ostalo'
   if (clean.startsWith('back') || clean === 'bck' || clean === 'bckend') return 'Backend'
   if (clean.startsWith('front') || clean.startsWith('web')) return 'Frontend'
+  if (clean.startsWith('data') || clean === 'db' || clean.startsWith('baza')) return 'Database'
   if (clean.startsWith('test') || clean === 'qa') return 'Testing'
   return 'Ostalo'
 }

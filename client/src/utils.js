@@ -74,10 +74,6 @@ export function processEpicData(parents, subtasks) {
       const sub = subMap[subRef.key]
       if (!sub) continue
 
-      // Exclude testing subtasks with 0h
-      const isTesting = sub.components.some(c => c.toLowerCase() === 'testing')
-      if (isTesting && sub.timespent === 0) continue
-
       calcEst += sub.timeoriginalestimate
       calcSpent += sub.timespent
       subs.push(sub)
