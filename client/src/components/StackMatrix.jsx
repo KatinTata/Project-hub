@@ -5,6 +5,7 @@ import { buildStackMatrix } from '../utils/stacks.js'
 const STACK_COLORS = {
   Backend: 'var(--accent)',
   Frontend: '#8B5CF6',
+  Mobile: '#10B981',
   Database: '#0EA5E9',
   Testing: 'var(--amber)',
   Ostalo: 'var(--textSubtle)',

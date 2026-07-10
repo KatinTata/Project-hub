@@ -11,7 +11,7 @@ function fmtDate(iso) {
 }
 const fmtDays = n => (Math.round(n * 10) / 10).toFixed(1)
 
-const STACK_COLORS = { Backend: 'var(--accent)', Frontend: '#8B5CF6', Database: '#0EA5E9', Testing: 'var(--amber)', Ostalo: 'var(--textSubtle)' }
+const STACK_COLORS = { Backend: 'var(--accent)', Frontend: '#8B5CF6', Mobile: '#10B981', Database: '#0EA5E9', Testing: 'var(--amber)', Ostalo: 'var(--textSubtle)' }
 const CAP_STATUS = {
   ok: { bg: 'var(--greenTint)', fg: 'var(--green)' },
   tight: { bg: 'var(--amberTint)', fg: 'var(--amber)' },

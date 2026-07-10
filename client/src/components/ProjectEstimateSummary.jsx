@@ -16,7 +16,7 @@ function fmtDateAny(v) {
   return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}.`
 }
 const fmtDays = n => (Math.round(n * 10) / 10).toFixed(1)
-const STACK_SHORT = { Backend: 'BE', Frontend: 'FE', Database: 'DB', Testing: 'QA', Ostalo: 'Ost' }
+const STACK_SHORT = { Backend: 'BE', Frontend: 'FE', Mobile: 'MOB', Database: 'DB', Testing: 'QA', Ostalo: 'Ost' }
 
 // Working days between two ISO dates (exclusive of start, inclusive of end),
 // Monday-based week with `wdpw` working days. Returns 0 if end <= start.
