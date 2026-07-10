@@ -181,10 +181,14 @@ export function buildComponentData(tasks) {
   for (const task of tasks) {
     const subs = task.subtasks || []
 
-    // Time logged directly on the parent task (not via subtasks) → "Bez komponente"
+    // Time logged directly on the parent task (not via subtasks) → the parent's
+    // own component(s); "Bez komponente" only when the task truly has none.
     const subSpentTotal = subs.reduce((s, sub) => s + sub.timespent, 0)
     const parentOwnSpent = Math.max(0, task.spent - subSpentTotal)
-    if (parentOwnSpent > 0) add('Bez komponente', parentOwnSpent, task.key)
+    if (parentOwnSpent > 0) {
+      const parentComps = task.components && task.components.length > 0 ? task.components : ['Bez komponente']
+      for (const comp of parentComps) add(comp, parentOwnSpent, task.key)
+    }
 
     // Subtask time → their component, or "Bez komponente" if none set
     for (const sub of subs) {
