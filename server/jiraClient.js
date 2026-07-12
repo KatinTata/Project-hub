@@ -65,6 +65,22 @@ export const TASK_FIELDS = [
 // Cache custom field keys per Jira instance
 const billableFieldCache = {}
 const moduleFieldCache = {}
+const hoursToBillFieldCache = {}
+
+// "Hours to be billed" number field — when set on a billable task, that value
+// (not logged time) is what gets billed.
+export async function detectHoursToBillField(jiraUrl, auth) {
+  if (hoursToBillFieldCache[jiraUrl] !== undefined) return hoursToBillFieldCache[jiraUrl]
+  try {
+    const fields = await jiraGet(jiraUrl, '/field', auth)
+    const found = (fields || []).find(f => f.name?.toLowerCase().includes('hours to be'))
+    hoursToBillFieldCache[jiraUrl] = found?.key || null
+    return hoursToBillFieldCache[jiraUrl]
+  } catch {
+    hoursToBillFieldCache[jiraUrl] = null
+    return null
+  }
+}
 
 export async function detectBillableField(jiraUrl, auth) {
   if (billableFieldCache[jiraUrl] !== undefined) return billableFieldCache[jiraUrl]

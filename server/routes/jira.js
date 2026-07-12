@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import db from '../db.js'
-import { decryptToken, makeJiraAuth, jiraGet, jiraPost, fetchEpicTasks, fetchByJql, fetchSubtasks, TASK_FIELDS, detectBillableField, parseBillableValue, detectModuleField } from '../jiraClient.js'
+import { decryptToken, makeJiraAuth, jiraGet, jiraPost, fetchEpicTasks, fetchByJql, fetchSubtasks, TASK_FIELDS, detectBillableField, parseBillableValue, detectModuleField, detectHoursToBillField } from '../jiraClient.js'
 
 const router = Router()
 
@@ -96,14 +96,16 @@ router.post('/tasks', async (req, res) => {
     }
 
     // Detect custom fields for this Jira instance
-    const [billableKey, moduleKey] = await Promise.all([
+    const [billableKey, moduleKey, hoursToBillKey] = await Promise.all([
       detectBillableField(jira.jiraUrl, jira.auth),
       detectModuleField(jira.jiraUrl, jira.auth),
+      detectHoursToBillField(jira.jiraUrl, jira.auth),
     ])
 
     const extraFields = []
     if (billableKey) extraFields.push(billableKey)
     if (moduleKey) extraFields.push(moduleKey)
+    if (hoursToBillKey) extraFields.push(hoursToBillKey)
     const fields = extraFields.length > 0 ? [...TASK_FIELDS, ...extraFields] : TASK_FIELDS
 
     const parents = await fetchByJql(jira.jiraUrl, resolvedJql, jira.auth, fields)
@@ -116,6 +118,10 @@ router.post('/tasks', async (req, res) => {
       if (moduleKey) {
         const raw = issue.fields[moduleKey]
         issue.fields.modules = Array.isArray(raw) ? raw.map(m => m.value || m.name || String(m)).filter(Boolean) : []
+      }
+      if (hoursToBillKey) {
+        const h = Number(issue.fields[hoursToBillKey])
+        issue.fields.hoursToBill = Number.isFinite(h) && h > 0 ? h : 0
       }
     }
 
@@ -137,6 +143,10 @@ router.post('/tasks', async (req, res) => {
       if (moduleKey) {
         const raw = issue.fields[moduleKey]
         issue.fields.modules = Array.isArray(raw) ? raw.map(m => m.value || m.name || String(m)).filter(Boolean) : []
+      }
+      if (hoursToBillKey) {
+        const h = Number(issue.fields[hoursToBillKey])
+        issue.fields.hoursToBill = Number.isFinite(h) && h > 0 ? h : 0
       }
     }
 

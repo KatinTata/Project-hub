@@ -5,7 +5,7 @@ import DonutChart from './DonutChart.jsx'
 import BarChart from './BarChart.jsx'
 import TaskTable from './TaskTable.jsx'
 import Badge from './ui/Badge.jsx'
-import { fmtHours, buildAssigneeData, buildComponentData, buildModuleData } from '../utils.js'
+import { fmtHours, buildAssigneeData, buildComponentData, buildModuleData, billableSecondsOf } from '../utils.js'
 import AssigneeWorkload from './AssigneeWorkload.jsx'
 import ComponentBreakdown from './ComponentBreakdown.jsx'
 import OverrunHeatmap from './OverrunHeatmap.jsx'
@@ -382,7 +382,7 @@ export default function ProjectCard({
     }
   }
 
-  const billableSpent    = tasks.filter(t => t.billable).reduce((s, t) => s + t.spent, 0)
+  const billableSpent    = tasks.reduce((s, t) => s + billableSecondsOf(t), 0)
   const nonBillableSpent = totalSpent - billableSpent
   const billablePct      = totalSpent > 0 ? Math.round((billableSpent / totalSpent) * 100) : 0
   const billableSegments = [

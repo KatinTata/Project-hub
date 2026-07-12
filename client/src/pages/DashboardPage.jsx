@@ -7,7 +7,7 @@ import BrainAnimation from '../components/BrainAnimation.jsx'
 import ClientNotificationModal from '../components/ClientNotificationModal.jsx'
 import AddProjectPage from './AddProjectPage.jsx'
 import { api } from '../api.js'
-import { processEpicData, DEMO_PROJECTS } from '../utils.js'
+import { processEpicData, DEMO_PROJECTS, billableSecondsOf } from '../utils.js'
 import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
@@ -199,7 +199,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           const sm = buildStackMatrix(data.tasks, [])
           const stacks = {}
           for (const s of sm.stacks) stacks[s] = { plan: sm.colTotals[s].plan, spent: sm.colTotals[s].spent, remaining: sm.colTotals[s].remaining }
-          const billableSpent = (data.tasks || []).filter(t => t.billable).reduce((acc, t) => acc + (t.spent || 0), 0)
+          const billableSpent = (data.tasks || []).reduce((acc, t) => acc + billableSecondsOf(t), 0)
           api.saveSnapshot(project.id, {
             total: data.total, done: data.done, inprog: data.inprog, testing: data.testing, todo: data.todo,
             totalEst: data.totalEst, totalSpent: data.totalSpent, remainingEst: sm.grand.remaining, billableSpent, stacks,

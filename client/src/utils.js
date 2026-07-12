@@ -96,6 +96,7 @@ export function processEpicData(parents, subtasks) {
       subtasks: subs,
       assignee: f.assignee?.displayName || null,
       billable: f.billable === true,
+      hoursToBill: f.hoursToBill > 0 ? f.hoursToBill * 3600 : 0, // Jira polje je u satima → sekunde
       modules,
       components: (f.components || []).map(c => c.name),
     }
@@ -233,6 +234,13 @@ export function buildModuleData(tasks) {
       .sort((a, b) => b.totalSpent - a.totalSpent),
     noModuleTasks,
   }
+}
+
+// Billable seconds for one task: "Hours to be billed" (when set) takes priority
+// over logged time; non-billable tasks contribute 0.
+export function billableSecondsOf(task) {
+  if (!task?.billable) return 0
+  return task.hoursToBill > 0 ? task.hoursToBill : (task.spent || 0)
 }
 
 export function fmtHours(seconds) {

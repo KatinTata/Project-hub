@@ -74,7 +74,8 @@ export async function buildProjectReport(payload) {
   wb.created = new Date()
 
   const overTasks = tasks.filter(t => t.over)
-  const billableSpent = tasks.filter(t => t.billable).reduce((s, t) => s + (t.spent || 0), 0)
+  // Billable: "Hours to be billed" (when set on the task) beats logged time
+  const billableSpent = tasks.filter(t => t.billable).reduce((s, t) => s + (t.hoursToBill > 0 ? t.hoursToBill : (t.spent || 0)), 0)
   const diff = (totals.totalSpent || 0) - (totals.totalEst || 0)
   const diffPct = totals.totalEst > 0 ? diff / totals.totalEst : 0
   const donePct = totals.total > 0 ? totals.done / totals.total : 0
