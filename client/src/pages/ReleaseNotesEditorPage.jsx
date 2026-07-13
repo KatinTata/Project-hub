@@ -915,6 +915,41 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     setTimeout(() => URL.revokeObjectURL(url), 60000)
   }
 
+  // Download the current release notes as .xlsx (sections → task rows).
+  async function exportExcelRn() {
+    const selTasks = tasks.filter(t => selectedIds.has(t.id))
+    const { groups, groupOrder } = buildGroups(selTasks)
+    const sections = groupOrder.map(prefix => ({
+      label: getSectionLabel(prefix),
+      tasks: groups[prefix].map(task => {
+        const edit = taskEdits[task.id] || {}
+        return {
+          key: task.key,
+          name: edit.name || task.fields?.summary || '',
+          text: htmlToText(sanitizeBodyHtml(migrateBodyHtml(edit))),
+          helpLinks: getHelpLinks(task).map(l => ({ key: l.key, summary: l.summary })),
+        }
+      }),
+    }))
+    const name = (previewTitle || `${config.clientName || ''} ${config.version || ''}`.trim() || 'release-notes').replace(/[\\/:*?"<>|]/g, '-')
+    const token = localStorage.getItem('jt_token')
+    const res = await fetch('/api/release-notes/export/xlsx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ title: name, clientName: config.clientName, version: config.version, date: previewDate || todayStr(), sections }),
+    })
+    if (!res.ok) { const d = await res.json().catch(() => ({})); showToast('Excel greška: ' + (d.error || res.status)); return }
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${name}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  }
+
   async function handlePublish(selectedClientIds, sectionName) {
     const html = buildPublishHtml()
     setPublishState({ loading: true })
@@ -1804,6 +1839,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
             <button onClick={openHtmlPreview} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer' }}>Pregled HTML ↗</button>
             <button onClick={exportHtml} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#EA580C', color: '#fff', border: 'none', cursor: 'pointer' }}>Export HTML</button>
+            <button onClick={exportExcelRn} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#0D9488', color: '#fff', border: 'none', cursor: 'pointer' }}>Export Excel</button>
             <button onClick={exportPdf} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#7C3AED', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.exportPdf')}</button>
             <button onClick={openPublishModal} disabled={publishState?.loading}
               style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>

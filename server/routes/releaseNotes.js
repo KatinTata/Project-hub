@@ -8,6 +8,7 @@ import {
   WidthType, BorderStyle, AlignmentType, HeadingLevel, ShadingType,
 } from 'docx'
 import Anthropic from '@anthropic-ai/sdk'
+import ExcelJS from 'exceljs'
 
 const router = Router()
 
@@ -294,6 +295,93 @@ function infoTableCell(text, bold = false) {
     width: { size: 50, type: WidthType.PERCENTAGE },
   })
 }
+
+// ── Route: Export release notes as Excel ─────────────────────────────────────
+// Payload: { title, clientName, version, date, sections: [{ label, tasks:
+// [{ key, name, text, helpLinks: [{ key, summary }] }] }] }
+router.post('/export/xlsx', async (req, res) => {
+  try {
+    const { title = 'Release Notes', clientName = '', version = '', date = '', sections = [] } = req.body
+    if (!Array.isArray(sections) || !sections.length) return res.status(400).json({ error: 'sections je obavezan' })
+
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet('Release Notes', { views: [{ showGridLines: false }] })
+    ws.columns = [
+      { width: 14 },  // key
+      { width: 46 },  // name
+      { width: 84 },  // description
+      { width: 40 },  // help desk
+    ]
+
+    const NAVY = 'FF0F2746'
+    const CYAN = 'FF38BDF8'
+    const font = (o = {}) => ({ name: 'Calibri', size: 11, ...o })
+
+    // Header block
+    ws.mergeCells('A1:D1')
+    const h1 = ws.getCell('A1')
+    h1.value = 'INTELISALE — Release Notes'
+    h1.font = font({ size: 18, bold: true, color: { argb: 'FFFFFFFF' } })
+    h1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }
+    h1.alignment = { vertical: 'middle', indent: 1 }
+    ws.getRow(1).height = 34
+
+    ws.mergeCells('A2:D2')
+    const h2 = ws.getCell('A2')
+    h2.value = [clientName, version, date].filter(Boolean).join('  ·  ')
+    h2.font = font({ size: 12, bold: true, color: { argb: 'FF0F2746' } })
+    h2.alignment = { vertical: 'middle', indent: 1 }
+    ws.getRow(2).height = 22
+
+    let r = 4
+    for (const sec of sections) {
+      // Section heading
+      ws.mergeCells(`A${r}:D${r}`)
+      const sc = ws.getCell(`A${r}`)
+      sc.value = sec.label || ''
+      sc.font = font({ size: 13, bold: true, color: { argb: NAVY } })
+      sc.border = { bottom: { style: 'medium', color: { argb: CYAN } } }
+      ws.getRow(r).height = 24
+      r++
+
+      // Table header
+      const heads = ['Ključ', 'Naziv', 'Opis', 'Help desk']
+      heads.forEach((t2, i) => {
+        const c = ws.getCell(r, i + 1)
+        c.value = t2
+        c.font = font({ size: 10, bold: true, color: { argb: 'FF5A6480' } })
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F2F8' } }
+      })
+      r++
+
+      for (const task of (sec.tasks || [])) {
+        const help = (task.helpLinks || []).map(l => l.summary ? `${l.key} — ${l.summary}` : l.key).join('\n')
+        const cells = [task.key || '', task.name || '', task.text || '', help]
+        cells.forEach((v, i) => {
+          const c = ws.getCell(r, i + 1)
+          c.value = v
+          c.font = font(i === 0 ? { color: { argb: 'FF2563EB' }, bold: true } : {})
+          c.alignment = { vertical: 'top', wrapText: i >= 1 }
+          c.border = { bottom: { style: 'thin', color: { argb: 'FFE2E6F0' } } }
+        })
+        // rough auto-height for wrapped description
+        const lines = Math.max(1, Math.ceil((task.text || '').length / 110), ((task.text || '').match(/\n/g) || []).length + 1)
+        ws.getRow(r).height = Math.min(15 * lines + 6, 220)
+        r++
+      }
+      r++ // gap between sections
+    }
+
+    const safe = String(title).replace(/[\\/:*?"<>|]/g, '-')
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(safe)}.xlsx"`)
+    await wb.xlsx.write(res)
+    res.end()
+  } catch (err) {
+    console.error('release-notes xlsx error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
 
 router.post('/export/docx', async (req, res) => {
   try {

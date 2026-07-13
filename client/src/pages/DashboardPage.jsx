@@ -466,6 +466,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
                 title: t('dash.step2'),
                 desc: t('dash.step2Sub'),
                 disabled: !hasJira,
+                action: { label: 'Dodaj projekat', onClick: () => setAddingProject(true) },
               },
               {
                 step: '3',
@@ -501,7 +502,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
                   <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)', lineHeight: 1.5 }}>
                     {s.desc}
                   </div>
-                  {s.action && (
+                  {s.action && !s.disabled && (
                     <button
                       onClick={s.action.onClick}
                       style={{
