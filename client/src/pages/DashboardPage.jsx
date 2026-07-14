@@ -453,13 +453,22 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           {/* Steps */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
             {[
-              {
-                step: '1',
-                done: hasJira,
-                title: t('dash.step1'),
-                desc: t('dash.step1Sub'),
-                action: { label: t('dash.openSettings'), onClick: () => setSettingsOpen(true) },
-              },
+              // Admins inherit the org's (super-admin) Jira connection — they must
+              // NOT be told to connect anything (jira-config is super-admin only).
+              (!user.jiraUrl && user.sharedJira)
+                ? {
+                    step: '1',
+                    done: true,
+                    title: 'Jira konekcija — nasleđena',
+                    desc: 'Koristiš zajedničku Jira konekciju organizacije. Ne moraš ništa da povezuješ — idi pravo na korak 2.',
+                  }
+                : {
+                    step: '1',
+                    done: hasJira,
+                    title: t('dash.step1'),
+                    desc: t('dash.step1Sub'),
+                    action: { label: t('dash.openSettings'), onClick: () => setSettingsOpen(true) },
+                  },
               {
                 step: '2',
                 done: false,

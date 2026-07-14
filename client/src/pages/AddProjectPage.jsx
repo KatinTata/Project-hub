@@ -83,7 +83,7 @@ export default function AddProjectPage({ onAdd, onCancel, editProject = null }) 
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 500, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '48px 20px', overflowY: 'auto' }}>
       <BrainAnimation opacity={0.35} fullscreen />
 
       <button
