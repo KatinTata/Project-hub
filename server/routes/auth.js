@@ -44,9 +44,12 @@ router.post('/login', async (req, res) => {
     if (!match) return res.status(401).json({ error: 'Pogrešan email ili lozinka' })
 
     const token = signToken(user.id)
+    // sharedJira must ship at login too (not only /me) — otherwise admins who
+    // inherit the org connection look "unconnected" until a manual refresh.
+    const sharedJira = !!db.prepare("SELECT 1 FROM users WHERE role = 'super_admin' AND jira_url IS NOT NULL AND jira_token IS NOT NULL LIMIT 1").get()
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'admin', jiraUrl: user.jira_url, jiraEmail: user.jira_email },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'admin', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira },
     })
   } catch (err) {
     console.error(err)
