@@ -113,6 +113,51 @@ export function processEpicData(parents, subtasks) {
     if (over) overTasks.push(task)
   }
 
+  // Orphan subtasks: subtask-type issues matched by the JQL whose parent is NOT
+  // in the result. Their hours used to be silently dropped — count them as
+  // standalone rows instead. Guard: only when the parent is absent, otherwise
+  // the hours are already rolled up into the parent above (no double counting).
+  const topLevelKeys = new Set(topLevel.map(p => p.key))
+  for (const child of childLevel) {
+    const f = child.fields || {}
+    const parentKey = f.parent?.key || null
+    if (parentKey && topLevelKeys.has(parentKey)) continue
+
+    const statusName = f.status?.name || ''
+    const statusCat = getStatusCategory(statusName)
+    const est = f.timeoriginalestimate || 0
+    const spent = f.timespent || 0
+    const over = est > 0 && spent > est * 1.15
+
+    const task = {
+      key: child.key,
+      summary: f.summary || '',
+      status: statusName,
+      statusCategory: statusCat,
+      est,
+      spent,
+      over,
+      overPct: est > 0 ? Math.round(((spent - est) / est) * 100) : 0,
+      subtasks: [],
+      assignee: f.assignee?.displayName || null,
+      billable: f.billable === true,
+      hoursToBill: f.hoursToBill > 0 ? f.hoursToBill * 3600 : 0,
+      modules: f.modules || [],
+      components: (f.components || []).map(c => c.name),
+      isOrphanSubtask: true,
+      parentKey,
+    }
+
+    tasks.push(task)
+    totalEst += est
+    totalSpent += spent
+    if (statusCat === 'done') done++
+    else if (statusCat === 'testing') testing++
+    else if (statusCat === 'todo') todo++
+    else inprog++
+    if (over) overTasks.push(task)
+  }
+
   const total = tasks.length
 
   return { tasks, totalEst, totalSpent, done, inprog, testing, todo, total, overTasks }

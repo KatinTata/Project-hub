@@ -144,6 +144,12 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           {(task.subtasks?.length > 0 || isMobile) && (
             <span style={{ marginRight: 6, opacity: 0.4, fontSize: 10 }}>{expanded ? '▼' : '▶'}</span>
           )}
+          {task.isOrphanSubtask && (
+            <span title={task.parentKey ? `Subtask taska ${task.parentKey} (parent nije u obuhvatu projekta)` : 'Subtask — parent nije u obuhvatu projekta'}
+              style={{ marginRight: 6, fontFamily: "'DM Mono'", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'rgba(107,122,153,0.15)', color: 'var(--textMuted)', border: '1px solid rgba(107,122,153,0.3)', verticalAlign: 'middle' }}>
+              subtask
+            </span>
+          )}
           {task.summary}
         </div>
 
