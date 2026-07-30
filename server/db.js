@@ -343,4 +343,20 @@ db.exec(`
   )
 `)
 
+// Tenant ↔ client users: many-to-many (several client logins can see the same
+// tenant's usage; one login can cover several tenants).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS client_tenant_users (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id TEXT NOT NULL,
+    user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (tenant_id, user_id)
+  )
+`)
+// One-time migration of legacy single-user links into the junction table
+db.prepare(`
+  INSERT OR IGNORE INTO client_tenant_users (tenant_id, user_id)
+  SELECT tenant_id, client_user_id FROM client_tenant_mappings WHERE client_user_id IS NOT NULL
+`).run()
+
 export default db

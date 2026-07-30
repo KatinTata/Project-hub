@@ -184,7 +184,7 @@ export const api = {
   aiUsageFxFetch: () => request('POST', '/ai-usage/admin/fx-fetch', {}),
   aiUsageMappings: () => request('GET', '/ai-usage/admin/mappings'),
   aiUsageDiscover: () => request('POST', '/ai-usage/admin/mappings/discover', {}),
-  aiUsageSaveMapping: (tenantId, clientUserId) => request('PUT', `/ai-usage/admin/mappings/${encodeURIComponent(tenantId)}`, { client_user_id: clientUserId }),
+  aiUsageSaveMapping: (tenantId, clientUserIds) => request('PUT', `/ai-usage/admin/mappings/${encodeURIComponent(tenantId)}`, { client_user_ids: clientUserIds }),
   aiUsageMy: (q) => request('GET', `/ai-usage/my?${q}`),
 
   // App settings — working-calendar config (PUT is super_admin only)

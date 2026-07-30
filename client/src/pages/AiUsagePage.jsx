@@ -499,8 +499,10 @@ function MappingsCard() {
     catch (e) { alert('Greška: ' + e.message) }
     finally { setBusy(false) }
   }
-  async function assign(tenantId, clientUserId) {
-    await api.aiUsageSaveMapping(tenantId, clientUserId ? Number(clientUserId) : null)
+  async function toggleUser(tenant, userId) {
+    const current = (tenant.users || []).map(u => u.id)
+    const next = current.includes(userId) ? current.filter(id => id !== userId) : [...current, userId]
+    await api.aiUsageSaveMapping(tenant.tenant_id, next)
     await reload()
   }
 
@@ -525,10 +527,7 @@ function MappingsCard() {
             <td style={tdMono}>{m.tenant_code || '—'}</td>
             <td style={tdMono}>{m.is_active ? 'da' : 'ne'}</td>
             <td style={tdStyle}>
-              <select value={m.client_user_id || ''} onChange={e => assign(m.tenant_id, e.target.value)} style={{ ...inputS, minWidth: 220 }}>
-                <option value="">— nije povezan —</option>
-                {(data?.clients || []).map(c => <option key={c.id} value={c.id}>{c.name} ({c.email})</option>)}
-              </select>
+              <MultiUserPicker tenant={m} clients={data?.clients || []} onToggle={toggleUser} />
             </td>
           </tr>
         ))}</tbody>
@@ -536,6 +535,39 @@ function MappingsCard() {
       {(data?.mappings || []).length === 0 && (
         <div style={{ padding: 20, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
           Nema tenanata — klikni „Preuzmi tenante" (zahteva konfigurisan Admin API).
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Multi-select of client accounts for one tenant: chips + checkbox dropdown.
+function MultiUserPicker({ tenant, clients, onToggle }) {
+  const [open, setOpen] = useState(false)
+  const assigned = new Set((tenant.users || []).map(u => u.id))
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+        {(tenant.users || []).map(u => (
+          <span key={u.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 7px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>
+            {u.name}
+            <button onClick={() => onToggle(tenant, u.id)} title="Ukloni" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textMuted)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+          </span>
+        ))}
+        <button onClick={() => setOpen(o => !o)} style={{ background: 'transparent', border: '1px dashed var(--border)', borderRadius: 6, padding: '2px 10px', cursor: 'pointer', fontSize: 12, color: 'var(--accent)', fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>
+          {open ? 'Zatvori' : '+ Dodaj'}
+        </button>
+      </div>
+      {open && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 30, marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.18)', maxHeight: 240, overflowY: 'auto', minWidth: 260 }}>
+          {clients.map(c => (
+            <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderBottom: '1px solid var(--border)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>
+              <input type="checkbox" checked={assigned.has(c.id)} onChange={() => onToggle(tenant, c.id)} />
+              <span>{c.name}</span>
+              <span style={{ color: 'var(--textMuted)', marginLeft: 'auto', fontSize: 11 }}>{c.email}</span>
+            </label>
+          ))}
+          {clients.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema klijent naloga</div>}
         </div>
       )}
     </div>

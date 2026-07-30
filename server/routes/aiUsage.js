@@ -438,14 +438,16 @@ router.post('/admin/fx-fetch', async (req, res) => {
 
 router.get('/admin/mappings', (req, res) => {
   if (!requireManage(req, res)) return
-  const rows = db.prepare(`
-    SELECT m.*, u.name as client_name, u.email as client_email
-    FROM client_tenant_mappings m
-    LEFT JOIN users u ON u.id = m.client_user_id
-    ORDER BY m.tenant_name ASC
+  const rows = db.prepare('SELECT * FROM client_tenant_mappings ORDER BY tenant_name ASC').all()
+  const links = db.prepare(`
+    SELECT ctu.tenant_id, u.id, u.name, u.email
+    FROM client_tenant_users ctu JOIN users u ON u.id = ctu.user_id
   `).all()
+  const byTenant = {}
+  for (const l of links) (byTenant[l.tenant_id] ||= []).push({ id: l.id, name: l.name, email: l.email })
+  const mappings = rows.map(m => ({ ...m, users: byTenant[m.tenant_id] || [] }))
   const clients = db.prepare("SELECT id, name, email FROM users WHERE role = 'user' ORDER BY name ASC").all()
-  res.json({ mappings: rows, clients })
+  res.json({ mappings, clients })
 })
 
 // Discover: pull tenants from the Admin API and upsert (manual links preserved)
@@ -479,9 +481,15 @@ router.post('/admin/mappings/discover', async (req, res) => {
 
 router.put('/admin/mappings/:tenantId', (req, res) => {
   if (!requireManage(req, res)) return
-  const { client_user_id } = req.body
-  db.prepare('UPDATE client_tenant_mappings SET client_user_id = ?, updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ?')
-    .run(client_user_id || null, req.params.tenantId)
+  // Replace the tenant's user set (many-to-many)
+  const ids = Array.isArray(req.body?.client_user_ids) ? req.body.client_user_ids.map(Number).filter(Number.isFinite) : []
+  const tenantId = req.params.tenantId
+  db.transaction(() => {
+    db.prepare('DELETE FROM client_tenant_users WHERE tenant_id = ?').run(tenantId)
+    const ins = db.prepare('INSERT OR IGNORE INTO client_tenant_users (tenant_id, user_id) VALUES (?, ?)')
+    for (const id of ids) ins.run(tenantId, id)
+    db.prepare('UPDATE client_tenant_mappings SET updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ?').run(tenantId)
+  })()
   res.json({ ok: true })
 })
 
@@ -491,7 +499,11 @@ router.get('/my', async (req, res) => {
   const { fromDate, toDate } = normalizeRange(req.query.from, req.query.to)
   const empty = { totals: null, models: [], byApp: [], days: [] }
   try {
-    const mappings = db.prepare('SELECT * FROM client_tenant_mappings WHERE client_user_id = ? AND is_active = 1').all(req.userId)
+    const mappings = db.prepare(`
+      SELECT m.* FROM client_tenant_mappings m
+      JOIN client_tenant_users ctu ON ctu.tenant_id = m.tenant_id
+      WHERE ctu.user_id = ? AND m.is_active = 1
+    `).all(req.userId)
     if (!mappings.length) return res.json({ ...empty, not_mapped: true })
 
     const guids = []
