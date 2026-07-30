@@ -434,4 +434,135 @@ router.post('/admin/fx-fetch', async (req, res) => {
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+// ── Tenant ↔ client mapping (Faza 3) ─────────────────────────────────────────
+
+router.get('/admin/mappings', (req, res) => {
+  if (!requireManage(req, res)) return
+  const rows = db.prepare(`
+    SELECT m.*, u.name as client_name, u.email as client_email
+    FROM client_tenant_mappings m
+    LEFT JOIN users u ON u.id = m.client_user_id
+    ORDER BY m.tenant_name ASC
+  `).all()
+  const clients = db.prepare("SELECT id, name, email FROM users WHERE role = 'user' ORDER BY name ASC").all()
+  res.json({ mappings: rows, clients })
+})
+
+// Discover: pull tenants from the Admin API and upsert (manual links preserved)
+router.post('/admin/mappings/discover', async (req, res) => {
+  if (!requireManage(req, res)) return
+  try {
+    const tenants = await getTenants()
+    const up = db.prepare(`
+      INSERT INTO client_tenant_mappings (tenant_id, tenant_name, tenant_code, sl_tenant_guid, eproc_tenant_guid, is_active, auto_discovered, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+      ON CONFLICT (tenant_id) DO UPDATE SET
+        tenant_name = excluded.tenant_name,
+        tenant_code = excluded.tenant_code,
+        sl_tenant_guid = excluded.sl_tenant_guid,
+        eproc_tenant_guid = COALESCE(client_tenant_mappings.eproc_tenant_guid, excluded.eproc_tenant_guid),
+        is_active = excluded.is_active,
+        auto_discovered = 1, updated_at = CURRENT_TIMESTAMP
+    `)
+    let n = 0
+    for (const t of (tenants || [])) {
+      if (!t.tenantGuid) continue
+      up.run(t.tenantGuid, t.name || null, t.eProcurementTenantCode || null, t.tenantGuid, t.eProcurementTenantGuid || null, t.enabled ? 1 : 0)
+      n++
+    }
+    res.json({ ok: true, discovered: n })
+  } catch (err) {
+    if (err instanceof AdminApiNotConfiguredError) return res.status(400).json({ error: 'Admin API nije konfigurisan' })
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.put('/admin/mappings/:tenantId', (req, res) => {
+  if (!requireManage(req, res)) return
+  const { client_user_id } = req.body
+  db.prepare('UPDATE client_tenant_mappings SET client_user_id = ?, updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ?')
+    .run(client_user_id || null, req.params.tenantId)
+  res.json({ ok: true })
+})
+
+// ── Client-facing usage (Faza 3): the logged-in client's own consumption ─────
+router.get('/my', async (req, res) => {
+  const { currency = 'USD' } = req.query
+  const { fromDate, toDate } = normalizeRange(req.query.from, req.query.to)
+  const empty = { totals: null, models: [], byApp: [], days: [] }
+  try {
+    const mappings = db.prepare('SELECT * FROM client_tenant_mappings WHERE client_user_id = ? AND is_active = 1').all(req.userId)
+    if (!mappings.length) return res.json({ ...empty, not_mapped: true })
+
+    const guids = []
+    for (const m of mappings) {
+      if (m.sl_tenant_guid) guids.push(m.sl_tenant_guid)
+      if (m.eproc_tenant_guid) guids.push(m.eproc_tenant_guid)
+    }
+    const conv = usdConversion(currency, toDate)
+    const resolve = makePriceResolver()
+
+    // Per model + daily trend, merged across the client's GUIDs
+    const [modelSums, daySums] = await Promise.all([
+      Promise.all(guids.map(g => getUsageSummary({ fromDate, toDate, tenantId: g, groupBy: 'Model' }).catch(() => null))),
+      Promise.all(guids.map(g => getUsageSummary({ fromDate, toDate, tenantId: g, groupBy: 'ModelDay' }).catch(() => null))),
+    ])
+
+    const models = {}
+    let requests = 0, tokens = 0
+    for (const data of modelSums) {
+      if (!data) continue
+      requests += data.totals?.requests || 0
+      tokens += data.totals?.totalTokens || 0
+      for (const g of (data.groups || [])) {
+        if (!g.modelName) continue
+        const m = (models[String(g.modelName).toLowerCase()] ||= { model: g.modelName, requests: 0, tokens: 0, cost: 0 })
+        m.requests += g.requests || 0
+        m.tokens += g.totalTokens || 0
+        m.cost += groupCost(resolve, g) * conv.factor
+      }
+    }
+
+    const days = {}
+    for (const data of daySums) {
+      if (!data) continue
+      for (const g of (data.groups || [])) {
+        const day = String(g.day || '').slice(0, 10)
+        if (!day) continue
+        const d = (days[day] ||= { date: day, requests: 0, tokens: 0, cost: 0 })
+        d.requests += g.requests || 0
+        d.tokens += g.totalTokens || 0
+        d.cost += groupCost(resolve, g) * conv.factor
+      }
+    }
+
+    // Per app — fan-out actions × GUIDs (cap 40)
+    const actions = await getActions().catch(() => [])
+    const appCells = await Promise.all((actions || []).slice(0, MAX_APP_FILTERS).flatMap(action => guids.map(g =>
+      getUsageSummary({ fromDate, toDate, tenantId: g, action, groupBy: 'Model' })
+        .then(d => ({ action, d })).catch(() => null))))
+    const apps = {}
+    for (const cell of appCells) {
+      if (!cell?.d || !(cell.d.totals?.requests > 0)) continue
+      const a = (apps[cell.action] ||= { app: cell.action, requests: 0, tokens: 0, cost: 0 })
+      a.requests += cell.d.totals.requests || 0
+      a.tokens += cell.d.totals.totalTokens || 0
+      a.cost += costModelGroups(cell.d.groups).totalCost * conv.factor
+    }
+
+    const modelRows = Object.values(models).sort((a, b) => b.cost - a.cost)
+    res.json({
+      cost_basis: 'exact',
+      customer: { name: mappings[0].tenant_name || 'Vaša organizacija' },
+      period: { from: fromDate, to: toDate },
+      currency: conv.currency,
+      rate_available: conv.rateAvailable,
+      totals: { requests, tokens, cost: modelRows.reduce((s, r) => s + r.cost, 0) },
+      models: modelRows,
+      byApp: Object.values(apps).sort((a, b) => b.cost - a.cost),
+      days: Object.values(days).sort((a, b) => a.date.localeCompare(b.date)),
+    })
+  } catch (err) { handleErr(res, err, empty) }
+})
+
 export default router

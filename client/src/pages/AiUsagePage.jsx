@@ -19,6 +19,12 @@ const fmtUsd = n => {
 }
 const fmtNum = n => (Number(n) || 0).toLocaleString('sr-RS')
 const iso = d => d.toISOString().slice(0, 10)
+const fmtMoney = (v, cur = 'USD') => {
+  if (v == null) return '—'
+  const n = Number(v) || 0
+  const s = n >= 100 ? n.toFixed(0) : n >= 1 ? n.toFixed(2) : n.toFixed(4)
+  return cur === 'USD' ? '$' + s : cur === 'EUR' ? s + ' €' : s + ' RSD'
+}
 
 function presetRange(key) {
   const now = new Date()
@@ -82,7 +88,13 @@ const inputS = { background: 'var(--bg)', border: '1px solid var(--border)', bor
 const btnS = { padding: '7px 16px', borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, border: '1px solid var(--borderHover)', background: 'var(--surfaceAlt)', color: 'var(--text)', cursor: 'pointer' }
 const btnPrimary = { ...btnS, background: 'var(--accent)', color: '#fff', border: 'none' }
 
-export default function AiUsagePage({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }) {
+export default function AiUsagePage(props) {
+  const isAdminUser = props.user?.role === 'admin' || props.user?.role === 'super_admin'
+  if (!isAdminUser) return <ClientAiView {...props} />
+  return <AdminAiView {...props} />
+}
+
+function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }) {
   const isSuperAdmin = user?.role === 'super_admin'
   const [tab, setTab] = useState('overview')
   const [preset, setPreset] = useState('30d')
@@ -125,7 +137,7 @@ export default function AiUsagePage({ user, onLogout, onOpenSettings, onOpenUser
 
   const tabs = [
     ['overview', 'Pregled'], ['clients', 'Po klijentima'], ['sources', 'Po izvoru'],
-    ['apps', 'Po aplikacijama'], ['models', 'Po modelu'],
+    ['apps', 'Po aplikacijama'], ['models', 'Po modelu'], ['report', 'Izveštaj'],
     ...(isSuperAdmin ? [['settings', 'Podešavanja']] : []),
   ]
 
@@ -176,6 +188,7 @@ export default function AiUsagePage({ user, onLogout, onOpenSettings, onOpenUser
           {tab === 'sources' && <PivotTable title="Potrošnja po izvoru" rows={bySource?.sources} childKey="clients" childName={r => r.name} nameKey="source" expanded={expanded} setExpanded={setExpanded} />}
           {tab === 'apps' && <AppsTable data={byApp} />}
           {tab === 'models' && <ModelsTable data={byModel} />}
+          {tab === 'report' && <ReportTab range={range} />}
           {tab === 'settings' && isSuperAdmin && <SettingsTab />}
         </div>
       </div>
@@ -462,6 +475,263 @@ function SettingsTab() {
                 </div>
               ))}
               {(history || []).length === 0 && <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)', padding: '6px 0' }}>Nema promena.</div>}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <MappingsCard />
+    </div>
+  )
+}
+
+// ── Tenant ↔ klijent mapiranje (Faza 3, super_admin) ─────────────────────────
+
+function MappingsCard() {
+  const [data, setData] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const reload = useCallback(async () => setData(await api.aiUsageMappings()), [])
+  useEffect(() => { reload() }, [reload])
+
+  async function discover() {
+    setBusy(true)
+    try { await api.aiUsageDiscover(); await reload() }
+    catch (e) { alert('Greška: ' + e.message) }
+    finally { setBusy(false) }
+  }
+  async function assign(tenantId, clientUserId) {
+    await api.aiUsageSaveMapping(tenantId, clientUserId ? Number(clientUserId) : null)
+    await reload()
+  }
+
+  return (
+    <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ marginRight: 'auto' }}>
+          <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Mapiranje tenant → klijent</span>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+            Poveži Agentic tenanta sa klijent-nalogom u Project Hub-u — taj korisnik onda vidi svoju potrošnju u modulu AI Tokeni.
+          </div>
+        </div>
+        <button onClick={discover} disabled={busy} style={btnPrimary}>{busy ? 'Radim…' : 'Preuzmi tenante'}</button>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
+          <th style={thStyle}>Tenant</th><th style={thStyle}>Kod</th><th style={thStyle}>Aktivan</th><th style={thStyle}>Klijent nalog</th>
+        </tr></thead>
+        <tbody>{(data?.mappings || []).map(m => (
+          <tr key={m.tenant_id} style={{ opacity: m.is_active ? 1 : 0.45 }}>
+            <td style={tdStyle}>{m.tenant_name || m.tenant_id}</td>
+            <td style={tdMono}>{m.tenant_code || '—'}</td>
+            <td style={tdMono}>{m.is_active ? 'da' : 'ne'}</td>
+            <td style={tdStyle}>
+              <select value={m.client_user_id || ''} onChange={e => assign(m.tenant_id, e.target.value)} style={{ ...inputS, minWidth: 220 }}>
+                <option value="">— nije povezan —</option>
+                {(data?.clients || []).map(c => <option key={c.id} value={c.id}>{c.name} ({c.email})</option>)}
+              </select>
+            </td>
+          </tr>
+        ))}</tbody>
+      </table>
+      {(data?.mappings || []).length === 0 && (
+        <div style={{ padding: 20, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
+          Nema tenanata — klikni „Preuzmi tenante" (zahteva konfigurisan Admin API).
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Izveštaj po kupcu (Faza 2) ────────────────────────────────────────────────
+
+function ReportTab({ range }) {
+  const [tenants, setTenants] = useState(null)
+  const [tenantGuid, setTenantGuid] = useState('')
+  const [currency, setCurrency] = useState('EUR')
+  const [report, setReport] = useState(null)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => { api.aiUsageTenants().then(d => setTenants(d.tenants || [])) }, [])
+
+  async function load() {
+    if (!tenantGuid) return
+    setBusy(true)
+    try { setReport(await api.aiUsageTenantReport(`tenantGuid=${encodeURIComponent(tenantGuid)}&from=${range.from}&to=${range.to}&currency=${currency}`)) }
+    catch (e) { alert('Greška: ' + e.message) }
+    finally { setBusy(false) }
+  }
+
+  function exportPdf() {
+    if (!report) return
+    const cur = report.currency
+    const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+    const money = v => fmtMoney(v, cur)
+    const rows = (arr, cols) => arr.map(r => `<tr>${cols.map(c => `<td style="padding:6px 10px;border-bottom:1px solid #E2E6F0;${c.right ? 'text-align:right;font-family:monospace' : ''}">${esc(c.v(r))}</td>`).join('')}</tr>`).join('')
+    const table = (title, head, body) => `
+      <h2 style="font-size:15px;margin:26px 0 8px;color:#0F2746;border-bottom:2px solid #38BDF8;padding-bottom:6px">${title}</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr>${head.map(h => `<th style="text-align:${h.right ? 'right' : 'left'};padding:6px 10px;background:#F0F2F8;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:#5A6480">${h.t}</th>`).join('')}</tr></thead>
+        <tbody>${body}</tbody>
+      </table>`
+    const html = `<!DOCTYPE html><html lang="sr"><head><meta charset="UTF-8"><title>AI potrošnja — ${esc(report.customer?.name)}</title>
+      <style>body{font-family:'Segoe UI',Arial,sans-serif;color:#0F1523;max-width:800px;margin:0 auto;padding:28px}@media print{.noprint{display:none}}</style></head><body>
+      <div class="noprint" style="text-align:right;margin-bottom:12px"><button onclick="window.print()" style="background:#7C3AED;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-weight:600;cursor:pointer">Sačuvaj kao PDF</button></div>
+      <div style="background:#0F2746;color:#fff;border-radius:16px;padding:24px 28px;margin-bottom:24px">
+        <div style="font-size:11px;letter-spacing:0.15em;color:#7DD3FC;margin-bottom:8px">INTELISALE — IZVEŠTAJ O AI POTROŠNJI</div>
+        <div style="font-size:24px;font-weight:800">${esc(report.customer?.name)}</div>
+        <div style="font-size:12px;color:#9FB2C9;margin-top:8px">Period: ${String(report.period?.from).slice(0, 10)} — ${String(report.period?.to).slice(0, 10)} · Valuta: ${cur}${report.rate_available === false ? ' (kurs nedostupan — prikaz u USD)' : ''}</div>
+        <div style="display:flex;gap:36px;margin-top:16px">
+          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">ZAHTEVI</div><div style="font-size:18px;font-weight:700">${fmtNum(report.totals?.requests)}</div></div>
+          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">TOKENI</div><div style="font-size:18px;font-weight:700">${fmtTok(report.totals?.tokens)}</div></div>
+          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">UKUPAN TROŠAK</div><div style="font-size:18px;font-weight:700">${money(report.totals?.cost)}</div></div>
+        </div>
+      </div>
+      ${table('Po modelu', [{ t: 'Model' }, { t: 'Zahtevi', right: 1 }, { t: 'Tokeni', right: 1 }, { t: 'Trošak', right: 1 }],
+        rows(report.models || [], [{ v: r => r.model }, { v: r => fmtNum(r.requests), right: 1 }, { v: r => fmtTok(r.tokens), right: 1 }, { v: r => money(r.cost), right: 1 }]))}
+      ${table('Po izvoru', [{ t: 'Izvor' }, { t: 'Zahtevi', right: 1 }, { t: 'Tokeni', right: 1 }, { t: 'Trošak', right: 1 }],
+        rows(report.bySource || [], [{ v: r => r.source }, { v: r => fmtNum(r.requests), right: 1 }, { v: r => fmtTok(r.tokens), right: 1 }, { v: r => money(r.cost), right: 1 }]))}
+      ${table('Po aplikaciji', [{ t: 'Aplikacija' }, { t: 'Zahtevi', right: 1 }, { t: 'Tokeni', right: 1 }, { t: 'Trošak', right: 1 }],
+        rows(report.byApp || [], [{ v: r => r.app }, { v: r => fmtNum(r.requests), right: 1 }, { v: r => fmtTok(r.tokens), right: 1 }, { v: r => money(r.cost), right: 1 }]))}
+      <div style="margin-top:32px;padding-top:14px;border-top:1px solid #E2E6F0;font-size:10px;color:#A0AABF;text-align:center;letter-spacing:0.1em">INTELISALE · EMPOWERING SALES EXCELLENCE</div>
+    </body></html>`
+    const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <select value={tenantGuid} onChange={e => setTenantGuid(e.target.value)} style={{ ...inputS, minWidth: 260 }}>
+          <option value="">— izaberi kupca —</option>
+          {(tenants || []).map(t2 => <option key={t2.tenant_guid} value={t2.tenant_guid}>{t2.name}{t2.code ? ` (${t2.code})` : ''}</option>)}
+        </select>
+        <select value={currency} onChange={e => setCurrency(e.target.value)} style={{ ...inputS, width: 90 }}>
+          {['USD', 'EUR', 'RSD'].map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <button onClick={load} disabled={!tenantGuid || busy} style={btnPrimary}>{busy ? 'Učitavam…' : 'Učitaj izveštaj'}</button>
+        {report && <button onClick={exportPdf} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>Export PDF</button>}
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>period: {range.from} — {range.to}</span>
+      </div>
+
+      {report && (
+        <>
+          {report.rate_available === false && (
+            <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}>
+              Kurs za izabranu valutu nije dostupan — iznosi su prikazani u USD. (Podešavanja → Dohvati kurseve)
+            </div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
+            <div style={card}><div style={label}>Kupac</div><div style={{ ...big, fontSize: 18 }}>{report.customer?.name}</div></div>
+            <div style={card}><div style={label}>Zahtevi</div><div style={big}>{fmtNum(report.totals?.requests)}</div></div>
+            <div style={card}><div style={label}>Tokeni</div><div style={big}>{fmtTok(report.totals?.tokens)}</div></div>
+            <div style={card}><div style={label}>Trošak ({report.currency})</div><div style={{ ...big, color: 'var(--accent)' }}>{fmtMoney(report.totals?.cost, report.currency)}</div></div>
+          </div>
+          <ReportTable title="Po modelu" rows={report.models} nameKey="model" cur={report.currency} />
+          <ReportTable title="Po izvoru" rows={report.bySource} nameKey="source" cur={report.currency} />
+          <ReportTable title="Po aplikaciji" rows={report.byApp} nameKey="app" cur={report.currency} />
+        </>
+      )}
+    </div>
+  )
+}
+
+function ReportTable({ title, rows, nameKey, cur }) {
+  if (!rows?.length) return null
+  return (
+    <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{title}</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
+          <th style={thStyle}>Naziv</th><th style={{ ...thStyle, textAlign: 'right' }}>Zahtevi</th>
+          <th style={{ ...thStyle, textAlign: 'right' }}>Tokeni</th><th style={{ ...thStyle, textAlign: 'right' }}>Trošak</th>
+        </tr></thead>
+        <tbody>{rows.map((r, i) => (
+          <tr key={i}>
+            <td style={tdStyle}>{r[nameKey]}</td>
+            <td style={{ ...tdMono, textAlign: 'right' }}>{fmtNum(r.requests)}</td>
+            <td style={{ ...tdMono, textAlign: 'right' }}>{fmtTok(r.tokens)}</td>
+            <td style={{ ...tdMono, textAlign: 'right', fontWeight: 600 }}>{fmtMoney(r.cost, cur)}</td>
+          </tr>
+        ))}</tbody>
+      </table>
+    </div>
+  )
+}
+
+// ── Klijentski pogled (Faza 3): samo sopstvena potrošnja ─────────────────────
+
+function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }) {
+  const [preset, setPreset] = useState('month')
+  const [range, setRange] = useState(presetRange('month'))
+  const [currency, setCurrency] = useState('EUR')
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try { setData(await api.aiUsageMy(`from=${range.from}&to=${range.to}&currency=${currency}`)) }
+    catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }, [range.from, range.to, currency])
+  useEffect(() => { load() }, [load])
+
+  const navProps = { user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }
+  const cur = data?.currency || currency
+  const days = (data?.days || []).map(d => ({ date: d.date, requests: d.requests, cost_usd: d.cost }))
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}><BrainAnimation opacity={0.4} fullscreen /></div>
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <Topbar {...navProps} currentPage="aiUsage" onOpenChat={onGoToMessages} />
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 60px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+            <div>
+              <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>AI potrošnja</h1>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
+                {data?.customer?.name ? `${data.customer.name} — potrošnja AI servisa po aplikacijama` : 'Potrošnja AI servisa vaše organizacije'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              {[['month', 'Ovaj mesec'], ['prevMonth', 'Prošli mesec'], ['quarter', 'Kvartal'], ['year', 'Ova godina']].map(([k, l]) => (
+                <button key={k} onClick={() => { setPreset(k); setRange(presetRange(k)) }} style={{
+                  padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+                  border: preset === k ? '1px solid var(--accent)' : '1px solid var(--border)',
+                  background: preset === k ? 'var(--accent)' : 'var(--surfaceAlt)', color: preset === k ? '#fff' : 'var(--text)',
+                }}>{l}</button>
+              ))}
+              <select value={currency} onChange={e => setCurrency(e.target.value)} style={{ ...inputS, width: 84 }}>
+                {['EUR', 'USD', 'RSD'].map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              {loading && <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>učitavam…</span>}
+            </div>
+          </div>
+
+          {data?.not_mapped && (
+            <div style={{ ...card, textAlign: 'center', padding: 40, color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+              Vaš nalog još nije povezan sa AI potrošnjom. Kontaktirajte Intelisale tim da aktivira prikaz.
+            </div>
+          )}
+
+          {data && !data.not_mapped && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {data.rate_available === false && (
+                <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}>
+                  Kurs za izabranu valutu trenutno nije dostupan — iznosi su u USD.
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
+                <div style={card}><div style={label}>Zahtevi</div><div style={big}>{fmtNum(data.totals?.requests)}</div></div>
+                <div style={card}><div style={label}>Tokeni</div><div style={big}>{fmtTok(data.totals?.tokens)}</div></div>
+                <div style={card}><div style={label}>Trošak ({cur})</div><div style={{ ...big, color: 'var(--accent)' }}>{fmtMoney(data.totals?.cost, cur)}</div></div>
+              </div>
+              <div style={card}>
+                <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 10 }}>Dnevni trend</div>
+                <TrendChart days={days} />
+              </div>
+              <ReportTable title="Po aplikaciji" rows={data.byApp} nameKey="app" cur={cur} />
+              <ReportTable title="Po modelu" rows={data.models} nameKey="model" cur={cur} />
             </div>
           )}
         </div>

@@ -140,7 +140,7 @@ export default function App() {
           onGoToReleaseNotes={goToReleaseNotes}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
-          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
+          onGoToAiUsage={goToAiUsage}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
           onOpenChat={goToMessages}
@@ -161,7 +161,7 @@ export default function App() {
           onGoToEditor={goToReleaseNotesEditor}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
-          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
+          onGoToAiUsage={goToAiUsage}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
           onOpenChat={goToMessages}
@@ -183,7 +183,7 @@ export default function App() {
           onGoToReleaseNotesEditor={goToReleaseNotesEditor}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
-          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
+          onGoToAiUsage={goToAiUsage}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
           onOpenChat={goToMessages}
@@ -205,7 +205,7 @@ export default function App() {
           onGoToReleaseNotesEditor={goToReleaseNotesEditor}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
-          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
+          onGoToAiUsage={goToAiUsage}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
           onOpenChat={goToMessages}
@@ -229,7 +229,7 @@ export default function App() {
           onGoToReleaseNotesEditor={goToReleaseNotesEditor}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
-          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
+          onGoToAiUsage={goToAiUsage}
           onOpenChat={null}
           initialProjectId={messagesProjectId}
         />
@@ -272,7 +272,7 @@ export default function App() {
           onGoToDocuments={goToDocuments}
           onGoToMessages={goToMessages}
           onGoToQA={goToQA}
-          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
+          onGoToAiUsage={goToAiUsage}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
         />
@@ -296,7 +296,7 @@ export default function App() {
           onGoToDocuments={goToDocuments}
           onGoToMessages={goToMessages}
           onGoToQA={goToQA}
-          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
+          onGoToAiUsage={goToAiUsage}
           openChatOnMount={openChatOnDashboard}
           onChatMountConsumed={() => setOpenChatOnDashboard(false)}
         />

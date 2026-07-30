@@ -182,6 +182,10 @@ export const api = {
   aiUsageHistory: (q = '') => request('GET', `/ai-usage/admin/history?${q}`),
   aiUsageSync: () => request('POST', '/ai-usage/admin/sync', {}),
   aiUsageFxFetch: () => request('POST', '/ai-usage/admin/fx-fetch', {}),
+  aiUsageMappings: () => request('GET', '/ai-usage/admin/mappings'),
+  aiUsageDiscover: () => request('POST', '/ai-usage/admin/mappings/discover', {}),
+  aiUsageSaveMapping: (tenantId, clientUserId) => request('PUT', `/ai-usage/admin/mappings/${encodeURIComponent(tenantId)}`, { client_user_id: clientUserId }),
+  aiUsageMy: (q) => request('GET', `/ai-usage/my?${q}`),
 
   // App settings — working-calendar config (PUT is super_admin only)
   getAppSettings: () => request('GET', '/settings'),
