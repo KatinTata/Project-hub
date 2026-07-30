@@ -678,7 +678,7 @@ function Pill({ label, count, active, onClick }) {
 export default function QAPage({
   user, theme, onLogout,
   onGoToDashboard, onGoToDocuments, onGoToReleaseNotes, onGoToReleaseNotesEditor,
-  onGoToMessages, onGoToQA, onOpenSettings, onOpenUsers, onOpenChat,
+  onGoToMessages, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat,
   projects = [],
 }) {
   const [openId, setOpenId] = useState(null)
@@ -728,6 +728,7 @@ export default function QAPage({
         onGoToDocuments={onGoToDocuments}
         onGoToMessages={messagesAction}
         onGoToQA={onGoToQA}
+        onGoToAiUsage={onGoToAiUsage}
         onOpenSettings={onOpenSettings}
         onOpenUsers={onOpenUsers}
         projects={projects}

@@ -17,6 +17,8 @@ import phasesRoutes from './routes/phases.js'
 import organizationsRoutes from './routes/organizations.js'
 import reportsRoutes from './routes/reports.js'
 import settingsRoutes from './routes/settings.js'
+import aiUsageRoutes from './routes/aiUsage.js'
+import { startAiUsageScheduler } from './aiUsage/scheduler.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -37,6 +39,7 @@ app.use('/api/phases', authMiddleware, phasesRoutes)
 app.use('/api/organizations', authMiddleware, organizationsRoutes)
 app.use('/api/reports', authMiddleware, reportsRoutes)
 app.use('/api/settings', authMiddleware, settingsRoutes)
+app.use('/api/ai-usage', authMiddleware, aiUsageRoutes)
 app.get('/rn/:token', (req, res) => {
   const row = db.prepare('SELECT html FROM published_notes WHERE token = ?').get(req.params.token)
   if (!row) return res.status(404).send('<!DOCTYPE html><html><body><h2>Release notes nisu pronađeni.</h2></body></html>')
@@ -49,5 +52,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(distPath))
   app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')))
 }
+
+startAiUsageScheduler()
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))

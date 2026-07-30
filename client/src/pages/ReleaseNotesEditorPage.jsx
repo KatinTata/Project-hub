@@ -459,7 +459,7 @@ function IconLink() {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToQA, onOpenSettings, onOpenUsers, onOpenChat }) {
+export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat }) {
   const t = useT()
   const { isMobile } = useWindowSize()
   // wizard
@@ -1883,7 +1883,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         user={user} theme={theme} currentPage="releaseNotesEditor"
         onLogout={onLogout} onGoToDashboard={onGoToDashboard} onGoToReleaseNotes={onGoToReleaseNotes}
         onGoToReleaseNotesEditor={onGoToReleaseNotesEditor}
-        onGoToDocuments={onGoToDocuments} onGoToQA={onGoToQA} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} onOpenChat={onOpenChat}
+        onGoToDocuments={onGoToDocuments} onGoToQA={onGoToQA}
+        onGoToAiUsage={onGoToAiUsage} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} onOpenChat={onOpenChat}
       />
       <div style={{ padding: '20px 28px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>

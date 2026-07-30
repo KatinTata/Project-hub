@@ -20,7 +20,7 @@ function threadId(m) { return m.subject || m.task_key || null }
 
 export default function MessagesPage({
   user, theme, onLogout, onOpenSettings, onOpenUsers,
-  onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToQA, onOpenChat,
+  onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenChat,
   initialProjectId,
 }) {
   const t = useT()
@@ -196,6 +196,7 @@ export default function MessagesPage({
           onGoToReleaseNotesEditor={isAdmin ? onGoToReleaseNotesEditor : null}
           onGoToDocuments={onGoToDocuments}
           onGoToQA={onGoToQA}
+        onGoToAiUsage={onGoToAiUsage}
           onOpenChat={null}
           onGoToMessages={null}
           onOpenUsers={onOpenUsers}

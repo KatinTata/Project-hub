@@ -242,4 +242,105 @@ db.exec(`
   )
 `)
 
+// ── AI token usage tracking (spec: AI_TOKENI_MIGRACIJA_SPEC, proxy model) ─────
+
+// External API configs (one row per service; agentic_admin is the usage source)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS integration_api_configs (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    service_key          TEXT UNIQUE NOT NULL,
+    display_name         TEXT NOT NULL,
+    base_url             TEXT NOT NULL DEFAULT '',
+    auth_type            TEXT NOT NULL DEFAULT 'admin_key',
+    service_password_enc TEXT,
+    is_active            INTEGER DEFAULT 1,
+    last_tested_at       DATETIME,
+    last_test_ok         INTEGER,
+    last_test_message    TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+db.prepare(`
+  INSERT OR IGNORE INTO integration_api_configs (service_key, display_name, base_url, auth_type)
+  VALUES ('agentic_admin', 'Agentic Admin API', 'https://intelisale-agentic.azurewebsites.net', 'admin_key')
+`).run()
+
+// Global pricing config — exactly ONE row (id fixed to 1)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ai_pricing_config (
+    id                 INTEGER PRIMARY KEY CHECK (id = 1),
+    global_markup_pct  REAL NOT NULL DEFAULT 20,
+    pricing_source_url TEXT NOT NULL DEFAULT 'https://prices.azure.com/api/retail/prices',
+    last_synced_at     DATETIME,
+    last_sync_ok       INTEGER,
+    last_sync_message  TEXT,
+    updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+db.prepare('INSERT OR IGNORE INTO ai_pricing_config (id) VALUES (1)').run()
+
+// Per-model pricing (base Azure USD prices per 1M tokens + markups)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ai_model_pricing (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    model_name          TEXT NOT NULL UNIQUE,
+    input_price_per_1m  REAL NOT NULL DEFAULT 0,
+    output_price_per_1m REAL NOT NULL DEFAULT 0,
+    model_markup_pct    REAL NOT NULL DEFAULT 0,
+    source              TEXT NOT NULL DEFAULT 'azure',
+    is_active           INTEGER DEFAULT 1,
+    last_synced_at      DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+// Audit of base-price changes (markup changes are NOT logged, per spec)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ai_model_pricing_history (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    model_name        TEXT NOT NULL,
+    old_input_per_1m  REAL,
+    new_input_per_1m  REAL,
+    old_output_per_1m REAL,
+    new_output_per_1m REAL,
+    source            TEXT,
+    changed_by        TEXT,
+    changed_at        DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+db.exec('CREATE INDEX IF NOT EXISTS idx_ai_pricing_history_model ON ai_model_pricing_history (model_name, changed_at DESC)')
+
+// NBS exchange rates (middle rate vs RSD)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ap_exchange_rates (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    currency_from TEXT NOT NULL,
+    currency_to   TEXT NOT NULL DEFAULT 'RSD',
+    rate          REAL,
+    rate_date     TEXT NOT NULL,
+    source        TEXT,
+    UNIQUE (currency_from, currency_to, rate_date)
+  )
+`)
+
+// Tenant ↔ Project Hub client mapping (needed for the future client-facing view)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS client_tenant_mappings (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_user_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    tenant_id        TEXT NOT NULL UNIQUE,
+    tenant_name      TEXT,
+    tenant_code      TEXT,
+    sl_tenant_guid   TEXT,
+    eproc_tenant_guid TEXT,
+    is_active        INTEGER DEFAULT 1,
+    auto_discovered  INTEGER DEFAULT 0,
+    notes            TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
 export default db

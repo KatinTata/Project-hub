@@ -12,7 +12,7 @@ import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 
-export default function DashboardPage({ user: initialUser, theme, onSetTheme, onLogout, onOpenSettings, onOpenUsers, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, openChatOnMount, onChatMountConsumed }) {
+export default function DashboardPage({ user: initialUser, theme, onSetTheme, onLogout, onOpenSettings, onOpenUsers, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage, openChatOnMount, onChatMountConsumed }) {
   const [user, setUser] = useState(initialUser)
   const [projects, setProjects] = useState([])
   const [activeId, setActiveId] = useState(null)
@@ -351,6 +351,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
         onGoToReleaseNotesEditor={isClient ? undefined : onGoToReleaseNotesEditor}
         onGoToDocuments={onGoToDocuments}
         onGoToQA={onGoToQA}
+        onGoToAiUsage={onGoToAiUsage}
         unreadMessages={unreadCount}
         projects={projects}
         activeId={activeId}

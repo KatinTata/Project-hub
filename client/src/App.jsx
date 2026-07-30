@@ -9,6 +9,7 @@ import EpicViewerPage from './pages/EpicViewerPage.jsx'
 import DocumentsPage from './pages/DocumentsPage.jsx'
 import MessagesPage from './pages/MessagesPage.jsx'
 import QAPage from './pages/QAPage.jsx'
+import AiUsagePage from './pages/AiUsagePage.jsx'
 import BrainAnimation from './components/BrainAnimation.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import UserManagementModal from './components/UserManagementModal.jsx'
@@ -53,6 +54,7 @@ export default function App() {
         else if (path.startsWith('/release-notes')) setPage('releaseNotes')
         else if (path.startsWith('/documents')) setPage('documents')
         else if (path.startsWith('/messages')) setPage('messages')
+        else if (path.startsWith('/ai-usage')) setPage('aiUsage')
         else setPage('dashboard')
       })
       .catch(() => localStorage.removeItem('jt_token'))
@@ -67,6 +69,7 @@ export default function App() {
     else if (path.startsWith('/documents')) setPage('documents')
     else if (path.startsWith('/messages')) setPage('messages')
     else if (path.startsWith('/qa')) setPage('qa')
+    else if (path.startsWith('/ai-usage')) setPage('aiUsage')
     else setPage('dashboard')
   }
 
@@ -123,6 +126,7 @@ export default function App() {
   const goToReleaseNotesEditor = () => { window.history.replaceState({}, '', '/release-notes/editor'); setPage('releaseNotesEditor') }
   const goToDocuments = () => { window.history.replaceState({}, '', '/documents'); setPage('documents') }
   const goToQA = () => { window.history.replaceState({}, '', '/qa'); setPage('qa') }
+  const goToAiUsage = () => { window.history.replaceState({}, '', '/ai-usage'); setPage('aiUsage') }
 
   if (page === 'epicViewer' && user) {
     return (
@@ -136,6 +140,7 @@ export default function App() {
           onGoToReleaseNotes={goToReleaseNotes}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
+          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
           onOpenChat={goToMessages}
@@ -156,6 +161,7 @@ export default function App() {
           onGoToEditor={goToReleaseNotesEditor}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
+          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
           onOpenChat={goToMessages}
@@ -177,6 +183,7 @@ export default function App() {
           onGoToReleaseNotesEditor={goToReleaseNotesEditor}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
+          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
           onOpenChat={goToMessages}
@@ -198,6 +205,7 @@ export default function App() {
           onGoToReleaseNotesEditor={goToReleaseNotesEditor}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
+          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
           onOpenChat={goToMessages}
@@ -221,8 +229,30 @@ export default function App() {
           onGoToReleaseNotesEditor={goToReleaseNotesEditor}
           onGoToDocuments={goToDocuments}
           onGoToQA={goToQA}
+          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
           onOpenChat={null}
           initialProjectId={messagesProjectId}
+        />
+        {modals}
+      </>
+    )
+  }
+
+  if (page === 'aiUsage' && user) {
+    return (
+      <>
+        <AiUsagePage
+          user={user}
+          onLogout={handleLogout}
+          onOpenSettings={openSettings}
+          onOpenUsers={isAdmin ? openUsers : undefined}
+          onGoToDashboard={goToDashboard}
+          onGoToReleaseNotes={goToReleaseNotes}
+          onGoToReleaseNotesEditor={goToReleaseNotesEditor}
+          onGoToDocuments={goToDocuments}
+          onGoToMessages={goToMessages}
+          onGoToQA={goToQA}
+          onGoToAiUsage={goToAiUsage}
         />
         {modals}
       </>
@@ -242,6 +272,7 @@ export default function App() {
           onGoToDocuments={goToDocuments}
           onGoToMessages={goToMessages}
           onGoToQA={goToQA}
+          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
           onOpenSettings={openSettings}
           onOpenUsers={isAdmin ? openUsers : undefined}
         />
@@ -265,6 +296,7 @@ export default function App() {
           onGoToDocuments={goToDocuments}
           onGoToMessages={goToMessages}
           onGoToQA={goToQA}
+          onGoToAiUsage={isAdmin ? goToAiUsage : undefined}
           openChatOnMount={openChatOnDashboard}
           onChatMountConsumed={() => setOpenChatOnDashboard(false)}
         />

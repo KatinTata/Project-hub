@@ -164,6 +164,25 @@ export const api = {
     URL.revokeObjectURL(url)
   },
 
+  // AI token usage (live proxy — admin view)
+  aiUsageDashboard: (q) => request('GET', `/ai-usage/dashboard?${q}`),
+  aiUsageTrends: (q) => request('GET', `/ai-usage/trends?${q}`),
+  aiUsageByClient: (q) => request('GET', `/ai-usage/by-client?${q}`),
+  aiUsageBySource: (q) => request('GET', `/ai-usage/by-source?${q}`),
+  aiUsageByApp: (q) => request('GET', `/ai-usage/by-app?${q}`),
+  aiUsageByModel: (q) => request('GET', `/ai-usage/by-model?${q}`),
+  aiUsageTenants: () => request('GET', '/ai-usage/tenants'),
+  aiUsageTenantReport: (q) => request('GET', `/ai-usage/tenant-report?${q}`),
+  aiUsageAdminConfig: () => request('GET', '/ai-usage/admin/config'),
+  aiUsageSaveConfig: (body) => request('PUT', '/ai-usage/admin/config', body),
+  aiUsageTest: (body) => request('POST', '/ai-usage/admin/test', body || {}),
+  aiUsageSavePricingConfig: (body) => request('PUT', '/ai-usage/admin/pricing-config', body),
+  aiUsageModels: () => request('GET', '/ai-usage/admin/models'),
+  aiUsageSaveModel: (name, body) => request('PUT', `/ai-usage/admin/models/${encodeURIComponent(name)}`, body),
+  aiUsageHistory: (q = '') => request('GET', `/ai-usage/admin/history?${q}`),
+  aiUsageSync: () => request('POST', '/ai-usage/admin/sync', {}),
+  aiUsageFxFetch: () => request('POST', '/ai-usage/admin/fx-fetch', {}),
+
   // App settings — working-calendar config (PUT is super_admin only)
   getAppSettings: () => request('GET', '/settings'),
   updateAppSettings: (body) => request('PUT', '/settings', body),

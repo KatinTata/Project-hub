@@ -62,6 +62,16 @@ function IconUsers() {
   )
 }
 
+function IconAi() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="5" width="14" height="14" rx="2.5"/>
+      <path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/>
+      <circle cx="12" cy="12" r="2.2"/>
+    </svg>
+  )
+}
+
 function IconQA() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 16, height: 16 }}>
@@ -167,7 +177,7 @@ export default function Topbar({
   user, theme, onLogout,
   onOpenSettings, onOpenUsers,
   unreadCount = 0, recentUnread = [], onMarkAllRead, onNotificationClick,
-  onOpenChat, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDashboard, onGoToDocuments, onGoToMessages, onGoToQA,
+  onOpenChat, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDashboard, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage,
   currentPage,
   projects = [], onAddProject,
   unreadMessages = 0,
@@ -370,6 +380,18 @@ export default function Topbar({
             onClick={onGoToQA}
             hideSubtitle={isMobile}
           />
+
+          {onGoToAiUsage && (
+            <ModuleCard
+              icon={<IconAi />}
+              iconBg="rgba(14,165,233,0.14)" iconColor="#0EA5E9"
+              label="AI Tokeni"
+              subtitle="Potrošnja i trošak"
+              active={currentPage === 'aiUsage'}
+              onClick={onGoToAiUsage}
+              hideSubtitle={isMobile}
+            />
+          )}
 
         </div>
       </div>
