@@ -186,6 +186,24 @@ export const api = {
   aiUsageDiscover: () => request('POST', '/ai-usage/admin/mappings/discover', {}),
   aiUsageSaveMapping: (tenantId, clientUserIds) => request('PUT', `/ai-usage/admin/mappings/${encodeURIComponent(tenantId)}`, { client_user_ids: clientUserIds }),
   aiUsageMy: (q) => request('GET', `/ai-usage/my?${q}`),
+  aiUsageBudgets: () => request('GET', '/ai-usage/budgets'),
+  aiUsageSaveBudget: (tenantId, body) => request('PUT', `/ai-usage/budgets/${encodeURIComponent(tenantId)}`, body),
+  aiUsageCheckBudgets: () => request('POST', '/ai-usage/budgets/check', {}),
+  aiUsageMyBudget: () => request('GET', '/ai-usage/my-budget'),
+  aiUsageExportXlsx: async (q) => {
+    const token = getToken()
+    const res = await fetch(`${BASE}/ai-usage/export/xlsx?${q}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`)
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ai-potrosnja.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  },
 
   // App settings — working-calendar config (PUT is super_admin only)
   getAppSettings: () => request('GET', '/settings'),

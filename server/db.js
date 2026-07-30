@@ -359,4 +359,20 @@ db.prepare(`
   SELECT tenant_id, client_user_id FROM client_tenant_mappings WHERE client_user_id IS NOT NULL
 `).run()
 
+// Monthly spend budget per tenant (EUR) + early-warning threshold.
+// sent_* columns hold the YYYY-MM already notified, so each alert fires once
+// per calendar month.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tenant_budgets (
+    tenant_id          TEXT PRIMARY KEY,
+    monthly_limit_eur  REAL,
+    warning_pct        REAL NOT NULL DEFAULT 80,
+    notify_enabled     INTEGER NOT NULL DEFAULT 1,
+    extra_emails       TEXT,
+    warning_sent_month TEXT,
+    limit_sent_month   TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
 export default db

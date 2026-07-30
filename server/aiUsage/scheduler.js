@@ -4,6 +4,7 @@
 
 import { syncAzurePrices } from './pricing.js'
 import { fetchTodaysRates } from './fx.js'
+import { checkBudgets } from './budgets.js'
 
 function belgradeNow() {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -15,6 +16,7 @@ function belgradeNow() {
 
 let lastPriceRun = ''
 let lastFxRun = ''
+let lastBudgetRun = ''
 
 export function startAiUsageScheduler() {
   setInterval(async () => {
@@ -34,6 +36,15 @@ export function startAiUsageScheduler() {
       lastFxRun = today
       try { await fetchTodaysRates(); console.log('[ai-usage] fx rates OK') }
       catch (e) { console.error('[ai-usage] fx rates failed:', e.message) }
+    }
+
+    // 09:30 daily — budget warning / limit emails (once per month per threshold)
+    if (hhmm === '09:30' && lastBudgetRun !== today) {
+      lastBudgetRun = today
+      try {
+        const r = await checkBudgets()
+        if (r.results.length) console.log('[ai-usage] budget alerts:', JSON.stringify(r.results))
+      } catch (e) { console.error('[ai-usage] budget check failed:', e.message) }
     }
   }, 30 * 1000)
 }

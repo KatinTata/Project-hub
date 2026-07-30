@@ -11,6 +11,9 @@ import {
 } from '../aiUsage/adminApi.js'
 import { getPricingConfig, makePriceResolver, groupCost, costModelGroups, syncAzurePrices } from '../aiUsage/pricing.js'
 import { fetchTodaysRates, usdConversion } from '../aiUsage/fx.js'
+import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey } from '../aiUsage/budgets.js'
+import { mailConfigured } from '../aiUsage/mailer.js'
+import ExcelJS from 'exceljs'
 
 const router = Router()
 const MAX_APP_FILTERS = 40
@@ -575,6 +578,260 @@ router.get('/my', async (req, res) => {
       days: Object.values(days).sort((a, b) => a.date.localeCompare(b.date)),
     })
   } catch (err) { handleErr(res, err, empty) }
+})
+
+// ── Budgets: monthly EUR limit + early warning per tenant ────────────────────
+
+router.get('/budgets', async (req, res) => {
+  if (!requireView(req, res)) return
+  const rows = db.prepare(`
+    SELECT m.tenant_id, m.tenant_name, m.tenant_code, m.is_active,
+           b.monthly_limit_eur, b.warning_pct, b.notify_enabled, b.extra_emails,
+           b.warning_sent_month, b.limit_sent_month
+    FROM client_tenant_mappings m
+    LEFT JOIN tenant_budgets b ON b.tenant_id = m.tenant_id
+    ORDER BY m.tenant_name ASC
+  `).all()
+  let statuses = []
+  try { statuses = await listBudgetStatuses() } catch { /* Admin API down → no live spend */ }
+  const byId = Object.fromEntries(statuses.map(s => [s.tenant_id, s]))
+  res.json({
+    month: currentMonthKey(),
+    mail_configured: mailConfigured(),
+    budgets: rows.map(r => ({
+      ...r,
+      notify_enabled: r.notify_enabled == null ? true : !!r.notify_enabled,
+      warning_pct: r.warning_pct ?? 80,
+      status: byId[r.tenant_id] || null,
+    })),
+  })
+})
+
+router.put('/budgets/:tenantId', (req, res) => {
+  if (!requireManage(req, res)) return
+  const { monthly_limit_eur, warning_pct, notify_enabled, extra_emails } = req.body
+  const limit = monthly_limit_eur === '' || monthly_limit_eur == null ? null : Number(monthly_limit_eur)
+  db.prepare(`
+    INSERT INTO tenant_budgets (tenant_id, monthly_limit_eur, warning_pct, notify_enabled, extra_emails, updated_at)
+    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT (tenant_id) DO UPDATE SET
+      monthly_limit_eur = excluded.monthly_limit_eur,
+      warning_pct = excluded.warning_pct,
+      notify_enabled = excluded.notify_enabled,
+      extra_emails = excluded.extra_emails,
+      updated_at = CURRENT_TIMESTAMP
+  `).run(req.params.tenantId, limit, Number(warning_pct) || 80, notify_enabled === false ? 0 : 1, extra_emails?.trim() || null)
+  res.json({ ok: true })
+})
+
+router.post('/budgets/check', async (req, res) => {
+  if (!requireManage(req, res)) return
+  try { res.json(await checkBudgets()) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// Client-facing: own budget status (first mapped tenant that has a limit)
+router.get('/my-budget', async (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT m.*, b.monthly_limit_eur, b.warning_pct
+      FROM client_tenant_users ctu
+      JOIN client_tenant_mappings m ON m.tenant_id = ctu.tenant_id
+      LEFT JOIN tenant_budgets b ON b.tenant_id = m.tenant_id
+      WHERE ctu.user_id = ? AND m.is_active = 1
+    `).all(req.userId)
+    const withLimit = rows.find(r => Number(r.monthly_limit_eur) > 0)
+    if (!withLimit) return res.json({ has_budget: false })
+    res.json({ has_budget: true, ...(await budgetStatus(withLimit)) })
+  } catch (err) { handleErr(res, err, { has_budget: false }) }
+})
+
+// ── Full Excel report (admins: everything; clients: only their own) ───────────
+
+const NAVY = 'FF0F2746', CYAN = 'FF38BDF8'
+const xf = (o = {}) => ({ name: 'Calibri', size: 11, ...o })
+
+function addSheet(wb, name, widths, headers, rows) {
+  const ws = wb.addWorksheet(name, { views: [{ showGridLines: false, state: 'frozen', ySplit: 1 }] })
+  ws.columns = widths.map(w => ({ width: w }))
+  headers.forEach((h, i) => {
+    const c = ws.getCell(1, i + 1)
+    c.value = h
+    c.font = xf({ bold: true, color: { argb: 'FFFFFFFF' } })
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }
+  })
+  rows.forEach((row, ri) => row.forEach((v, ci) => {
+    const c = ws.getCell(ri + 2, ci + 1)
+    c.value = v
+    c.font = xf(ci === 0 ? { bold: true } : {})
+    if (typeof v === 'number') c.numFmt = Number.isInteger(v) ? '#,##0' : '#,##0.0000'
+    c.border = { bottom: { style: 'thin', color: { argb: 'FFE2E6F0' } } }
+  }))
+  return ws
+}
+
+router.get('/export/xlsx', async (req, res) => {
+  const role = roleOf(req.userId)
+  const admin = isAdmin(role)
+  const { fromDate, toDate } = normalizeRange(req.query.from, req.query.to)
+  const currency = String(req.query.currency || (admin ? 'USD' : 'EUR')).toUpperCase()
+  try {
+    const wb = new ExcelJS.Workbook()
+    wb.creator = 'Intelisale Project Hub'
+    wb.created = new Date()
+    const conv = usdConversion(currency, toDate)
+    const cur = conv.currency
+    const period = `${String(fromDate).slice(0, 10)} — ${String(toDate).slice(0, 10)}`
+
+    if (admin) {
+      const [dash, trends, cells, apps] = await Promise.all([
+        getUsageSummary({ fromDate, toDate, groupBy: 'Model' }),
+        getUsageSummary({ fromDate, toDate, groupBy: 'ModelDay' }),
+        buildCells(fromDate, toDate),
+        (async () => {
+          const actions = await getActions().catch(() => [])
+          const out = await Promise.all((actions || []).slice(0, MAX_APP_FILTERS).map(action =>
+            getUsageSummary({ fromDate, toDate, action, groupBy: 'Model' })
+              .then(d => ({ app: action, requests: d.totals?.requests || 0, tokens: d.totals?.totalTokens || 0, cost: costModelGroups(d.groups).totalCost }))
+              .catch(() => null)))
+          return out.filter(a => a && a.requests > 0).sort((a, b) => b.cost - a.cost)
+        })(),
+      ])
+      const models = dash
+      const resolve = makePriceResolver()
+      const totalCost = costModelGroups(dash.groups).totalCost
+
+      // Pregled
+      const t = dash.totals || {}
+      addSheet(wb, 'Pregled', [34, 26], ['Metrika', 'Vrednost'], [
+        ['Period', period], ['Valuta', cur],
+        ['Zahtevi', t.requests || 0], ['Uspešni', t.successCount || 0],
+        ['Greške', Math.max(0, (t.requests || 0) - (t.successCount || 0))],
+        ['Prompt tokeni', t.promptTokens || 0], ['Completion tokeni', t.completionTokens || 0],
+        ['Ukupno tokena', t.totalTokens || 0],
+        [`Ukupan trošak (${cur})`, totalCost * conv.factor],
+        [`Prosečno po zahtevu (${cur})`, (t.requests || 0) > 0 ? totalCost * conv.factor / t.requests : 0],
+        ['Prosečno trajanje (ms)', Math.round(t.avgDurationMs || 0)],
+      ])
+
+      // Dnevni trend
+      const days = {}
+      for (const g of (trends.groups || [])) {
+        const day = String(g.day || '').slice(0, 10)
+        if (!day) continue
+        const d = (days[day] ||= { day, requests: 0, tokens: 0, cost: 0 })
+        d.requests += g.requests || 0; d.tokens += g.totalTokens || 0; d.cost += groupCost(resolve, g) * conv.factor
+      }
+      addSheet(wb, 'Dnevni trend', [14, 14, 16, 16], ['Datum', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
+        Object.values(days).sort((a, b) => a.day.localeCompare(b.day)).map(d => [d.day, d.requests, d.tokens, d.cost]))
+
+      // Po klijentima (company × source cells → pivot)
+      const byClient = {}
+      for (const c of cells) {
+        const r = (byClient[c.key] ||= { name: c.name, requests: 0, tokens: 0, cost: 0 })
+        r.requests += c.requests; r.tokens += c.tokens; r.cost += c.cost
+      }
+      addSheet(wb, 'Po klijentima', [34, 14, 16, 16], ['Klijent', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
+        Object.values(byClient).sort((a, b) => b.cost - a.cost).map(r => [r.name, r.requests, r.tokens, r.cost * conv.factor]))
+
+      // Klijent × izvor (detalj)
+      addSheet(wb, 'Klijent x izvor', [34, 18, 14, 16, 16], ['Klijent', 'Izvor', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
+        cells.slice().sort((a, b) => b.cost - a.cost).map(c => [c.name, c.source, c.requests, c.tokens, c.cost * conv.factor]))
+
+      // Po aplikacijama
+      addSheet(wb, 'Po aplikacijama', [42, 14, 16, 16], ['Aplikacija / akcija', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
+        apps.map(a => [a.app, a.requests, a.tokens, a.cost * conv.factor]))
+
+      // Po modelu
+      addSheet(wb, 'Po modelu', [26, 14, 16, 16, 16, 12], ['Model', 'Zahtevi', 'Prompt tokeni', 'Completion tokeni', `Trošak (${cur})`, 'Ima cenu'],
+        (models.groups || []).filter(g => g.modelName).map(g => [
+          g.modelName, g.requests || 0, g.promptTokens || 0, g.completionTokens || 0,
+          groupCost(resolve, g) * conv.factor, resolve(g.modelName).priced ? 'da' : 'ne',
+        ]))
+
+      // Cenovnik + Budžeti
+      const global = getPricingConfig()?.global_markup_pct || 0
+      addSheet(wb, 'Cenovnik', [26, 16, 16, 14, 16, 16, 12],
+        ['Model', 'Bazna in / 1M', 'Bazna out / 1M', 'Marža %', 'Finalna in', 'Finalna out', 'Izvor'],
+        db.prepare('SELECT * FROM ai_model_pricing ORDER BY model_name').all().map(m => {
+          const f = 1 + (global + m.model_markup_pct) / 100
+          return [m.model_name, m.input_price_per_1m, m.output_price_per_1m, global + m.model_markup_pct, m.input_price_per_1m * f, m.output_price_per_1m * f, m.source]
+        }))
+      let statuses = []
+      try { statuses = await listBudgetStatuses() } catch { /* ignore */ }
+      if (statuses.length) {
+        addSheet(wb, 'Budžeti', [34, 18, 18, 14, 14], ['Tenant', 'Potrošeno (EUR)', 'Limit (EUR)', 'Iskorišćeno %', 'Status'],
+          statuses.map(s => [s.tenant_name, s.spent_eur, s.limit_eur || 0, s.pct == null ? 0 : Math.round(s.pct), s.level]))
+      }
+    } else {
+      // Client export — only own tenants
+      const mappings = db.prepare(`
+        SELECT m.* FROM client_tenant_mappings m
+        JOIN client_tenant_users ctu ON ctu.tenant_id = m.tenant_id
+        WHERE ctu.user_id = ? AND m.is_active = 1
+      `).all(req.userId)
+      if (!mappings.length) return res.status(400).json({ error: 'Nalog nije povezan sa tenantom' })
+      const guids = mappings.flatMap(m => [m.sl_tenant_guid, m.eproc_tenant_guid].filter(Boolean))
+      const resolve = makePriceResolver()
+
+      const [modelSums, daySums, actions] = await Promise.all([
+        Promise.all(guids.map(g => getUsageSummary({ fromDate, toDate, tenantId: g, groupBy: 'Model' }).catch(() => null))),
+        Promise.all(guids.map(g => getUsageSummary({ fromDate, toDate, tenantId: g, groupBy: 'ModelDay' }).catch(() => null))),
+        getActions().catch(() => []),
+      ])
+      const models = {}, days = {}
+      let requests = 0, tokens = 0, cost = 0
+      for (const d of modelSums) {
+        if (!d) continue
+        requests += d.totals?.requests || 0; tokens += d.totals?.totalTokens || 0
+        for (const g of (d.groups || [])) {
+          if (!g.modelName) continue
+          const m = (models[g.modelName.toLowerCase()] ||= { model: g.modelName, requests: 0, tokens: 0, cost: 0 })
+          const c = groupCost(resolve, g) * conv.factor
+          m.requests += g.requests || 0; m.tokens += g.totalTokens || 0; m.cost += c; cost += c
+        }
+      }
+      for (const d of daySums) {
+        if (!d) continue
+        for (const g of (d.groups || [])) {
+          const day = String(g.day || '').slice(0, 10)
+          if (!day) continue
+          const x = (days[day] ||= { day, requests: 0, tokens: 0, cost: 0 })
+          x.requests += g.requests || 0; x.tokens += g.totalTokens || 0; x.cost += groupCost(resolve, g) * conv.factor
+        }
+      }
+      const appCells = await Promise.all((actions || []).slice(0, MAX_APP_FILTERS).flatMap(action => guids.map(g =>
+        getUsageSummary({ fromDate, toDate, tenantId: g, action, groupBy: 'Model' }).then(d => ({ action, d })).catch(() => null))))
+      const apps = {}
+      for (const cell of appCells) {
+        if (!cell?.d || !(cell.d.totals?.requests > 0)) continue
+        const a = (apps[cell.action] ||= { app: cell.action, requests: 0, tokens: 0, cost: 0 })
+        a.requests += cell.d.totals.requests; a.tokens += cell.d.totals.totalTokens || 0
+        a.cost += costModelGroups(cell.d.groups).totalCost * conv.factor
+      }
+
+      addSheet(wb, 'Pregled', [34, 26], ['Metrika', 'Vrednost'], [
+        ['Organizacija', mappings[0].tenant_name || '—'], ['Period', period], ['Valuta', cur],
+        ['Zahtevi', requests], ['Ukupno tokena', tokens], [`Ukupan trošak (${cur})`, cost],
+      ])
+      addSheet(wb, 'Dnevni trend', [14, 14, 16, 16], ['Datum', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
+        Object.values(days).sort((a, b) => a.day.localeCompare(b.day)).map(d => [d.day, d.requests, d.tokens, d.cost]))
+      addSheet(wb, 'Po aplikacijama', [42, 14, 16, 16], ['Aplikacija', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
+        Object.values(apps).sort((a, b) => b.cost - a.cost).map(a => [a.app, a.requests, a.tokens, a.cost]))
+      addSheet(wb, 'Po modelu', [26, 14, 16, 16], ['Model', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
+        Object.values(models).sort((a, b) => b.cost - a.cost).map(m => [m.model, m.requests, m.tokens, m.cost]))
+    }
+
+    const name = `ai-potrosnja_${String(fromDate).slice(0, 10)}_${String(toDate).slice(0, 10)}`
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', `attachment; filename="${name}.xlsx"`)
+    await wb.xlsx.write(res)
+    res.end()
+  } catch (err) {
+    if (err instanceof AdminApiNotConfiguredError) return res.status(400).json({ error: 'Admin API nije konfigurisan' })
+    console.error('[ai-usage xlsx]', err)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 export default router
