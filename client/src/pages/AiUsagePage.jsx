@@ -287,7 +287,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
                 <Section title="Budžeti — tekući mesec" hint={`${budgets?.month} · potrošeno vs mesečni limit`}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
                     {gauges.map(b => (
-                      <BudgetGauge key={b.tenant_id} name={b.tenant_name} spent={b.status.spent_eur} limit={b.status.limit_eur} pct={b.status.pct} level={b.status.level} />
+                      <BudgetGauge key={b.tenant_id} name={b.package_name ? `${b.tenant_name} · ${b.package_name}` : b.tenant_name} spent={b.status.spent_eur} limit={b.status.limit_eur} pct={b.status.pct} level={b.status.level} />
                     ))}
                   </div>
                 </Section>
@@ -445,7 +445,7 @@ function ReportView({ range, preset, setPreset, setRange }) {
     const cols = [{ v: r => r.name }, { v: r => fmtNum(r.requests), right: 1 }, { v: r => fmtTok(r.tokens), right: 1 }, { v: r => money(r.cost), right: 1 }]
     const head = [{ t: 'Naziv' }, { t: 'Zahtevi', right: 1 }, { t: 'Tokeni', right: 1 }, { t: 'Trošak', right: 1 }]
     const html = `<!DOCTYPE html><html lang="sr"><head><meta charset="UTF-8"><title>AI potrošnja — ${esc(report.customer?.name)}</title>
-      <style>body{font-family:'Segoe UI',Arial,sans-serif;color:#0F1523;max-width:820px;margin:0 auto;padding:28px}@media print{.noprint{display:none}}</style></head><body>
+      <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'Segoe UI',Arial,sans-serif;color:#0F1523;max-width:820px;margin:0 auto;padding:28px}@page{size:A4;margin:0}@media print{.noprint{display:none}body{padding:12mm 14mm}}</style></head><body>
       <div class="noprint" style="text-align:right;margin-bottom:12px"><button onclick="window.print()" style="background:#7C3AED;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-weight:600;cursor:pointer">Sačuvaj kao PDF</button></div>
       <div style="background:linear-gradient(135deg,#0b1a2f,#0f2746 55%,#163e6b);border-radius:16px;padding:24px 28px;color:#fff;margin-bottom:8px">
         <div style="font-size:11px;letter-spacing:0.16em;color:#38BDF8;margin-bottom:8px">INTELISALE — IZVEŠTAJ O AI POTROŠNJI</div>
@@ -638,8 +638,129 @@ function SettingsView() {
       </Section>
 
       <MappingsCard />
+      <PackagesCard />
       <BudgetsCard />
     </div>
+  )
+}
+
+// ── AI paketi (tieri): fiksni pristup + uključena potrošnja ──────────────────
+function PackagesCard() {
+  const [packages, setPackages] = useState([])
+  const [edit, setEdit] = useState({})
+  const [draft, setDraft] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const reload = useCallback(async () => {
+    try { setPackages((await api.aiUsagePackages()).packages || []) } catch { setPackages([]) }
+  }, [])
+  useEffect(() => { reload() }, [reload])
+
+  const savePkg = async (id) => {
+    const p = packages.find(x => x.id === id)
+    const e = edit[id] || {}
+    setBusy(true)
+    try {
+      await api.aiUsageUpdatePackage(id, {
+        name: e.name ?? p.name,
+        monthly_fee_eur: e.monthly_fee_eur ?? p.monthly_fee_eur,
+        included_eur: e.included_eur ?? p.included_eur,
+        description: e.description ?? p.description ?? '',
+        sort_order: e.sort_order ?? p.sort_order,
+        is_active: (e.is_active ?? p.is_active) ? true : false,
+      })
+      setEdit(prev => { const n = { ...prev }; delete n[id]; return n })
+      await reload()
+    } catch (err) { alert('Greška: ' + err.message) } finally { setBusy(false) }
+  }
+  const createPkg = async () => {
+    if (!draft?.name?.trim()) { alert('Unesi naziv paketa'); return }
+    setBusy(true)
+    try { await api.aiUsageCreatePackage(draft); setDraft(null); await reload() }
+    catch (err) { alert('Greška: ' + err.message) } finally { setBusy(false) }
+  }
+  const removePkg = async (id, name) => {
+    if (!confirm(`Obrisati paket „${name}"? Tenanti na ovom paketu ostaju bez paketa.`)) return
+    setBusy(true)
+    try { await api.aiUsageDeletePackage(id); await reload() }
+    catch (err) { alert('Greška: ' + err.message) } finally { setBusy(false) }
+  }
+
+  const numIn = (v, onCh, w = 90) => (
+    <input type="number" step="10" min="0" value={v} onChange={onCh} style={{ ...inputS, width: w, textAlign: 'right', padding: '3px 6px' }} />
+  )
+
+  return (
+    <Section
+      title="AI paketi"
+      hint={'fiksni pristup + uključena potrošnja tokena · paket se vezuje za tenanta u sekciji Budžeti ispod'}
+      right={!draft && <button onClick={() => setDraft({ name: '', monthly_fee_eur: 0, included_eur: 0, description: '' })} style={btnPrimary}>Novi paket</button>}
+    >
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
+          <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
+            <th style={thStyle}>Naziv</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>Pristup (EUR/mes)</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>Uklj. potrošnja (EUR/mes)</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>Ukupno / mes</th>
+            <th style={thStyle}>Predviđeni obim (opis)</th>
+            <th style={thStyle}>Aktivan</th>
+            <th style={thStyle} />
+          </tr></thead>
+          <tbody>
+            {packages.map(p => {
+              const e = edit[p.id] || {}
+              const val = (k, def) => (e[k] !== undefined ? e[k] : def)
+              const set = (k, v) => setEdit(prev => ({ ...prev, [p.id]: { ...prev[p.id], [k]: v } }))
+              const total = (Number(val('monthly_fee_eur', p.monthly_fee_eur)) || 0) + (Number(val('included_eur', p.included_eur)) || 0)
+              return (
+                <tr key={p.id} style={{ opacity: val('is_active', p.is_active) ? 1 : 0.45 }}>
+                  <td style={tdStyle}>
+                    <input value={val('name', p.name)} onChange={ev => set('name', ev.target.value)} style={{ ...inputS, width: 120, padding: '3px 8px', fontWeight: 600 }} />
+                  </td>
+                  <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(val('monthly_fee_eur', p.monthly_fee_eur), ev => set('monthly_fee_eur', ev.target.value))}</td>
+                  <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(val('included_eur', p.included_eur), ev => set('included_eur', ev.target.value))}</td>
+                  <td style={{ ...tdMono, textAlign: 'right', fontWeight: 700 }}>{fmtMoney(total, 'EUR')}</td>
+                  <td style={tdStyle}>
+                    <input value={val('description', p.description || '')} placeholder="npr. ~500 porudžbina + ~1.000 stranica prevoda"
+                      onChange={ev => set('description', ev.target.value)} style={{ ...inputS, width: 260, padding: '3px 8px', fontSize: 12 }} />
+                  </td>
+                  <td style={tdStyle}>
+                    <input type="checkbox" checked={!!val('is_active', p.is_active)} onChange={ev => set('is_active', ev.target.checked)} />
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {Object.keys(e).length > 0 && <button onClick={() => savePkg(p.id)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>Sačuvaj</button>}
+                    <button onClick={() => removePkg(p.id, p.name)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11, color: 'var(--red)', marginLeft: 6 }}>Obriši</button>
+                  </td>
+                </tr>
+              )
+            })}
+            {draft && (
+              <tr style={{ background: 'var(--surfaceAlt)' }}>
+                <td style={tdStyle}>
+                  <input autoFocus value={draft.name} placeholder="npr. Basic" onChange={ev => setDraft(d => ({ ...d, name: ev.target.value }))} style={{ ...inputS, width: 120, padding: '3px 8px', fontWeight: 600 }} />
+                </td>
+                <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(draft.monthly_fee_eur, ev => setDraft(d => ({ ...d, monthly_fee_eur: ev.target.value })))}</td>
+                <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(draft.included_eur, ev => setDraft(d => ({ ...d, included_eur: ev.target.value })))}</td>
+                <td style={{ ...tdMono, textAlign: 'right', fontWeight: 700 }}>{fmtMoney((Number(draft.monthly_fee_eur) || 0) + (Number(draft.included_eur) || 0), 'EUR')}</td>
+                <td style={tdStyle}>
+                  <input value={draft.description} placeholder="predviđeni mesečni obim" onChange={ev => setDraft(d => ({ ...d, description: ev.target.value }))} style={{ ...inputS, width: 260, padding: '3px 8px', fontSize: 12 }} />
+                </td>
+                <td style={tdStyle} />
+                <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <button onClick={createPkg} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11, background: 'var(--accent)', color: '#fff', border: 'none' }}>Dodaj</button>
+                  <button onClick={() => setDraft(null)} style={{ ...btnS, padding: '3px 10px', fontSize: 11, marginLeft: 6 }}>Otkaži</button>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {packages.length === 0 && !draft && (
+        <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
+          Nema paketa — klikni „Novi paket" (npr. Basic 200 € + 90 €, Standard 300 € + 190 €, Pro 400 € + 390 €).
+        </div>
+      )}
+    </Section>
   )
 }
 
@@ -731,17 +852,29 @@ function MultiUserPicker({ tenant, clients, onToggle }) {
 
 function BudgetsCard() {
   const [data, setData] = useState(null)
+  const [packages, setPackages] = useState([])
   const [busy, setBusy] = useState(false)
   const [edit, setEdit] = useState({})
-  const reload = useCallback(async () => setData(await api.aiUsageBudgets()), [])
+  const reload = useCallback(async () => {
+    setData(await api.aiUsageBudgets())
+    try { setPackages((await api.aiUsagePackages()).packages || []) } catch { setPackages([]) }
+  }, [])
   useEffect(() => { reload() }, [reload])
 
-  const save = async tenantId => {
-    const e = edit[tenantId] || {}
+  const save = async b => {
+    const e = edit[b.tenant_id] || {}
     setBusy(true)
     try {
-      await api.aiUsageSaveBudget(tenantId, e)
-      setEdit(p => { const n = { ...p }; delete n[tenantId]; return n })
+      // merge current values so a partial edit never wipes the other fields
+      await api.aiUsageSaveBudget(b.tenant_id, {
+        monthly_limit_eur: b.monthly_limit_eur ?? '',
+        warning_pct: b.warning_pct,
+        notify_enabled: b.notify_enabled,
+        extra_emails: b.extra_emails || '',
+        package_id: b.package_id ?? '',
+        ...e,
+      })
+      setEdit(p => { const n = { ...p }; delete n[b.tenant_id]; return n })
       await reload()
     } catch (err) { alert('Greška: ' + err.message) } finally { setBusy(false) }
   }
@@ -763,9 +896,10 @@ function BudgetsCard() {
       right={<button onClick={runCheck} disabled={busy} style={btnS}>Proveri i pošalji sada</button>}
     >
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1050 }}>
           <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
             <th style={thStyle}>Tenant</th>
+            <th style={thStyle}>Paket</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>Mesečni limit (EUR)</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>Warning %</th>
             <th style={thStyle}>Mejl</th>
@@ -779,12 +913,26 @@ function BudgetsCard() {
             const set = (k, v) => setEdit(p => ({ ...p, [b.tenant_id]: { ...p[b.tenant_id], [k]: v } }))
             const st = b.status
             const stColor = st?.level === 'limit' ? 'var(--red)' : st?.level === 'warning' ? 'var(--amber)' : 'var(--green)'
+            const pkgId = val('package_id', b.package_id ?? '')
+            const pkg = packages.find(p => String(p.id) === String(pkgId))
             return (
               <tr key={b.tenant_id}>
                 <td style={tdStyle}>{b.tenant_name || b.tenant_id}</td>
+                <td style={tdStyle}>
+                  <select value={pkgId ?? ''} onChange={ev => set('package_id', ev.target.value)} style={{ ...inputS, width: 130, padding: '3px 6px', fontSize: 12 }}>
+                    <option value="">— bez paketa —</option>
+                    {packages.filter(p => p.is_active || String(p.id) === String(pkgId)).map(p => (
+                      <option key={p.id} value={p.id}>{p.name} ({fmtMoney((p.monthly_fee_eur || 0) + (p.included_eur || 0), 'EUR')})</option>
+                    ))}
+                  </select>
+                </td>
                 <td style={{ ...tdMono, textAlign: 'right' }}>
-                  <input type="number" step="10" min="0" placeholder="—" value={val('monthly_limit_eur', b.monthly_limit_eur ?? '')}
-                    onChange={ev => set('monthly_limit_eur', ev.target.value)} style={{ ...inputS, width: 96, textAlign: 'right', padding: '3px 6px' }} />
+                  {pkg ? (
+                    <span title="Limit dolazi iz paketa (uključena potrošnja)" style={{ color: 'var(--textMuted)' }}>{fmtMoney(pkg.included_eur, 'EUR')}</span>
+                  ) : (
+                    <input type="number" step="10" min="0" placeholder="—" value={val('monthly_limit_eur', b.monthly_limit_eur ?? '')}
+                      onChange={ev => set('monthly_limit_eur', ev.target.value)} style={{ ...inputS, width: 96, textAlign: 'right', padding: '3px 6px' }} />
+                  )}
                 </td>
                 <td style={{ ...tdMono, textAlign: 'right' }}>
                   <input type="number" step="5" min="1" max="100" value={val('warning_pct', b.warning_pct)}
@@ -801,7 +949,7 @@ function BudgetsCard() {
                   {st ? `${fmtMoney(st.spent_eur, 'EUR')}${st.pct != null ? ` · ${Math.round(st.pct)}%` : ''}` : '—'}
                 </td>
                 <td style={{ ...tdStyle, textAlign: 'right' }}>
-                  {Object.keys(e).length > 0 && <button onClick={() => save(b.tenant_id)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>Sačuvaj</button>}
+                  {Object.keys(e).length > 0 && <button onClick={() => save(b)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>Sačuvaj</button>}
                 </td>
               </tr>
             )
@@ -882,10 +1030,45 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
 
               {budget?.has_budget && (
                 <div style={{ ...card, ...(budget.level === 'limit' ? { borderColor: 'var(--red)', background: 'var(--redTint)' } : budget.level === 'warning' ? { borderColor: 'var(--amber)', background: 'var(--amberTint)' } : {}) }}>
-                  <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 8 }}>
-                    Mesečni budžet — {budget.month}
-                  </div>
-                  <BudgetGauge name={budget.tenant_name} spent={budget.spent_eur} limit={budget.limit_eur} pct={budget.pct} level={budget.level} />
+                  {budget.package ? (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
+                        <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          Vaš paket
+                          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, background: 'var(--accent)', color: '#fff', borderRadius: 6, padding: '2px 10px' }}>
+                            {budget.package.name}
+                          </span>
+                        </div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
+                          {fmtMoney(budget.package.fee_eur + budget.package.included_eur, 'EUR')} / mes
+                          <span style={{ fontSize: 11, color: 'var(--textMuted)', marginLeft: 8 }}>
+                            pristup {fmtMoney(budget.package.fee_eur, 'EUR')} + potrošnja {fmtMoney(budget.package.included_eur, 'EUR')}
+                          </span>
+                        </div>
+                      </div>
+                      <BudgetGauge name={`Uključena potrošnja — ${budget.month}`} spent={budget.spent_eur} limit={budget.limit_eur} pct={budget.pct} level={budget.level} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginTop: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
+                        <span>
+                          {budget.overage_eur > 0
+                            ? <span style={{ color: 'var(--red)', fontWeight: 600 }}>Prekoračenje uključene potrošnje: {fmtMoney(budget.overage_eur, 'EUR')}</span>
+                            : `Preostalo ${fmtMoney(Math.max(0, (budget.limit_eur || 0) - budget.spent_eur), 'EUR')} uključene potrošnje`}
+                        </span>
+                        <span>resetuje se 1. u mesecu</span>
+                      </div>
+                      {budget.package.description && (
+                        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
+                          Paket obuhvata: {budget.package.description}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 8 }}>
+                        Mesečni budžet — {budget.month}
+                      </div>
+                      <BudgetGauge name={budget.tenant_name} spent={budget.spent_eur} limit={budget.limit_eur} pct={budget.pct} level={budget.level} />
+                    </>
+                  )}
                 </div>
               )}
 

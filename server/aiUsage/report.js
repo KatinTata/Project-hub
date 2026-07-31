@@ -12,7 +12,7 @@ import db from '../db.js'
 import { getUsageSummary, getActions, getTenants, buildIdentityMap, resolveTenant, normalizeRange } from './adminApi.js'
 import { makePriceResolver, groupCost, costModelGroups, getPricingConfig } from './pricing.js'
 import { usdConversion } from './fx.js'
-import { budgetStatus } from './budgets.js'
+import { budgetStatus, BUDGET_SELECT } from './budgets.js'
 import { donut, trend, hbars, compareBars, gauge, P, SERIES } from './reportCharts.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -203,23 +203,18 @@ export async function buildReportData({ from, to, currency = 'EUR', userId, isAd
     ? { month_spend: monthSpend, daily_avg: monthSpend / elapsed, projected_month: (monthSpend / elapsed) * daysInMonth, days_elapsed: elapsed, days_in_month: daysInMonth }
     : null
 
-  // Budgets — internal: every tracked tenant; client: only their own
+  // Budgets — internal: every tracked tenant; client: only their own.
+  // BUDGET_SELECT already folds an assigned package into monthly_limit_eur.
   const budgets = []
   try {
-    const rows = isAdminUser
-      ? db.prepare(`
-          SELECT b.*, m.tenant_name, m.sl_tenant_guid, m.eproc_tenant_guid
-          FROM tenant_budgets b
-          JOIN client_tenant_mappings m ON m.tenant_id = b.tenant_id
-          WHERE b.monthly_limit_eur > 0 AND COALESCE(m.is_tracked, 1) = 1
-        `).all()
+    const rows = (isAdminUser
+      ? db.prepare(BUDGET_SELECT).all().filter(r => r.is_tracked === 1)
       : db.prepare(`
-          SELECT b.*, m.tenant_name, m.sl_tenant_guid, m.eproc_tenant_guid
-          FROM tenant_budgets b
-          JOIN client_tenant_mappings m ON m.tenant_id = b.tenant_id
-          JOIN client_tenant_users ctu ON ctu.tenant_id = m.tenant_id
-          WHERE b.monthly_limit_eur > 0 AND ctu.user_id = ?
+          ${BUDGET_SELECT}
+          JOIN client_tenant_users ctu ON ctu.tenant_id = b.tenant_id
+          WHERE ctu.user_id = ?
         `).all(userId)
+    ).filter(r => Number(r.monthly_limit_eur) > 0 || r.package_name)
     for (const row of rows) {
       try { budgets.push(await budgetStatus(row)) } catch { /* tenant unreachable */ }
     }
@@ -459,11 +454,11 @@ export async function buildXlsx(d) {
   // ── Sheet: Budžeti ──
   if (d.budgets.length) {
     const s7 = wb.addWorksheet('Budžeti', { views: [{ showGridLines: false }] })
-    s7.columns = [{ width: 34 }, { width: 18 }, { width: 18 }, { width: 14 }, { width: 14 }, { width: 20 }]
-    table(s7, 1, ['Tenant', 'Potrošeno (EUR)', 'Limit (EUR)', 'Iskorišćeno', 'Status', 'Projekcija meseca (EUR)'],
-      d.budgets.map(b => [b.tenant_name, b.spent_eur, b.limit_eur || 0, (b.pct || 0) / 100, b.level,
-        d.projection ? d.projection.projected_month : 0]),
-      [null, '#,##0.00" €"', '#,##0.00" €"', '0.0%', null, '#,##0.00" €"'])
+    s7.columns = [{ width: 34 }, { width: 18 }, { width: 16 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 14 }, { width: 14 }]
+    table(s7, 1, ['Tenant', 'Paket', 'Pristup (EUR)', 'Uklj. potrošnja (EUR)', 'Potrošeno (EUR)', 'Prekoračenje (EUR)', 'Iskorišćeno', 'Status'],
+      d.budgets.map(b => [b.tenant_name, b.package?.name || '—', b.package?.fee_eur || 0, b.limit_eur || 0,
+        b.spent_eur, b.overage_eur || 0, (b.pct || 0) / 100, b.level]),
+      [null, null, '#,##0.00" €"', '#,##0.00" €"', '#,##0.00" €"', '#,##0.00" €"', '0.0%'])
   }
 
   // ── Sheet: Sirovi podaci (dan × model) ──
@@ -513,10 +508,14 @@ export function buildReportHtml(d) {
   return `<!DOCTYPE html><html lang="sr"><head><meta charset="UTF-8">
 <title>AI potrošnja — ${esc(d.scopeName)} (${d.period.from} — ${d.period.to})</title>
 <style>
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{font-family:'Segoe UI',Arial,sans-serif;color:#0F1523;background:#F0F2F8;margin:0;padding:26px}
   .page{max-width:900px;margin:0 auto}
   svg{max-width:100%;height:auto}
-  @media print{body{background:#fff;padding:0}.noprint{display:none}@page{margin:12mm}}
+  /* margin:0 removes the browser's own header/footer (URL, date, page title);
+     the body padding takes over as the page margin */
+  @page{size:A4;margin:0}
+  @media print{body{background:#fff;padding:12mm 14mm}.noprint{display:none}section{page-break-inside:avoid}}
 </style></head><body><div class="page">
   <div class="noprint" style="text-align:right;margin-bottom:12px">
     <button onclick="window.print()" style="background:#7C3AED;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-weight:600;cursor:pointer">Sačuvaj kao PDF</button>
@@ -537,6 +536,33 @@ export function buildReportHtml(d) {
     ${kpi('Tokeni', tok(d.totals.tokens), `in ${tok(d.totals.promptTokens)} · out ${tok(d.totals.completionTokens)}`)}
     ${kpi('Trošak / zahtev', d.totals.requests ? m(d.totals.cost / d.totals.requests) : '—', `greške: ${num(d.totals.errors)}`)}
   </div>
+
+  ${(() => {
+    const withPkg = d.budgets.filter(b => b.package)
+    if (!withPkg.length) return ''
+    return withPkg.map(b => {
+      const p = b.package
+      const pct = Math.min(100, Math.max(0, b.pct || 0))
+      const color = pct >= 100 ? '#DC2626' : pct >= (b.warning_pct || 80) ? '#D97706' : '#16A34A'
+      return `<div style="margin-top:12px;background:#fff;border:1px solid #E2E6F0;border-radius:12px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+          <div style="font-size:13px;font-weight:700;color:#0F2746">
+            ${internal ? esc(b.tenant_name) + ' · ' : ''}Paket <span style="background:#0F2746;color:#fff;border-radius:6px;padding:2px 10px;margin-left:4px">${esc(p.name)}</span>
+          </div>
+          <div style="font-size:13px;font-weight:700">${money(p.fee_eur + p.included_eur, 'EUR')} / mes
+            <span style="font-weight:400;color:#5A6480;font-size:11.5px">(pristup ${money(p.fee_eur, 'EUR')} + uklj. potrošnja ${money(p.included_eur, 'EUR')})</span></div>
+        </div>
+        <div style="margin-top:10px;background:#E2E6F0;border-radius:6px;height:12px;overflow:hidden">
+          <div style="width:${pct.toFixed(1)}%;height:100%;background:${color}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#5A6480;margin-top:5px">
+          <span>iskorišćeno ${money(b.spent_eur, 'EUR')} od ${money(b.limit_eur, 'EUR')} uključene potrošnje (${Math.round(b.pct || 0)}%)</span>
+          <span>${(b.overage_eur || 0) > 0 ? `<strong style="color:#DC2626">prekoračenje ${money(b.overage_eur, 'EUR')}</strong>` : 'resetuje se 1. u mesecu'}</span>
+        </div>
+        ${p.description ? `<div style="font-size:11.5px;color:#5A6480;margin-top:8px;border-top:1px solid #E2E6F0;padding-top:8px">${esc(p.description)}</div>` : ''}
+      </div>`
+    }).join('')
+  })()}
 
   ${d.projection ? `<div style="margin-top:12px;background:#EFF6FF;border:1px solid #93C5FD;border-radius:12px;padding:14px 16px">
     <div style="font-size:12px;font-weight:700;color:#0F2746;margin-bottom:4px">Projekcija tekućeg meseca</div>
@@ -570,8 +596,9 @@ export function buildReportHtml(d) {
       [...d.compareApps, ...d.compareModels].map(x => [esc(x.label), m(x.now), m(x.prev), delta(pctDelta(x.now, x.prev))])))}
 
   ${d.budgets.length ? section('Budžeti (tekući mesec)', chart(ch.gauge) + tbl(
-      [{ t: 'Tenant' }, { t: 'Potrošeno', r: 1 }, { t: 'Limit', r: 1 }, { t: 'Iskorišćeno', r: 1 }, { t: 'Status', r: 1 }],
-      d.budgets.map(b => [esc(b.tenant_name), money(b.spent_eur, 'EUR'), money(b.limit_eur, 'EUR'), Math.round(b.pct || 0) + '%', b.level]))) : ''}
+      [{ t: 'Tenant' }, { t: 'Paket' }, { t: 'Pristup', r: 1 }, { t: 'Uklj. potrošnja', r: 1 }, { t: 'Potrošeno', r: 1 }, { t: 'Iskorišćeno', r: 1 }, { t: 'Status', r: 1 }],
+      d.budgets.map(b => [esc(b.tenant_name), esc(b.package?.name || '—'), b.package ? money(b.package.fee_eur, 'EUR') : '—',
+        money(b.limit_eur, 'EUR'), money(b.spent_eur, 'EUR'), Math.round(b.pct || 0) + '%', b.level]))) : ''}
 
   ${internal && d.pricelist.length ? section('Cenovnik (interno)', tbl(
       [{ t: 'Model' }, { t: 'Bazna in', r: 1 }, { t: 'Bazna out', r: 1 }, { t: 'Marža', r: 1 }, { t: 'Finalna in', r: 1 }, { t: 'Finalna out', r: 1 }],

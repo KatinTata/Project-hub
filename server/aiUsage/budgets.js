@@ -32,6 +32,21 @@ export async function tenantSpendEur(guids, fromDate, toDate) {
   return { eur: usd * conv.factor, usd, requests, tokens, currency: conv.currency, rateAvailable: conv.rateAvailable }
 }
 
+// Shared SELECT: budget row + tenant mapping + package. When a package is
+// assigned, its included consumption IS the monthly limit.
+export const BUDGET_SELECT = `
+  SELECT b.tenant_id, b.warning_pct, b.notify_enabled, b.extra_emails, b.package_id,
+         b.warning_sent_month, b.limit_sent_month,
+         CASE WHEN b.package_id IS NOT NULL THEN p.included_eur ELSE b.monthly_limit_eur END AS monthly_limit_eur,
+         b.monthly_limit_eur AS custom_limit_eur,
+         p.name AS package_name, p.monthly_fee_eur AS package_fee_eur,
+         p.included_eur AS package_included_eur, p.description AS package_desc,
+         m.tenant_name, m.sl_tenant_guid, m.eproc_tenant_guid, COALESCE(m.is_tracked, 1) AS is_tracked
+  FROM tenant_budgets b
+  LEFT JOIN ai_packages p ON p.id = b.package_id
+  LEFT JOIN client_tenant_mappings m ON m.tenant_id = b.tenant_id
+`
+
 function guidsOf(row) {
   const out = []
   if (row.sl_tenant_guid) out.push(row.sl_tenant_guid)
@@ -56,6 +71,14 @@ export async function budgetStatus(row) {
   const limit = Number(row.monthly_limit_eur) || 0
   const pct = limit > 0 ? (spend.eur / limit) * 100 : null
   const warnAt = Number(row.warning_pct) || 80
+  const pkg = row.package_name ? {
+    id: row.package_id,
+    name: row.package_name,
+    fee_eur: Number(row.package_fee_eur) || 0,
+    included_eur: Number(row.package_included_eur) || 0,
+    description: row.package_desc || '',
+  } : null
+  const overage = pkg && limit > 0 ? Math.max(0, spend.eur - limit) : 0
   return {
     tenant_id: row.tenant_id,
     tenant_name: row.tenant_name || row.tenant_id,
@@ -68,16 +91,15 @@ export async function budgetStatus(row) {
     pct,
     level: pct == null ? 'none' : pct >= 100 ? 'limit' : pct >= warnAt ? 'warning' : 'ok',
     rate_available: spend.rateAvailable,
+    package: pkg,
+    // package economics: fixed access + included consumption (+ overage info)
+    overage_eur: overage,
+    total_month_eur: pkg ? pkg.fee_eur + pkg.included_eur + overage : null,
   }
 }
 
 export async function listBudgetStatuses() {
-  const rows = db.prepare(`
-    SELECT b.*, m.tenant_name, m.sl_tenant_guid, m.eproc_tenant_guid
-    FROM tenant_budgets b
-    LEFT JOIN client_tenant_mappings m ON m.tenant_id = b.tenant_id
-    WHERE b.monthly_limit_eur > 0
-  `).all()
+  const rows = db.prepare(BUDGET_SELECT).all().filter(r => Number(r.monthly_limit_eur) > 0)
   const out = []
   for (const r of rows) {
     try { out.push(await budgetStatus(r)) } catch { /* skip unreachable tenant */ }
@@ -89,12 +111,8 @@ export async function listBudgetStatuses() {
 // best-effort extra on top (works with SMTP off).
 export async function checkBudgets() {
   const month = currentMonthKey()
-  const rows = db.prepare(`
-    SELECT b.*, m.tenant_name, m.sl_tenant_guid, m.eproc_tenant_guid
-    FROM tenant_budgets b
-    LEFT JOIN client_tenant_mappings m ON m.tenant_id = b.tenant_id
-    WHERE b.notify_enabled = 1 AND b.monthly_limit_eur > 0
-  `).all()
+  const rows = db.prepare(BUDGET_SELECT).all()
+    .filter(r => r.notify_enabled === 1 && Number(r.monthly_limit_eur) > 0)
   const results = []
   for (const row of rows) {
     try {

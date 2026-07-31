@@ -11,7 +11,7 @@ import {
 } from '../aiUsage/adminApi.js'
 import { getPricingConfig, makePriceResolver, groupCost, costModelGroups, syncAzurePrices } from '../aiUsage/pricing.js'
 import { fetchTodaysRates, usdConversion } from '../aiUsage/fx.js'
-import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey, listAlerts } from '../aiUsage/budgets.js'
+import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey, listAlerts, BUDGET_SELECT } from '../aiUsage/budgets.js'
 import { mailConfigured } from '../aiUsage/mailer.js'
 import { buildReportData, buildXlsx, buildReportHtml } from '../aiUsage/report.js'
 
@@ -615,9 +615,11 @@ router.get('/budgets', async (req, res) => {
   const rows = db.prepare(`
     SELECT m.tenant_id, m.tenant_name, m.tenant_code, m.is_active,
            b.monthly_limit_eur, b.warning_pct, b.notify_enabled, b.extra_emails,
-           b.warning_sent_month, b.limit_sent_month
+           b.warning_sent_month, b.limit_sent_month, b.package_id,
+           p.name AS package_name, p.monthly_fee_eur AS package_fee_eur, p.included_eur AS package_included_eur
     FROM client_tenant_mappings m
     LEFT JOIN tenant_budgets b ON b.tenant_id = m.tenant_id
+    LEFT JOIN ai_packages p ON p.id = b.package_id
     WHERE COALESCE(m.is_tracked, 1) = 1
     ORDER BY m.tenant_name ASC
   `).all()
@@ -638,18 +640,58 @@ router.get('/budgets', async (req, res) => {
 
 router.put('/budgets/:tenantId', (req, res) => {
   if (!requireManage(req, res)) return
-  const { monthly_limit_eur, warning_pct, notify_enabled, extra_emails } = req.body
+  const { monthly_limit_eur, warning_pct, notify_enabled, extra_emails, package_id } = req.body
   const limit = monthly_limit_eur === '' || monthly_limit_eur == null ? null : Number(monthly_limit_eur)
+  const pkg = package_id === '' || package_id == null ? null : Number(package_id)
   db.prepare(`
-    INSERT INTO tenant_budgets (tenant_id, monthly_limit_eur, warning_pct, notify_enabled, extra_emails, updated_at)
-    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    INSERT INTO tenant_budgets (tenant_id, monthly_limit_eur, warning_pct, notify_enabled, extra_emails, package_id, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     ON CONFLICT (tenant_id) DO UPDATE SET
       monthly_limit_eur = excluded.monthly_limit_eur,
       warning_pct = excluded.warning_pct,
       notify_enabled = excluded.notify_enabled,
       extra_emails = excluded.extra_emails,
+      package_id = excluded.package_id,
       updated_at = CURRENT_TIMESTAMP
-  `).run(req.params.tenantId, limit, Number(warning_pct) || 80, notify_enabled === false ? 0 : 1, extra_emails?.trim() || null)
+  `).run(req.params.tenantId, limit, Number(warning_pct) || 80, notify_enabled === false ? 0 : 1, extra_emails?.trim() || null, pkg)
+  res.json({ ok: true })
+})
+
+// ── AI packages (tiers): fixed access fee + included consumption ──────────────
+
+router.get('/packages', (req, res) => {
+  if (!requireView(req, res)) return
+  res.json({ packages: db.prepare('SELECT * FROM ai_packages ORDER BY sort_order, monthly_fee_eur, id').all() })
+})
+
+router.post('/admin/packages', (req, res) => {
+  if (!requireManage(req, res)) return
+  const { name, monthly_fee_eur, included_eur, description, sort_order, is_active } = req.body
+  if (!name?.trim()) return res.status(400).json({ error: 'Naziv paketa je obavezan' })
+  const info = db.prepare(`
+    INSERT INTO ai_packages (name, monthly_fee_eur, included_eur, description, sort_order, is_active)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(name.trim(), Number(monthly_fee_eur) || 0, Number(included_eur) || 0,
+    description?.trim() || null, Number(sort_order) || 0, is_active === false ? 0 : 1)
+  res.json({ ok: true, id: info.lastInsertRowid })
+})
+
+router.put('/admin/packages/:id', (req, res) => {
+  if (!requireManage(req, res)) return
+  const { name, monthly_fee_eur, included_eur, description, sort_order, is_active } = req.body
+  if (!name?.trim()) return res.status(400).json({ error: 'Naziv paketa je obavezan' })
+  db.prepare(`
+    UPDATE ai_packages SET name = ?, monthly_fee_eur = ?, included_eur = ?, description = ?, sort_order = ?, is_active = ?
+    WHERE id = ?
+  `).run(name.trim(), Number(monthly_fee_eur) || 0, Number(included_eur) || 0,
+    description?.trim() || null, Number(sort_order) || 0, is_active === false ? 0 : 1, req.params.id)
+  res.json({ ok: true })
+})
+
+router.delete('/admin/packages/:id', (req, res) => {
+  if (!requireManage(req, res)) return
+  db.prepare('UPDATE tenant_budgets SET package_id = NULL WHERE package_id = ?').run(req.params.id)
+  db.prepare('DELETE FROM ai_packages WHERE id = ?').run(req.params.id)
   res.json({ ok: true })
 })
 
@@ -663,13 +705,11 @@ router.post('/budgets/check', async (req, res) => {
 router.get('/my-budget', async (req, res) => {
   try {
     const rows = db.prepare(`
-      SELECT m.*, b.monthly_limit_eur, b.warning_pct
-      FROM client_tenant_users ctu
-      JOIN client_tenant_mappings m ON m.tenant_id = ctu.tenant_id
-      LEFT JOIN tenant_budgets b ON b.tenant_id = m.tenant_id
-      WHERE ctu.user_id = ? AND m.is_active = 1
+      ${BUDGET_SELECT}
+      JOIN client_tenant_users ctu ON ctu.tenant_id = b.tenant_id
+      WHERE ctu.user_id = ?
     `).all(req.userId)
-    const withLimit = rows.find(r => Number(r.monthly_limit_eur) > 0)
+    const withLimit = rows.find(r => Number(r.monthly_limit_eur) > 0 || r.package_name)
     if (!withLimit) return res.json({ has_budget: false })
     res.json({ has_budget: true, ...(await budgetStatus(withLimit)) })
   } catch (err) { handleErr(res, err, { has_budget: false }) }

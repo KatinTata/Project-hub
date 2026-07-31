@@ -379,6 +379,22 @@ db.exec(`
 // (is_active mirrors the Agentic API's enabled flag and gets overwritten).
 try { db.exec(`ALTER TABLE client_tenant_mappings ADD COLUMN is_tracked INTEGER DEFAULT 1`) } catch {}
 
+// AI packages (tiers): fixed monthly access fee + included consumption.
+// A tenant on a package gets its consumption limit from included_eur.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ai_packages (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    name            TEXT NOT NULL,
+    monthly_fee_eur REAL NOT NULL DEFAULT 0,
+    included_eur    REAL NOT NULL DEFAULT 0,
+    description     TEXT,
+    sort_order      INTEGER NOT NULL DEFAULT 0,
+    is_active       INTEGER NOT NULL DEFAULT 1,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+try { db.exec(`ALTER TABLE tenant_budgets ADD COLUMN package_id INTEGER REFERENCES ai_packages(id)`) } catch {}
+
 // In-app budget notifications (email is optional / added later)
 db.exec(`
   CREATE TABLE IF NOT EXISTS ai_usage_alerts (
