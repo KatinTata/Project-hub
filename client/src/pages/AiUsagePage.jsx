@@ -84,7 +84,22 @@ function Kpi({ title, value, subtitle, color }) {
   )
 }
 
-function FilterBar({ preset, setPreset, range, setRange, onExport, currency, setCurrency, exporting, loading }) {
+// Opens the server-rendered report (same charts as the Excel) in a new tab,
+// where the built-in button triggers the browser's print-to-PDF.
+async function openReportPdf(q, setBusy) {
+  const w = window.open('', '_blank')
+  if (w) w.document.write('<p style="font-family:sans-serif;padding:24px;color:#5A6480">Pravim izveštaj…</p>')
+  setBusy?.(true)
+  try {
+    const html = await api.aiUsageReportHtml(q)
+    if (w) { w.document.open(); w.document.write(html); w.document.close() }
+  } catch (e) {
+    w?.close()
+    alert('PDF greška: ' + e.message)
+  } finally { setBusy?.(false) }
+}
+
+function FilterBar({ preset, setPreset, range, setRange, onExport, onExportPdf, currency, setCurrency, exporting, loading }) {
   return (
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
       {PRESETS.map(([k, l]) => (
@@ -104,6 +119,11 @@ function FilterBar({ preset, setPreset, range, setRange, onExport, currency, set
       <button onClick={onExport} disabled={exporting} style={{ ...btnS, background: '#0D9488', color: '#fff', border: 'none' }}>
         {exporting ? 'Pravim…' : 'Excel izveštaj'}
       </button>
+      {onExportPdf && (
+        <button onClick={onExportPdf} disabled={exporting} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>
+          PDF izveštaj
+        </button>
+      )}
       {loading && <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>učitavam…</span>}
     </div>
   )
@@ -154,6 +174,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
     catch (e) { alert('Excel greška: ' + e.message) }
     finally { setExporting(false) }
   }
+  const exportPdf = () => openReportPdf(`${q}&currency=${currency}`, setExporting)
 
   const navProps = { user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }
   const t = d.dash?.totals
@@ -198,7 +219,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
           {view === 'dashboard' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ ...card, padding: '12px 16px' }}>
-                <FilterBar {...{ preset, setPreset, range, setRange, currency, setCurrency, exporting, loading }} onExport={exportXlsx} />
+                <FilterBar {...{ preset, setPreset, range, setRange, currency, setCurrency, exporting, loading }} onExport={exportXlsx} onExportPdf={exportPdf} />
               </div>
 
               <AlertNotes alerts={alertNotes} onAck={async id => { await api.aiUsageAckAlert(id); setAlertNotes(n => n.filter(x => x.id !== id)) }} />
@@ -820,8 +841,9 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
     catch (e) { alert('Excel greška: ' + e.message) }
     finally { setExporting(false) }
   }
+  const exportPdf = () => openReportPdf(`from=${range.from}&to=${range.to}&currency=${currency}`, setExporting)
 
-  const navProps = { user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }
+  const navProps ={ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }
   const cur = data?.currency || currency
   const apps = data?.byApp || []
   const models = data?.models || []
@@ -847,7 +869,7 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ ...card, padding: '12px 16px' }}>
-                <FilterBar {...{ preset, setPreset, range, setRange, currency, setCurrency, exporting, loading }} onExport={exportXlsx} />
+                <FilterBar {...{ preset, setPreset, range, setRange, currency, setCurrency, exporting, loading }} onExport={exportXlsx} onExportPdf={exportPdf} />
               </div>
 
               {data?.rate_available === false && (

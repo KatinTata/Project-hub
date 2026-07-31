@@ -39,6 +39,24 @@ async function request(method, path, body) {
   return data
 }
 
+// Binary download helper — the JSON `request` wrapper can't handle blobs
+async function downloadReport(path, fallbackName) {
+  const token = getToken()
+  const res = await fetch(`${BASE}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`)
+  const blob = await res.blob()
+  const cd = res.headers.get('content-disposition') || ''
+  const m = cd.match(/filename="?([^"]+)"?/)
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = m ? m[1] : fallbackName
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 60000)
+}
+
 export const api = {
   // Auth
   login: (body) => request('POST', '/auth/login', body),
@@ -193,19 +211,13 @@ export const api = {
   aiUsageSetTracked: (tenantId, tracked) => request('PUT', `/ai-usage/admin/mappings/${encodeURIComponent(tenantId)}`, { is_tracked: tracked }),
   aiUsageAlerts: () => request('GET', '/ai-usage/alerts'),
   aiUsageAckAlert: (id) => request('POST', `/ai-usage/alerts/${id}/ack`, {}),
-  aiUsageExportXlsx: async (q) => {
+  aiUsageExportXlsx: (q) => downloadReport(`/ai-usage/export/xlsx?${q}`, 'ai-potrosnja.xlsx'),
+  // PDF goes through the browser's print dialog on a server-rendered HTML page
+  aiUsageReportHtml: async (q) => {
     const token = getToken()
-    const res = await fetch(`${BASE}/ai-usage/export/xlsx?${q}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+    const res = await fetch(`${BASE}/ai-usage/export/html?${q}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`)
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `ai-potrosnja.xlsx`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 60000)
+    return res.text()
   },
 
   // App settings — working-calendar config (PUT is super_admin only)

@@ -13,7 +13,7 @@ import { getPricingConfig, makePriceResolver, groupCost, costModelGroups, syncAz
 import { fetchTodaysRates, usdConversion } from '../aiUsage/fx.js'
 import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey, listAlerts } from '../aiUsage/budgets.js'
 import { mailConfigured } from '../aiUsage/mailer.js'
-import ExcelJS from 'exceljs'
+import { buildReportData, buildXlsx, buildReportHtml } from '../aiUsage/report.js'
 
 const router = Router()
 const MAX_APP_FILTERS = 40
@@ -675,190 +675,57 @@ router.get('/my-budget', async (req, res) => {
   } catch (err) { handleErr(res, err, { has_budget: false }) }
 })
 
-// ── Full Excel report (admins: everything; clients: only their own) ───────────
+// ── Full report: chart-rich Excel + print-ready HTML/PDF ──────────────────────
+// Audience follows the role: admins get every client + the pricelist,
+// clients get only their own data with final prices (no markups).
 
-const NAVY = 'FF0F2746', CYAN = 'FF38BDF8'
-const xf = (o = {}) => ({ name: 'Calibri', size: 11, ...o })
+const reportName = (d, ext) => {
+  const slug = String(d.scopeName || 'ai').toLowerCase()
+    .replace(/[čć]/g, 'c').replace(/š/g, 's').replace(/ž/g, 'z').replace(/đ/g, 'dj')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)
+  return `ai-potrosnja-${slug}-${d.period.from}_${d.period.to}.${ext}`
+}
 
-function addSheet(wb, name, widths, headers, rows) {
-  const ws = wb.addWorksheet(name, { views: [{ showGridLines: false, state: 'frozen', ySplit: 1 }] })
-  ws.columns = widths.map(w => ({ width: w }))
-  headers.forEach((h, i) => {
-    const c = ws.getCell(1, i + 1)
-    c.value = h
-    c.font = xf({ bold: true, color: { argb: 'FFFFFFFF' } })
-    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }
+async function loadReport(req) {
+  const admin = isAdmin(roleOf(req.userId))
+  return buildReportData({
+    from: req.query.from,
+    to: req.query.to,
+    currency: String(req.query.currency || 'EUR').toUpperCase(),
+    userId: req.userId,
+    isAdminUser: admin,
   })
-  rows.forEach((row, ri) => row.forEach((v, ci) => {
-    const c = ws.getCell(ri + 2, ci + 1)
-    c.value = v
-    c.font = xf(ci === 0 ? { bold: true } : {})
-    if (typeof v === 'number') c.numFmt = Number.isInteger(v) ? '#,##0' : '#,##0.0000'
-    c.border = { bottom: { style: 'thin', color: { argb: 'FFE2E6F0' } } }
-  }))
-  return ws
 }
 
 router.get('/export/xlsx', async (req, res) => {
-  const role = roleOf(req.userId)
-  const admin = isAdmin(role)
-  const { fromDate, toDate } = normalizeRange(req.query.from, req.query.to)
-  const currency = String(req.query.currency || (admin ? 'USD' : 'EUR')).toUpperCase()
   try {
-    const wb = new ExcelJS.Workbook()
-    wb.creator = 'Intelisale Project Hub'
-    wb.created = new Date()
-    const conv = usdConversion(currency, toDate)
-    const cur = conv.currency
-    const period = `${String(fromDate).slice(0, 10)} — ${String(toDate).slice(0, 10)}`
-
-    if (admin) {
-      const [dash, trends, cells, apps] = await Promise.all([
-        getUsageSummary({ fromDate, toDate, groupBy: 'Model' }),
-        getUsageSummary({ fromDate, toDate, groupBy: 'ModelDay' }),
-        buildCells(fromDate, toDate),
-        (async () => {
-          const actions = await getActions().catch(() => [])
-          const out = await Promise.all((actions || []).slice(0, MAX_APP_FILTERS).map(action =>
-            getUsageSummary({ fromDate, toDate, action, groupBy: 'Model' })
-              .then(d => ({ app: action, requests: d.totals?.requests || 0, tokens: d.totals?.totalTokens || 0, cost: costModelGroups(d.groups).totalCost }))
-              .catch(() => null)))
-          return out.filter(a => a && a.requests > 0).sort((a, b) => b.cost - a.cost)
-        })(),
-      ])
-      const models = dash
-      const resolve = makePriceResolver()
-      const totalCost = costModelGroups(dash.groups).totalCost
-
-      // Pregled
-      const t = dash.totals || {}
-      addSheet(wb, 'Pregled', [34, 26], ['Metrika', 'Vrednost'], [
-        ['Period', period], ['Valuta', cur],
-        ['Zahtevi', t.requests || 0], ['Uspešni', t.successCount || 0],
-        ['Greške', Math.max(0, (t.requests || 0) - (t.successCount || 0))],
-        ['Prompt tokeni', t.promptTokens || 0], ['Completion tokeni', t.completionTokens || 0],
-        ['Ukupno tokena', t.totalTokens || 0],
-        [`Ukupan trošak (${cur})`, totalCost * conv.factor],
-        [`Prosečno po zahtevu (${cur})`, (t.requests || 0) > 0 ? totalCost * conv.factor / t.requests : 0],
-        ['Prosečno trajanje (ms)', Math.round(t.avgDurationMs || 0)],
-      ])
-
-      // Dnevni trend
-      const days = {}
-      for (const g of (trends.groups || [])) {
-        const day = String(g.day || '').slice(0, 10)
-        if (!day) continue
-        const d = (days[day] ||= { day, requests: 0, tokens: 0, cost: 0 })
-        d.requests += g.requests || 0; d.tokens += g.totalTokens || 0; d.cost += groupCost(resolve, g) * conv.factor
-      }
-      addSheet(wb, 'Dnevni trend', [14, 14, 16, 16], ['Datum', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
-        Object.values(days).sort((a, b) => a.day.localeCompare(b.day)).map(d => [d.day, d.requests, d.tokens, d.cost]))
-
-      // Po klijentima (company × source cells → pivot)
-      const byClient = {}
-      for (const c of cells) {
-        const r = (byClient[c.key] ||= { name: c.name, requests: 0, tokens: 0, cost: 0 })
-        r.requests += c.requests; r.tokens += c.tokens; r.cost += c.cost
-      }
-      addSheet(wb, 'Po klijentima', [34, 14, 16, 16], ['Klijent', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
-        Object.values(byClient).sort((a, b) => b.cost - a.cost).map(r => [r.name, r.requests, r.tokens, r.cost * conv.factor]))
-
-      // Klijent × izvor (detalj)
-      addSheet(wb, 'Klijent x izvor', [34, 18, 14, 16, 16], ['Klijent', 'Izvor', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
-        cells.slice().sort((a, b) => b.cost - a.cost).map(c => [c.name, c.source, c.requests, c.tokens, c.cost * conv.factor]))
-
-      // Po aplikacijama
-      addSheet(wb, 'Po aplikacijama', [42, 14, 16, 16], ['Aplikacija / akcija', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
-        apps.map(a => [a.app, a.requests, a.tokens, a.cost * conv.factor]))
-
-      // Po modelu
-      addSheet(wb, 'Po modelu', [26, 14, 16, 16, 16, 12], ['Model', 'Zahtevi', 'Prompt tokeni', 'Completion tokeni', `Trošak (${cur})`, 'Ima cenu'],
-        (models.groups || []).filter(g => g.modelName).map(g => [
-          g.modelName, g.requests || 0, g.promptTokens || 0, g.completionTokens || 0,
-          groupCost(resolve, g) * conv.factor, resolve(g.modelName).priced ? 'da' : 'ne',
-        ]))
-
-      // Cenovnik + Budžeti
-      const global = getPricingConfig()?.global_markup_pct || 0
-      addSheet(wb, 'Cenovnik', [26, 16, 16, 14, 16, 16, 12],
-        ['Model', 'Bazna in / 1M', 'Bazna out / 1M', 'Marža %', 'Finalna in', 'Finalna out', 'Izvor'],
-        db.prepare('SELECT * FROM ai_model_pricing ORDER BY model_name').all().map(m => {
-          const f = 1 + (global + m.model_markup_pct) / 100
-          return [m.model_name, m.input_price_per_1m, m.output_price_per_1m, global + m.model_markup_pct, m.input_price_per_1m * f, m.output_price_per_1m * f, m.source]
-        }))
-      let statuses = []
-      try { statuses = await listBudgetStatuses() } catch { /* ignore */ }
-      if (statuses.length) {
-        addSheet(wb, 'Budžeti', [34, 18, 18, 14, 14], ['Tenant', 'Potrošeno (EUR)', 'Limit (EUR)', 'Iskorišćeno %', 'Status'],
-          statuses.map(s => [s.tenant_name, s.spent_eur, s.limit_eur || 0, s.pct == null ? 0 : Math.round(s.pct), s.level]))
-      }
-    } else {
-      // Client export — only own tenants
-      const mappings = db.prepare(`
-        SELECT m.* FROM client_tenant_mappings m
-        JOIN client_tenant_users ctu ON ctu.tenant_id = m.tenant_id
-        WHERE ctu.user_id = ? AND m.is_active = 1
-      `).all(req.userId)
-      if (!mappings.length) return res.status(400).json({ error: 'Nalog nije povezan sa tenantom' })
-      const guids = mappings.flatMap(m => [m.sl_tenant_guid, m.eproc_tenant_guid].filter(Boolean))
-      const resolve = makePriceResolver()
-
-      const [modelSums, daySums, actions] = await Promise.all([
-        Promise.all(guids.map(g => getUsageSummary({ fromDate, toDate, tenantId: g, groupBy: 'Model' }).catch(() => null))),
-        Promise.all(guids.map(g => getUsageSummary({ fromDate, toDate, tenantId: g, groupBy: 'ModelDay' }).catch(() => null))),
-        getActions().catch(() => []),
-      ])
-      const models = {}, days = {}
-      let requests = 0, tokens = 0, cost = 0
-      for (const d of modelSums) {
-        if (!d) continue
-        requests += d.totals?.requests || 0; tokens += d.totals?.totalTokens || 0
-        for (const g of (d.groups || [])) {
-          if (!g.modelName) continue
-          const m = (models[g.modelName.toLowerCase()] ||= { model: g.modelName, requests: 0, tokens: 0, cost: 0 })
-          const c = groupCost(resolve, g) * conv.factor
-          m.requests += g.requests || 0; m.tokens += g.totalTokens || 0; m.cost += c; cost += c
-        }
-      }
-      for (const d of daySums) {
-        if (!d) continue
-        for (const g of (d.groups || [])) {
-          const day = String(g.day || '').slice(0, 10)
-          if (!day) continue
-          const x = (days[day] ||= { day, requests: 0, tokens: 0, cost: 0 })
-          x.requests += g.requests || 0; x.tokens += g.totalTokens || 0; x.cost += groupCost(resolve, g) * conv.factor
-        }
-      }
-      const appCells = await Promise.all((actions || []).slice(0, MAX_APP_FILTERS).flatMap(action => guids.map(g =>
-        getUsageSummary({ fromDate, toDate, tenantId: g, action, groupBy: 'Model' }).then(d => ({ action, d })).catch(() => null))))
-      const apps = {}
-      for (const cell of appCells) {
-        if (!cell?.d || !(cell.d.totals?.requests > 0)) continue
-        const a = (apps[cell.action] ||= { app: cell.action, requests: 0, tokens: 0, cost: 0 })
-        a.requests += cell.d.totals.requests; a.tokens += cell.d.totals.totalTokens || 0
-        a.cost += costModelGroups(cell.d.groups).totalCost * conv.factor
-      }
-
-      addSheet(wb, 'Pregled', [34, 26], ['Metrika', 'Vrednost'], [
-        ['Organizacija', mappings[0].tenant_name || '—'], ['Period', period], ['Valuta', cur],
-        ['Zahtevi', requests], ['Ukupno tokena', tokens], [`Ukupan trošak (${cur})`, cost],
-      ])
-      addSheet(wb, 'Dnevni trend', [14, 14, 16, 16], ['Datum', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
-        Object.values(days).sort((a, b) => a.day.localeCompare(b.day)).map(d => [d.day, d.requests, d.tokens, d.cost]))
-      addSheet(wb, 'Po aplikacijama', [42, 14, 16, 16], ['Aplikacija', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
-        Object.values(apps).sort((a, b) => b.cost - a.cost).map(a => [a.app, a.requests, a.tokens, a.cost]))
-      addSheet(wb, 'Po modelu', [26, 14, 16, 16], ['Model', 'Zahtevi', 'Tokeni', `Trošak (${cur})`],
-        Object.values(models).sort((a, b) => b.cost - a.cost).map(m => [m.model, m.requests, m.tokens, m.cost]))
-    }
-
-    const name = `ai-potrosnja_${String(fromDate).slice(0, 10)}_${String(toDate).slice(0, 10)}`
+    const data = await loadReport(req)
+    if (data.error) return res.status(400).json({ error: data.error })
+    const wb = await buildXlsx(data)
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    res.setHeader('Content-Disposition', `attachment; filename="${name}.xlsx"`)
+    res.setHeader('Content-Disposition', `attachment; filename="${reportName(data, 'xlsx')}"`)
     await wb.xlsx.write(res)
     res.end()
   } catch (err) {
     if (err instanceof AdminApiNotConfiguredError) return res.status(400).json({ error: 'Admin API nije konfigurisan' })
     console.error('[ai-usage xlsx]', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.get('/export/html', async (req, res) => {
+  try {
+    const data = await loadReport(req)
+    if (data.error) return res.status(400).json({ error: data.error })
+    const html = buildReportHtml(data)
+    if (String(req.query.download || '') === '1') {
+      res.setHeader('Content-Disposition', `attachment; filename="${reportName(data, 'html')}"`)
+    }
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res.send(html)
+  } catch (err) {
+    if (err instanceof AdminApiNotConfiguredError) return res.status(400).json({ error: 'Admin API nije konfigurisan' })
+    console.error('[ai-usage html]', err)
     res.status(500).json({ error: err.message })
   }
 })
