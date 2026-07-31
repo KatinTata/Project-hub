@@ -59,10 +59,10 @@ export default function RegisterPage({ onRegistered, onGoLogin, effectiveTheme =
             alt="Intelisale"
             style={{ height: 40, marginBottom: 12, objectFit: 'contain' }}
           />
-          <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text)', marginBottom: 4 }}>
+          <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)', marginBottom: 4 }}>
             Project Hub
           </h1>
-          <p style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
+          <p style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
             {t('register.subtitle')}
           </p>
         </div>
@@ -118,7 +118,7 @@ export default function RegisterPage({ onRegistered, onGoLogin, effectiveTheme =
               borderRadius: 8,
               color: 'var(--red)',
               fontSize: 13,
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
             }}>{error}</div>
           )}
 
@@ -131,7 +131,7 @@ export default function RegisterPage({ onRegistered, onGoLogin, effectiveTheme =
               color: '#fff',
               borderRadius: 8,
               padding: '11px',
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               fontWeight: 600,
               fontSize: 15,
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -144,7 +144,7 @@ export default function RegisterPage({ onRegistered, onGoLogin, effectiveTheme =
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: 20, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--textMuted)' }}>
+        <div style={{ textAlign: 'center', marginTop: 20, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--textMuted)' }}>
           {t('register.hasAccount')}{' '}
           <button onClick={onGoLogin} style={{ color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }}>
             {t('register.login')}
@@ -158,7 +158,7 @@ export default function RegisterPage({ onRegistered, onGoLogin, effectiveTheme =
 const labelStyle = {
   display: 'block',
   fontSize: 11,
-  fontFamily: "'DM Mono'",
+  fontFamily: "'Hanken Grotesk'",
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
   color: 'var(--textMuted)',
@@ -173,6 +173,6 @@ const inputStyle = {
   padding: '10px 14px',
   color: 'var(--text)',
   fontSize: 14,
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   transition: 'border-color 0.2s',
 }

@@ -30,13 +30,13 @@ function TaskKey({ taskKey, jiraUrl, over, isClient }) {
         target="_blank"
         rel="noopener noreferrer"
         onClick={e => e.stopPropagation()}
-        style={{ fontFamily: "'DM Mono'", fontSize: 12, color, fontWeight: 500, textDecoration: 'none' }}
+        style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color, fontWeight: 500, textDecoration: 'none' }}
         onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
         onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
       >{taskKey}</a>
     )
   }
-  return <span style={{ fontFamily: "'DM Mono'", fontSize: 12, color, fontWeight: 500 }}>{taskKey}</span>
+  return <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color, fontWeight: 500 }}>{taskKey}</span>
 }
 
 function BillableBadge() {
@@ -47,7 +47,7 @@ function BillableBadge() {
       alignItems: 'center',
       gap: 3,
       fontSize: 10,
-      fontFamily: "'DM Mono'",
+      fontFamily: "'Hanken Grotesk'",
       fontWeight: 500,
       borderRadius: 4,
       padding: '1px 6px',
@@ -106,7 +106,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
               fontSize: 13,
               cursor: 'pointer',
               color: 'var(--textMuted)',
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               transition: 'all 0.15s',
               display: 'flex',
               alignItems: 'center',
@@ -124,7 +124,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         <div>
           <TaskKey taskKey={task.key} jiraUrl={jiraUrl} over={task.over} isClient={isClient} />
           {!isClient && task.over && !isMobile && (
-            <div style={{ fontSize: 10, color: 'var(--red)', fontFamily: "'DM Mono'", marginTop: 2 }}>
+            <div style={{ fontSize: 10, color: 'var(--red)', fontFamily: "'Hanken Grotesk'", marginTop: 2 }}>
               +{task.overPct}%
             </div>
           )}
@@ -133,7 +133,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
 
         {/* Summary */}
         <div style={{
-          fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
           fontSize: isMobile ? 12 : 13,
           color: 'var(--text)',
           overflow: 'hidden',
@@ -146,7 +146,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           )}
           {task.isOrphanSubtask && (
             <span title={task.parentKey ? `Subtask taska ${task.parentKey} (parent nije u obuhvatu projekta)` : 'Subtask — parent nije u obuhvatu projekta'}
-              style={{ marginRight: 6, fontFamily: "'DM Mono'", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'rgba(107,122,153,0.15)', color: 'var(--textMuted)', border: '1px solid rgba(107,122,153,0.3)', verticalAlign: 'middle' }}>
+              style={{ marginRight: 6, fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'rgba(107,122,153,0.15)', color: 'var(--textMuted)', border: '1px solid rgba(107,122,153,0.3)', verticalAlign: 'middle' }}>
               subtask
             </span>
           )}
@@ -162,7 +162,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         {!isMobile && (
           <div style={{ paddingRight: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11, color: 'var(--textMuted)' }}>
-              <span style={{ fontFamily: "'DM Mono'" }}>{task.est > 0 ? `${Math.round(pct * 100)}%` : '–'}</span>
+              <span style={{ fontFamily: "'Hanken Grotesk'" }}>{task.est > 0 ? `${Math.round(pct * 100)}%` : '–'}</span>
             </div>
             {task.est > 0 && <ProgressBar value={pct} color={barColor} height={6} />}
           </div>
@@ -170,7 +170,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
 
         {/* Est — desktop only, admin only */}
         {!isClient && !isMobile && !isTablet && (
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textMuted)' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>
             {task.est > 0 ? fmtHours(task.est) : '–'}
           </div>
         )}
@@ -178,7 +178,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         {/* Spent — tablet + desktop, admin only */}
         {!isClient && !isMobile && (
           <div style={{
-            fontFamily: "'DM Mono'",
+            fontFamily: "'Hanken Grotesk'",
             fontSize: 12,
             color: task.over ? 'var(--red)' : task.spent > 0 ? 'var(--green)' : 'var(--textMuted)',
           }}>
@@ -198,10 +198,10 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: task.subtasks?.length ? 10 : 0 }}>
             {!isClient && (
               <div>
-                <div style={{ fontSize: 10, fontFamily: "'DM Mono'", color: 'var(--textMuted)', textTransform: 'uppercase', marginBottom: 2 }}>Napredak</div>
+                <div style={{ fontSize: 10, fontFamily: "'Hanken Grotesk'", color: 'var(--textMuted)', textTransform: 'uppercase', marginBottom: 2 }}>Napredak</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 80 }}><ProgressBar value={pct} color={barColor} height={6} /></div>
-                  <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>
+                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
                     {task.est > 0 ? `${Math.round(pct * 100)}%` : '–'}
                   </span>
                 </div>
@@ -209,24 +209,24 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
             )}
             {!isClient && (
               <div>
-                <div style={{ fontSize: 10, fontFamily: "'DM Mono'", color: 'var(--textMuted)', textTransform: 'uppercase', marginBottom: 2 }}>Est.</div>
-                <div style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textMuted)' }}>
+                <div style={{ fontSize: 10, fontFamily: "'Hanken Grotesk'", color: 'var(--textMuted)', textTransform: 'uppercase', marginBottom: 2 }}>Est.</div>
+                <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>
                   {task.est > 0 ? fmtHours(task.est) : '–'}
                 </div>
               </div>
             )}
             {!isClient && (
               <div>
-                <div style={{ fontSize: 10, fontFamily: "'DM Mono'", color: 'var(--textMuted)', textTransform: 'uppercase', marginBottom: 2 }}>Utrošeno</div>
-                <div style={{ fontFamily: "'DM Mono'", fontSize: 12, color: task.over ? 'var(--red)' : task.spent > 0 ? 'var(--green)' : 'var(--textMuted)' }}>
+                <div style={{ fontSize: 10, fontFamily: "'Hanken Grotesk'", color: 'var(--textMuted)', textTransform: 'uppercase', marginBottom: 2 }}>Utrošeno</div>
+                <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: task.over ? 'var(--red)' : task.spent > 0 ? 'var(--green)' : 'var(--textMuted)' }}>
                   {task.spent > 0 ? fmtHours(task.spent) : '–'}
                 </div>
               </div>
             )}
             {!isClient && task.over && (
               <div>
-                <div style={{ fontSize: 10, fontFamily: "'DM Mono'", color: 'var(--red)', textTransform: 'uppercase', marginBottom: 2 }}>Prekoračenje</div>
-                <div style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--red)' }}>+{task.overPct}%</div>
+                <div style={{ fontSize: 10, fontFamily: "'Hanken Grotesk'", color: 'var(--red)', textTransform: 'uppercase', marginBottom: 2 }}>Prekoračenje</div>
+                <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--red)' }}>+{task.overPct}%</div>
               </div>
             )}
           </div>
@@ -269,12 +269,12 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={sub.status}><Badge color={statusColor(sub.status)}>{sub.status}</Badge></div>
           <div />
           {!isClient && !isTablet && (
-            <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>
+            <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
               {sub.timeoriginalestimate > 0 ? fmtHours(sub.timeoriginalestimate) : '–'}
             </div>
           )}
           {!isClient && (
-            <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>
+            <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
               {sub.timespent > 0 ? fmtHours(sub.timespent) : '–'}
             </div>
           )}
@@ -344,8 +344,8 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
       <div style={{ padding: isMobile ? '12px' : '16px 20px', borderBottom: '1px solid var(--border)' }}>
         {/* Title + search */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-          <span style={{ fontFamily: 'Syne', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>Taskovi</span>
-          <span style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textMuted)' }}>({tasks.length})</span>
+          <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>Taskovi</span>
+          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>({tasks.length})</span>
           <input
             placeholder={t('table.search')}
             value={search}
@@ -358,7 +358,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
               padding: '6px 12px',
               color: 'var(--text)',
               fontSize: 13,
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               width: isMobile ? '120px' : '200px',
               minHeight: 36,
             }}
@@ -381,7 +381,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
                 title={p.title}
                 onClick={() => setFilter(p.key)}
                 style={{
-                  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                   fontWeight: 500,
                   fontSize: 12,
                   height: isMobile ? 36 : 28,
@@ -414,7 +414,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
         background: 'var(--surfaceAlt)',
         borderBottom: '1px solid var(--border)',
         fontSize: 11,
-        fontFamily: "'DM Mono'",
+        fontFamily: "'Hanken Grotesk'",
         textTransform: 'uppercase',
         letterSpacing: '0.06em',
         color: 'var(--textMuted)',
@@ -429,7 +429,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
 
       {/* Rows */}
       {filtered.length === 0 ? (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
           Nema taskova
         </div>
       ) : (

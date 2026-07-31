@@ -28,14 +28,14 @@ function LineChart({ snaps, series, width = 760, height = 150, yMax, yFmt }) {
     const val = (max * i) / ticks
     const yy = padT + plotH - (val / max) * plotH
     grid += `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${width - padR}" y2="${yy.toFixed(1)}" stroke="${PAL.border}" stroke-width="1"/>`
-    grid += `<text x="${padL - 6}" y="${(yy + 4).toFixed(1)}" text-anchor="end" font-family="DM Mono, monospace" font-size="10" fill="${PAL.muted}">${yFmt ? yFmt(val) : Math.round(val)}</text>`
+    grid += `<text x="${padL - 6}" y="${(yy + 4).toFixed(1)}" text-anchor="end" font-family="Hanken Grotesk, sans-serif" font-size="10" fill="${PAL.muted}">${yFmt ? yFmt(val) : Math.round(val)}</text>`
   }
 
   let xlabels = ''
   const step = Math.max(1, Math.ceil(n / 6))
   snaps.forEach((s, i) => {
     if (i % step === 0 || i === n - 1) {
-      xlabels += `<text x="${x(i).toFixed(1)}" y="${height - 8}" text-anchor="middle" font-family="DM Mono, monospace" font-size="10" fill="${PAL.muted}">${fmtDay(s.day)}</text>`
+      xlabels += `<text x="${x(i).toFixed(1)}" y="${height - 8}" text-anchor="middle" font-family="Hanken Grotesk, sans-serif" font-size="10" fill="${PAL.muted}">${fmtDay(s.day)}</text>`
     }
   })
 
@@ -60,11 +60,11 @@ export default function ProjectTrend({ projectId }) {
     api.getSnapshots(projectId).then(s => setSnaps(s || [])).catch(() => setSnaps([]))
   }, [projectId])
 
-  if (!snaps) return <div style={{ padding: 20, color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>Učitavam trend…</div>
+  if (!snaps) return <div style={{ padding: 20, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Učitavam trend…</div>
 
   if (snaps.length < 2) {
     return (
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>
         Trend se gradi iz dnevnih snapshot-a (beleže se pri svakom „Osveži").<br />
         Treba bar <strong>2 različita dana</strong> podataka — vrati se sutra pa će biti grafika.
         {snaps.length === 1 && <div style={{ marginTop: 6, fontSize: 12 }}>Zabeležen 1 dan ({fmtDay(snaps[0].day)}).</div>}
@@ -101,8 +101,8 @@ export default function ProjectTrend({ projectId }) {
   })
 
   const card = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 18px', marginBottom: 16 }
-  const title = { fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text)' }
-  const legend = (c, t, dash) => `<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-family:'DM Sans',sans-serif;font-size:11px;color:#5A6480"><span style="width:14px;height:0;border-top:${dash ? '2px dashed' : '3px solid'} ${c};display:inline-block"></span>${t}</span>`
+  const title = { fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--text)' }
+  const legend = (c, t, dash) => `<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:#5A6480"><span style="width:14px;height:0;border-top:${dash ? '2px dashed' : '3px solid'} ${c};display:inline-block"></span>${t}</span>`
 
   const kpis = [
     { label: 'Završeno', value: `${Math.round(donePctOf(last))}%`, delta: `${donePctDelta >= 0 ? '+' : ''}${donePctDelta}%`, good: donePctDelta >= 0 },
@@ -116,24 +116,24 @@ export default function ProjectTrend({ projectId }) {
       <div style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
           <div style={title}>Trend ({spanDays} {spanDays === 1 ? 'dan' : 'dana'} · {snaps.length} tačaka)</div>
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textMuted)' }}>{fmtDay(first.day)} → {fmtDay(last.day)}</div>
+          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>{fmtDay(first.day)} → {fmtDay(last.day)}</div>
         </div>
 
         {/* KPI strip */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 14 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px' }}>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{k.label}</div>
-              <div style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 20, color: 'var(--text)' }}>
+              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{k.label}</div>
+              <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 20, color: 'var(--text)' }}>
                 {k.value}{k.unit && <span style={{ fontSize: 11, color: 'var(--textMuted)', fontWeight: 400 }}> {k.unit}</span>}
               </div>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: k.neutral ? 'var(--textMuted)' : (k.good ? 'var(--green)' : 'var(--red)') }}>{k.delta}</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: k.neutral ? 'var(--textMuted)' : (k.good ? 'var(--green)' : 'var(--red)') }}>{k.delta}</div>
             </div>
           ))}
         </div>
 
         {weeksLeft != null && (
-          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)', marginBottom: 12 }}>
+          <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', marginBottom: 12 }}>
             Po trenutnoj brzini ({velWeek.toFixed(1)} taskova/ned), preostalih <strong style={{ color: 'var(--text)' }}>{openNow}</strong> otvorenih ≈ <strong style={{ color: 'var(--text)' }}>{weeksLeft.toFixed(1)} nedelja</strong>.
           </div>
         )}

@@ -62,11 +62,11 @@ export default function DonutChart({ segments = [], size = 200, innerRadius = 70
 
         {/* Center text */}
         <text x={cx} y={cy - 6} textAnchor="middle" dominantBaseline="middle"
-          style={{ fontFamily: 'Syne', fontSize: 22, fontWeight: 800, fill: 'var(--text)' }}>
+          style={{ fontFamily: 'Hanken Grotesk', fontSize: 22, fontWeight: 800, fill: 'var(--text)' }}>
           {centerText ?? `${donePct}%`}
         </text>
         <text x={cx} y={cy + 18} textAnchor="middle"
-          style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fill: 'var(--textMuted)' }}>
+          style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fill: 'var(--textMuted)' }}>
           {centerSubtext ?? t('donut.done')}
         </text>
       </svg>
@@ -86,10 +86,10 @@ export default function DonutChart({ segments = [], size = 200, innerRadius = 70
           return (
             <div key={i}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: horizontal ? 11 : 12 }}>
-                <span style={{ color: seg.color, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 500, fontSize: horizontal ? 11 : 12 }}>
+                <span style={{ color: seg.color, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 500, fontSize: horizontal ? 11 : 12 }}>
                   ● {seg.label}
                 </span>
-                <span style={{ fontFamily: "'DM Mono'", color: 'var(--textMuted)', fontSize: 11 }}>
+                <span style={{ fontFamily: "'Hanken Grotesk'", color: 'var(--textMuted)', fontSize: 11 }}>
                   {seg.displayValue ?? `${seg.value}/${total}`}
                 </span>
               </div>

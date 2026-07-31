@@ -42,7 +42,7 @@ function S({ children, color }) {
 
 function M({ children }) {
   return (
-    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: 'var(--accent)', background: 'var(--accentTint)', padding: '1px 6px', borderRadius: 4 }}>
+    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--accent)', background: 'var(--accentTint)', padding: '1px 6px', borderRadius: 4 }}>
       {children}
     </span>
   )
@@ -62,7 +62,7 @@ function Bdg({ c = 'gray', children }) {
   }
   const s = map[c] || map.gray
   return (
-    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 500, background: s.bg, color: s.color, border: s.border }}>
+    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 500, background: s.bg, color: s.color, border: s.border }}>
       {children}
     </span>
   )
@@ -591,7 +591,7 @@ function QAItem({ q, a, isOpen, onToggle }) {
           transition: 'background 0.2s ease',
         }}
       >
-        <span style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", fontSize: 14, fontWeight: 500, color: isOpen ? 'var(--accent)' : 'var(--text)', lineHeight: 1.4 }}>
+        <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, sans-serif", fontSize: 14, fontWeight: 500, color: isOpen ? 'var(--accent)' : 'var(--text)', lineHeight: 1.4 }}>
           {q}
         </span>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
@@ -619,10 +619,10 @@ function CategorySection({ category, visibleQuestions, openId, setOpenId }) {
         <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: category.iconBg, color: category.iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {category.icon}
         </div>
-        <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>
+        <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>
           {category.label}
         </span>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12, padding: '2px 8px', marginLeft: 'auto' }}>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12, padding: '2px 8px', marginLeft: 'auto' }}>
           {visibleQuestions.length} pitanja
         </span>
       </div>
@@ -655,7 +655,7 @@ function Pill({ label, count, active, onClick }) {
         padding: '6px 16px',
         color: active ? '#fff' : hover ? 'var(--accent)' : 'var(--textMuted)',
         cursor: 'pointer',
-        fontFamily: "'DM Sans', -apple-system, sans-serif",
+        fontFamily: "'Hanken Grotesk', -apple-system, sans-serif",
         fontSize: 13,
         fontWeight: 500,
         transition: 'all 0.2s',
@@ -666,7 +666,7 @@ function Pill({ label, count, active, onClick }) {
       }}
     >
       {label}
-      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, opacity: active ? 0.9 : 0.7 }}>
+      <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, opacity: active ? 0.9 : 0.7 }}>
         {count}
       </span>
     </button>
@@ -738,10 +738,10 @@ export default function QAPage({
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text)', marginBottom: 12 }}>
+          <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 32, color: 'var(--text)', marginBottom: 12 }}>
             Pitanja i odgovori
           </h1>
-          <p style={{ color: 'var(--textMuted)', fontSize: 15, fontFamily: "'DM Sans', -apple-system, sans-serif", lineHeight: 1.6 }}>
+          <p style={{ color: 'var(--textMuted)', fontSize: 15, fontFamily: "'Hanken Grotesk', -apple-system, sans-serif", lineHeight: 1.6 }}>
             Pronađite odgovore na najčešća pitanja o Intelisale Project Hub platformi
           </p>
         </div>
@@ -768,7 +768,7 @@ export default function QAPage({
               borderRadius: 12,
               padding: '12px 20px 12px 44px',
               color: 'var(--text)',
-              fontFamily: "'DM Sans', -apple-system, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, sans-serif",
               fontSize: 15,
               outline: 'none',
               transition: 'border-color 0.2s ease',

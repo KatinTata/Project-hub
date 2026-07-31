@@ -104,13 +104,13 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
         ) : (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>
+              <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>
                 {isClient ? t('rn.availableVersions') : t('rn.publishedVersions')}
               </span>
               <button
                 onClick={loadNotesList}
                 style={{
-                  padding: '6px 14px', borderRadius: 8, fontSize: 12, fontFamily: 'DM Mono',
+                  padding: '6px 14px', borderRadius: 8, fontSize: 12, fontFamily: 'Hanken Grotesk',
                   background: 'transparent', border: '1px solid var(--border)',
                   color: 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.2s ease',
                 }}
@@ -122,11 +122,11 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
             </div>
 
             {notesListLoading ? (
-              <div style={{ padding: 60, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 14 }}>
+              <div style={{ padding: 60, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>
                 {t('rn.loading')}
               </div>
             ) : notesList.length === 0 ? (
-              <div style={{ padding: 60, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 14 }}>
+              <div style={{ padding: 60, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>
                 {isClient ? t('rn.emptyClient') : t('rn.emptyAdmin')}
               </div>
             ) : (
@@ -225,11 +225,11 @@ function NotesByProject({ notesList, isClient, onOpen, onRelease, onDelete }) {
               marginBottom: 16, paddingBottom: 10,
               borderBottom: '1px solid var(--border)',
             }}>
-              <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)', flex: 1 }}>
+              <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', flex: 1 }}>
                 {sectionName === NONE ? 'Ostalo' : sectionName}
               </span>
               <span style={{
-                fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)',
+                fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)',
                 background: 'var(--surfaceAlt)', border: '1px solid var(--border)',
                 borderRadius: 20, padding: '2px 9px',
               }}>
@@ -277,7 +277,7 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{
-          padding: '3px 9px', borderRadius: 6, fontSize: 10, fontFamily: "'DM Mono'", fontWeight: 600, letterSpacing: '0.04em',
+          padding: '3px 9px', borderRadius: 6, fontSize: 10, fontFamily: "'Hanken Grotesk'", fontWeight: 600, letterSpacing: '0.04em',
           background: isReleased ? 'var(--greenTint)' : 'rgba(79,142,247,0.1)',
           color: isReleased ? 'var(--green)' : 'var(--accent)',
           border: `1px solid ${isReleased ? 'rgba(34,197,94,0.35)' : 'rgba(79,142,247,0.3)'}`,
@@ -286,7 +286,7 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
         </span>
         {version && (
           <span style={{
-            fontFamily: "'DM Mono'", fontSize: 11, fontWeight: 500,
+            fontFamily: "'Hanken Grotesk'", fontSize: 11, fontWeight: 500,
             color: 'var(--accent)', background: 'rgba(79,142,247,0.08)',
             border: '1px solid rgba(79,142,247,0.2)', borderRadius: 6, padding: '3px 9px',
           }}>
@@ -295,30 +295,30 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
         )}
       </div>
 
-      <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text)', lineHeight: 1.3 }}>
+      <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 17, color: 'var(--text)', lineHeight: 1.3 }}>
         {displayName}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         {note.project_name && (
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
             {note.project_name}
           </div>
         )}
-        <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>
+        <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
           {t('rn.publishedOn', { date: createdDate })}
         </div>
         {isReleased && releasedDate ? (
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--green)' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--green)' }}>
             {t('rn.releasedOn', { date: releasedDate })}
           </div>
         ) : (
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textSubtle)' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)' }}>
             {t('rn.notReleased')}
           </div>
         )}
         {!isClient && note.client_count !== undefined && (
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
             {note.client_count} {note.client_count === 1 ? t('rn.client.singular') : t('rn.client.plural')}
           </div>
         )}
@@ -330,7 +330,7 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
             onClick={e => { e.stopPropagation(); onRelease() }}
             style={{
               padding: '6px 14px', borderRadius: 7, fontSize: 12,
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               fontWeight: 600, background: 'transparent', border: '1px solid var(--green)',
               color: 'var(--green)', cursor: 'pointer', transition: 'all 0.2s ease',
             }}
@@ -359,7 +359,7 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
 
   const btnBase = {
     padding: '7px 16px', borderRadius: 8, fontSize: 13,
-    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+    fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
     fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s ease',
     background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)',
   }
@@ -381,11 +381,11 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, gap: 16 }}>
           <div>
-            <div style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 22, color: 'var(--text)', lineHeight: 1.2 }}>{displayName}</div>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 22, color: 'var(--text)', lineHeight: 1.2 }}>{displayName}</div>
             {version && (
               <div style={{
                 display: 'inline-block', marginTop: 8,
-                fontFamily: "'DM Mono'", fontSize: 13, fontWeight: 500,
+                fontFamily: "'Hanken Grotesk'", fontSize: 13, fontWeight: 500,
                 color: 'var(--accent)', background: 'rgba(79,142,247,0.1)',
                 border: '1px solid rgba(79,142,247,0.25)', borderRadius: 6, padding: '3px 10px',
               }}>{version}</div>
@@ -393,7 +393,7 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
           </div>
           <span style={{
             flexShrink: 0, padding: '4px 12px', borderRadius: 6, fontSize: 11,
-            fontFamily: "'DM Mono'", fontWeight: 600, letterSpacing: '0.04em',
+            fontFamily: "'Hanken Grotesk'", fontWeight: 600, letterSpacing: '0.04em',
             background: isReleased ? 'var(--greenTint)' : 'rgba(79,142,247,0.1)',
             color: isReleased ? 'var(--green)' : 'var(--accent)',
             border: `1px solid ${isReleased ? 'rgba(34,197,94,0.35)' : 'rgba(79,142,247,0.3)'}`,
@@ -410,8 +410,8 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
             ...(!isClient && clientCount !== undefined ? [{ label: t('rn.clients'), value: `${clientCount}`, color: 'var(--text)' }] : []),
           ].map(({ label, value, color }) => (
             <div key={label}>
-              <div style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>{label}</div>
-              <div style={{ fontFamily: "'DM Mono'", fontSize: 13, color }}>{value}</div>
+              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>{label}</div>
+              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color }}>{value}</div>
             </div>
           ))}
         </div>
@@ -461,13 +461,13 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{
           padding: '12px 20px', borderBottom: '1px solid var(--border)',
-          fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textMuted)',
+          fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)',
           textTransform: 'uppercase', letterSpacing: '0.07em',
         }}>
           {t('rn.contentPreview')}
         </div>
         {loading ? (
-          <div style={{ padding: 60, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
             {t('rn.loadingContent')}
           </div>
         ) : detail?.html ? (
@@ -481,7 +481,7 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
             }}
           />
         ) : (
-          <div style={{ padding: 60, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
             {t('rn.noContent')}
           </div>
         )}
@@ -504,12 +504,12 @@ function AssignClientsModal({ assignModal, allClientUsers, onClose, onSave }) {
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{t('rn.assignClients')}</span>
+          <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{t('rn.assignClients')}</span>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', fontSize: 22, cursor: 'pointer' }}>×</button>
         </div>
         <div style={{ padding: '12px 24px', maxHeight: 360, overflowY: 'auto' }}>
           {allClientUsers.length === 0 ? (
-            <div style={{ color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
+            <div style={{ color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
               {t('rn.noClientUsers')}
             </div>
           ) : allClientUsers.map(u => (
@@ -523,15 +523,15 @@ function AssignClientsModal({ assignModal, allClientUsers, onClose, onSave }) {
                 {selected.has(u.id) && <span style={{ color: '#fff', fontSize: 12 }}>✓</span>}
               </div>
               <div>
-                <div style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{u.name}</div>
-                <div style={{ fontFamily: 'DM Mono', fontSize: 11, color: 'var(--textMuted)' }}>{u.email}</div>
+                <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{u.name}</div>
+                <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)' }}>{u.email}</div>
               </div>
             </div>
           ))}
         </div>
         <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <button onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer' }}>{t('rn.cancel')}</button>
-          <button onClick={() => onSave([...selected])} style={{ padding: '8px 24px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer' }}>{t('rn.cancel')}</button>
+          <button onClick={() => onSave([...selected])} style={{ padding: '8px 24px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>
             {t('rn.save')}
           </button>
         </div>

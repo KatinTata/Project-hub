@@ -161,7 +161,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
         return `<div class="help-link-row">
           <span>🔗</span>
           ${keyBadge}
-          ${url ? `<a class="help-key" href="${url}" target="_blank" rel="noopener noreferrer">${linkName}</a>` : `<span style="font-family:'DM Sans',sans-serif;font-size:13px;color:#6B7A99">${linkName}</span>`}
+          ${url ? `<a class="help-key" href="${url}" target="_blank" rel="noopener noreferrer">${linkName}</a>` : `<span style="font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:#6B7A99">${linkName}</span>`}
         </div>`
       }).join('')
 
@@ -198,19 +198,19 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
   <title>${title}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#F0F2F8;--surface:#FFFFFF;--border:#E2E6F0;--border2:#C8CFDF;--text:#0F1523;--muted:#5A6480;--subtle:#A0AABF;--accent:#2563EB}
-    body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+    body{font-family:'Hanken Grotesk',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
     .bg-anim{position:fixed;inset:0;z-index:0;opacity:0.14;pointer-events:none;display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .bg-anim .bg-lines{stroke-dasharray:1500;stroke-dashoffset:1500;animation:bgDraw 10s ease-in-out infinite alternate}
     .bg-anim .bg-nodes circle{animation:bgPulse 3s infinite alternate}
     @keyframes bgDraw{0%{stroke-dashoffset:1500;opacity:.2}50%{opacity:.9}100%{stroke-dashoffset:0;opacity:.7}}
     @keyframes bgPulse{0%{opacity:.3}100%{opacity:.8}}
     .pbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 28px;gap:12px}
-    .pbar-left{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
-    .pbtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:opacity 0.2s}
+    .pbar-left{font-family:'Hanken Grotesk',sans-serif;font-size:12px;color:var(--muted)}
+    .pbtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:opacity 0.2s}
     .pbtn:hover{opacity:0.85}
     .pbtn--html{background:#EA580C}
     .pbtn--pdf{background:#7C3AED}
@@ -219,36 +219,36 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 30%);pointer-events:none}
     .hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
     .hero-logo-img{height:45px;width:auto;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .hero-kicker{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;color:#7dd3fc;white-space:nowrap}
-    .hero-eyebrow{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#38bdf8;text-transform:uppercase;display:flex;align-items:center;gap:9px;margin-bottom:12px}
+    .hero-kicker{font-family:'Hanken Grotesk',sans-serif;font-size:11px;letter-spacing:0.2em;color:#7dd3fc;white-space:nowrap}
+    .hero-eyebrow{font-family:'Hanken Grotesk',sans-serif;font-size:12px;letter-spacing:0.16em;color:#38bdf8;text-transform:uppercase;display:flex;align-items:center;gap:9px;margin-bottom:12px}
     .hero-eyebrow .dot{width:7px;height:7px;border-radius:50%;background:#38bdf8;display:inline-block}
-    .hero-title{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;line-height:1.04;letter-spacing:-0.01em;margin-bottom:14px}
-    .hero-sub{font-family:'DM Sans',sans-serif;font-size:15px;color:#9fb2c9;max-width:580px;line-height:1.55;margin-bottom:8px}
+    .hero-title{font-family:'Hanken Grotesk',sans-serif;font-weight:800;font-size:30px;line-height:1.04;letter-spacing:-0.01em;margin-bottom:14px}
+    .hero-sub{font-family:'Hanken Grotesk',sans-serif;font-size:15px;color:#9fb2c9;max-width:580px;line-height:1.55;margin-bottom:8px}
     .hero-divider{height:1px;background:rgba(255,255,255,0.13);margin:22px 0 18px}
     .hero-meta{display:flex;flex-wrap:wrap;gap:18px 40px}
-    .hm-l{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.14em;color:#38bdf8;text-transform:uppercase;margin-bottom:6px}
-    .hm-v{font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;color:#fff}
+    .hm-l{font-family:'Hanken Grotesk',sans-serif;font-size:10px;letter-spacing:0.14em;color:#38bdf8;text-transform:uppercase;margin-bottom:6px}
+    .hm-v{font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:15px;color:#fff}
     .groups{display:flex;flex-direction:column;gap:44px}
     .section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid}
     .sec-icon{font-size:20px;line-height:1}
-    .sec-label{font-family:'Syne',sans-serif;font-weight:800;font-size:18px}
-    .sec-count{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;margin-left:2px}
+    .sec-label{font-family:'Hanken Grotesk',sans-serif;font-weight:800;font-size:18px}
+    .sec-count{font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;margin-left:2px}
     .task-list{display:flex;flex-direction:column;gap:8px}
     .task-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 16px;transition:border-color 0.2s;break-inside:avoid}
     .task-card.open{border-color:var(--border2)}
     .task-row{display:flex;align-items:center;gap:12px}
-    .key-badge{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:3px 9px;border-radius:6px;flex-shrink:0;letter-spacing:0.04em;white-space:nowrap}
-    .task-summary{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);flex:1;line-height:1.4}
+    .key-badge{font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:500;padding:3px 9px;border-radius:6px;flex-shrink:0;letter-spacing:0.04em;white-space:nowrap}
+    .task-summary{font-family:'Hanken Grotesk',sans-serif;font-size:14px;font-weight:500;color:var(--text);flex:1;line-height:1.4}
     .expand-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:0 2px;flex-shrink:0;transition:transform 0.25s ease,color 0.2s;display:flex;align-items:center;line-height:1}
     .expand-btn:hover{color:var(--text)}
     .expand-btn.open{transform:rotate(180deg);color:var(--accent)}
     .task-desc{max-height:0;overflow:hidden;transition:max-height 0.32s cubic-bezier(0.4,0,0.2,1)}
     .task-desc.open{max-height:3000px}
-    .task-desc-inner{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);line-height:1.75}
+    .task-desc-inner{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:var(--muted);line-height:1.75}
     .rn-body{color:#0F1523}
     .rn-body::after{content:"";display:block;clear:both}
     .rn-body p{margin:0 0 8px}
-    .rn-body h2,.rn-body h3{font-family:'Syne',sans-serif;color:#0F1523;margin:10px 0 4px;line-height:1.3}
+    .rn-body h2,.rn-body h3{font-family:'Hanken Grotesk',sans-serif;color:#0F1523;margin:10px 0 4px;line-height:1.3}
     .rn-body h3{font-size:15px}.rn-body h2{font-size:17px}
     .rn-body ul,.rn-body ol{margin:6px 0;padding-left:22px}
     .rn-body li{margin:2px 0}
@@ -262,18 +262,18 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
     .images-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .img-pair{break-inside:avoid-page;page-break-inside:avoid}
     .img-pair--full{grid-column:span 2}
-    .img-screen-desc{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);margin-top:4px;font-style:italic}
+    .img-screen-desc{font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:var(--muted);margin-top:4px;font-style:italic}
     .images-side{display:flex;flex-direction:column;gap:8px}
     .img-side-row{display:flex;align-items:flex-start;gap:12px;break-inside:avoid-page;page-break-inside:avoid}
-    .img-side-text{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);line-height:1.55;padding-top:2px}
-    .img-num{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--muted)}
+    .img-side-text{font-family:'Hanken Grotesk',sans-serif;font-size:12px;color:var(--muted);line-height:1.55;padding-top:2px}
+    .img-num{font-family:'Hanken Grotesk',sans-serif;font-size:11px;font-weight:500;color:var(--muted)}
     .img-side-desc{color:var(--muted);font-style:italic}
     .help-link-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap}
-    .help-open{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;padding:3px 8px;border:1px solid rgba(79,142,247,0.3);border-radius:6px;white-space:nowrap;flex-shrink:0}
-    .help-key{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none}
+    .help-open{font-family:'Hanken Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;padding:3px 8px;border:1px solid rgba(79,142,247,0.3);border-radius:6px;white-space:nowrap;flex-shrink:0}
+    .help-key{font-family:'Hanken Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none}
     .help-key:hover{text-decoration:underline}
     .help-open:hover{background:rgba(79,142,247,0.1)}
-    .footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--border);text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--subtle);letter-spacing:0.1em;text-transform:uppercase}
+    .footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--border);text-align:center;font-family:'Hanken Grotesk',sans-serif;font-size:10px;color:var(--subtle);letter-spacing:0.1em;text-transform:uppercase}
     .cover-page{display:none}
     .print-header{display:none}
     .print-footer{display:none}
@@ -401,7 +401,7 @@ function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOv
       </div>
     </div>
     <div class="groups">
-      ${sectionsHtml || '<p style="color:var(--muted);font-family:DM Sans,sans-serif;text-align:center;padding:40px 0">Nema taskova.</p>'}
+      ${sectionsHtml || '<p style="color:var(--muted);font-family:Hanken Grotesk,sans-serif;text-align:center;padding:40px 0">Nema taskova.</p>'}
     </div>
     <div class="footer">INTELISALE · Empowering Sales Excellence · www.intelisale.com</div>
   </div>
@@ -1120,7 +1120,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <div>
             <label style={labelStyle}>Projekat</label>
             <select value={selectedProject?.id || ''} onChange={e => setSelectedProject(projects.find(p => p.id == e.target.value) || null)}
-              style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14 }}>
+              style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>
               <option value="">Izaberi projekat...</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.displayName || p.epicKey}</option>)}
             </select>
@@ -1140,7 +1140,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           {/* JQL column */}
           <div style={{ flex: 1, width: isMobile ? '100%' : undefined }}>
             <div style={{ marginBottom: 10 }}>
-              <span style={labelStyle}>Brzi filteri → JQL <span style={{ textTransform: 'none', fontFamily: 'DM Sans', color: 'var(--textSubtle)' }}>(više vrednosti odvoji zarezom)</span></span>
+              <span style={labelStyle}>Brzi filteri → JQL <span style={{ textTransform: 'none', fontFamily: 'Hanken Grotesk', color: 'var(--textSubtle)' }}>(više vrednosti odvoji zarezom)</span></span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 <JqlFieldSelect label="Fix Version" fieldName="fixVersion" values={qf.version} onChange={v => setQf(p => ({ ...p, version: v }))} op={qfOp.version} onOpChange={o => setQfOp(p => ({ ...p, version: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. galijum" />
                 <JqlFieldSelect label="Client - Impact Scope" fieldName="Client - Impact Scope" values={qf.impact} onChange={v => setQf(p => ({ ...p, impact: v }))} op={qfOp.impact} onOpChange={o => setQfOp(p => ({ ...p, impact: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. General" />
@@ -1169,7 +1169,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                       if (copiedEdits && tasks.length > 0) handleAddByJql()
                       else setFetchTrigger(n => n + 1)
                     }}
-                    style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s ease',
+                    style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s ease',
                       cursor: applyDisabled ? 'not-allowed' : 'pointer',
                       background: applyDisabled ? 'var(--surfaceAlt)' : 'var(--accent)',
                       color: applyDisabled ? 'var(--textMuted)' : '#fff',
@@ -1180,7 +1180,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
               })()}
             </div>
             {!selectedProject && (
-              <div style={{ marginTop: 6, fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>
+              <div style={{ marginTop: 6, fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>
                 Bez izabranog projekta, JQL povlači taskove preko tvojih Jira kredencijala (npr. <code>fixVersion = "EP 3.6"</code>).
               </div>
             )}
@@ -1200,7 +1200,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                       .catch(() => setExistingNotes([]))
                   }
                 }}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 13, fontWeight: 500, transition: 'all 0.15s',
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'Hanken Grotesk', fontSize: 13, fontWeight: 500, transition: 'all 0.15s',
                   background: copiedEdits ? 'rgba(34,197,94,0.08)' : 'var(--bg)',
                   border: `1px solid ${copiedEdits ? 'rgba(34,197,94,0.35)' : 'var(--border)'}`,
                   color: copiedEdits ? 'var(--green)' : 'var(--text)',
@@ -1211,15 +1211,15 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                 </span>
                 <span style={{ fontSize: 10, flexShrink: 0, transform: copyDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', display: 'inline-block', color: 'var(--textMuted)' }}>▾</span>
               </button>
-              <p style={{ margin: '5px 0 0', fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)', lineHeight: 1.4 }}>
+              <p style={{ margin: '5px 0 0', fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)', lineHeight: 1.4 }}>
                 {copiedEdits ? t('rne.tasksLoaded') : t('rne.copyDesc')}
               </p>
               {copyDropOpen && (
                 <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, minWidth: 300, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.25)', zIndex: 200, overflow: 'hidden' }}>
                   {existingNotes === null ? (
-                    <div style={{ padding: '12px 16px', fontFamily: 'DM Sans', fontSize: 13, color: 'var(--textMuted)' }}>{t('rne.loading')}</div>
+                    <div style={{ padding: '12px 16px', fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--textMuted)' }}>{t('rne.loading')}</div>
                   ) : existingNotes.length === 0 ? (
-                    <div style={{ padding: '12px 16px', fontFamily: 'DM Sans', fontSize: 13, color: 'var(--textMuted)' }}>{t('rne.noPublished')}</div>
+                    <div style={{ padding: '12px 16px', fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--textMuted)' }}>{t('rne.noPublished')}</div>
                   ) : (
                     <div style={{ maxHeight: 240, overflowY: 'auto', padding: 6 }}>
                       {existingNotes.map(note => (
@@ -1231,11 +1231,11 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                           onMouseEnter={e => e.currentTarget.style.background = 'var(--surfaceAlt)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
-                          <span style={{ flex: 1, fontFamily: 'DM Sans', fontSize: 13, color: 'var(--text)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{note.title || t('rne.noTitle')}</span>
+                          <span style={{ flex: 1, fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{note.title || t('rne.noTitle')}</span>
                           {note.version && (
-                            <span style={{ fontFamily: 'DM Mono', fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 4, padding: '1px 6px', flexShrink: 0 }}>{note.version}</span>
+                            <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 4, padding: '1px 6px', flexShrink: 0 }}>{note.version}</span>
                           )}
-                          <span style={{ fontFamily: 'DM Mono', fontSize: 10, color: 'var(--textMuted)', flexShrink: 0 }}>{new Date(note.created_at).toLocaleDateString('sr-Latn-RS')}</span>
+                          <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 10, color: 'var(--textMuted)', flexShrink: 0 }}>{new Date(note.created_at).toLocaleDateString('sr-Latn-RS')}</span>
                         </button>
                       ))}
                     </div>
@@ -1252,10 +1252,10 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginRight: 4 }}>
+            <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginRight: 4 }}>
               Izaberi taskove
               {tasks.length > 0 && (
-                <span style={{ fontFamily: 'DM Mono', fontSize: 12, color: 'var(--textMuted)', fontWeight: 400, marginLeft: 8 }}>
+                <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', fontWeight: 400, marginLeft: 8 }}>
                   {selectedIds.size}/{tasks.length}
                 </span>
               )}
@@ -1268,16 +1268,16 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
               </>
             )}
             <button onClick={goToStep2} disabled={selectedIds.size === 0}
-              style={{ marginLeft: 'auto', padding: '7px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', transition: 'all 0.2s ease', cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer', background: selectedIds.size === 0 ? 'var(--surfaceAlt)' : 'var(--accent)', color: selectedIds.size === 0 ? 'var(--textMuted)' : '#fff', whiteSpace: 'nowrap' }}>
+              style={{ marginLeft: 'auto', padding: '7px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: 'none', transition: 'all 0.2s ease', cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer', background: selectedIds.size === 0 ? 'var(--surfaceAlt)' : 'var(--accent)', color: selectedIds.size === 0 ? 'var(--textMuted)' : '#fff', whiteSpace: 'nowrap' }}>
               Nastavi → {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
             </button>
           </div>
 
           <input placeholder="Pretraži po imenu ili ključu..." value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 13, marginBottom: 10, boxSizing: 'border-box' }} />
+            style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 13, marginBottom: 10, boxSizing: 'border-box' }} />
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: 2 }}>Filter:</span>
+            <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: 2 }}>Filter:</span>
             {[
               { key: 'all', label: `Svi (${countByStatus.all})` },
               { key: 'resolved', label: `Resolved (${countByStatus.resolved})` },
@@ -1287,7 +1287,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
               const on = statusFilter === f.key
               return (
                 <button key={f.key} onClick={() => setStatusFilter(f.key)} style={{
-                  padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans', cursor: 'pointer', transition: 'all 0.2s ease',
+                  padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: 'Hanken Grotesk', cursor: 'pointer', transition: 'all 0.2s ease',
                   border: on ? '1px solid var(--accent)' : '1px solid var(--borderHover)',
                   color: on ? '#fff' : 'var(--text)', background: on ? 'var(--accent)' : 'var(--surfaceAlt)',
                 }}>{f.label}</button>
@@ -1299,15 +1299,15 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         {/* Rows */}
         <div>
           {loadingTasks ? (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 14 }}>{t('rne.loading')}</div>
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>{t('rne.loading')}</div>
           ) : taskError ? (
-            <div style={{ padding: 24, margin: 16, borderRadius: 8, background: 'var(--redTint)', border: '1px solid var(--red)', color: 'var(--red)', fontFamily: 'DM Sans', fontSize: 13 }}>
+            <div style={{ padding: 24, margin: 16, borderRadius: 8, background: 'var(--redTint)', border: '1px solid var(--red)', color: 'var(--red)', fontFamily: 'Hanken Grotesk', fontSize: 13 }}>
               <strong>Greška:</strong> {taskError}
             </div>
           ) : (!selectedProject && !customJql.trim()) ? (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
           ) : filteredTasks.length === 0 ? (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
           ) : filteredTasks.map(task => (
             <Step1Row key={task.id} task={task} selected={selectedIds.has(task.id)} onToggle={() => toggleSelected(task.id)} />
           ))}
@@ -1323,9 +1323,9 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
   const renderStep2 = () => (
     <div style={{ paddingBottom: 80 }}>
       {selectedTasks.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'DM Sans' }}>
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk' }}>
           {t('rne.noTasksEmpty')}{' '}
-          <button onClick={() => setWizardStep(1)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 14 }}>{t('rn.back')}</button>
+          <button onClick={() => setWizardStep(1)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>{t('rn.back')}</button>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1336,7 +1336,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             const isAiCooldown = aiCooldownIds.has(task.id)
             const detail = taskJiraDetails[task.id]
             const cat = statusCat(task)
-            const badgeStyle = { ...statusBadgeStyle(cat), fontSize: 10, fontFamily: 'DM Mono', padding: '2px 7px', borderRadius: 4, flexShrink: 0 }
+            const badgeStyle = { ...statusBadgeStyle(cat), fontSize: 10, fontFamily: 'Hanken Grotesk', padding: '2px 7px', borderRadius: 4, flexShrink: 0 }
             const helpLinks = getHelpLinks(task)
 
             return (
@@ -1349,17 +1349,17 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                 {/* Card header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer' }}
                   onClick={() => handleExpandTask(task.id)}>
-                  <span style={{ fontFamily: 'DM Mono', fontSize: 11, color: 'var(--accent)', flexShrink: 0, minWidth: 70 }}>{task.key}</span>
+                  <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--accent)', flexShrink: 0, minWidth: 70 }}>{task.key}</span>
                   <input
                     value={edit.name || ''}
                     onChange={e => { e.stopPropagation(); updateEdit(task.id, 'name', e.target.value) }}
                     onClick={e => e.stopPropagation()}
-                    style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 13, fontWeight: 500, minWidth: 0 }}
+                    style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 13, fontWeight: 500, minWidth: 0 }}
                     placeholder={t('rne.taskNamePlaceholder')}
                   />
                   <span style={badgeStyle}>{statusLabel(task)}</span>
                   {helpLinks.length > 0 && (
-                    <span style={{ fontSize: 11, fontFamily: 'DM Mono', color: 'var(--amber)', flexShrink: 0 }} title={helpLinks.map(h => h.key).join(', ')}>
+                    <span style={{ fontSize: 11, fontFamily: 'Hanken Grotesk', color: 'var(--amber)', flexShrink: 0 }} title={helpLinks.map(h => h.key).join(', ')}>
                       <IconLink /> {helpLinks.length}
                     </span>
                   )}
@@ -1389,7 +1389,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
                     {/* Detail loading indicator */}
                     {detail?.loading && (
-                      <div style={{ fontSize: 12, fontFamily: 'DM Mono', color: 'var(--textMuted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ fontSize: 12, fontFamily: 'Hanken Grotesk', color: 'var(--textMuted)', display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block', opacity: 0.5 }}>○</span> {t('rne.loadingJira')}
                       </div>
                     )}
@@ -1432,24 +1432,24 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                       {aiPreviews[task.id] && (
                         <div style={{ marginTop: 10, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 8, overflow: 'hidden' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid rgba(79,142,247,0.15)' }}>
-                            <span style={{ fontFamily: 'DM Mono', fontSize: 11, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}><IconSparkle /> AI</span>
+                            <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}><IconSparkle /> AI</span>
                             <div style={{ display: 'flex', gap: 6 }}>
                               <button
                                 onClick={() => {
                                   applyAiText(task.id, aiPreviews[task.id])
                                   setAiPreviews(prev => { const n = { ...prev }; delete n[task.id]; return n })
                                 }}
-                                style={{ padding: '4px 12px', borderRadius: 6, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                                style={{ padding: '4px 12px', borderRadius: 6, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>
                                 {t('rne.apply')}
                               </button>
                               <button
                                 onClick={() => setAiPreviews(prev => { const n = { ...prev }; delete n[task.id]; return n })}
-                                style={{ padding: '4px 10px', borderRadius: 6, fontSize: 12, fontFamily: 'DM Sans', background: 'transparent', border: '1px solid rgba(79,142,247,0.3)', color: 'var(--textMuted)', cursor: 'pointer' }}>
+                                style={{ padding: '4px 10px', borderRadius: 6, fontSize: 12, fontFamily: 'Hanken Grotesk', background: 'transparent', border: '1px solid rgba(79,142,247,0.3)', color: 'var(--textMuted)', cursor: 'pointer' }}>
                                 {t('rne.delete')}
                               </button>
                             </div>
                           </div>
-                          <div style={{ padding: '10px 12px', fontFamily: 'DM Sans', fontSize: 13, color: 'var(--text)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+                          <div style={{ padding: '10px 12px', fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
                             {aiPreviews[task.id]}
                           </div>
                         </div>
@@ -1465,13 +1465,13 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {helpLinks.map(link => (
                             <div key={link.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6 }}>
-                              <span style={{ fontFamily: 'DM Mono', fontSize: 11, padding: '2px 8px', borderRadius: 4, background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)', flexShrink: 0 }}>{link.key}</span>
-                              {link.summary && <span style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', flex: 1 }}>{link.summary}</span>}
-                              {link.status && <span style={{ fontFamily: 'DM Mono', fontSize: 10, color: 'var(--textMuted)' }}>{link.status}</span>}
+                              <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '2px 8px', borderRadius: 4, background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)', flexShrink: 0 }}>{link.key}</span>
+                              {link.summary && <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', flex: 1 }}>{link.summary}</span>}
+                              {link.status && <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 10, color: 'var(--textMuted)' }}>{link.status}</span>}
                               {buildHelpUrl(link.key, user?.jiraUrl) && (
                                 <a href={buildHelpUrl(link.key, user?.jiraUrl)} target="_blank" rel="noopener noreferrer"
                                   onClick={e => e.stopPropagation()}
-                                  style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--accent)', textDecoration: 'none', flexShrink: 0 }}>↗</a>
+                                  style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--accent)', textDecoration: 'none', flexShrink: 0 }}>↗</a>
                               )}
                             </div>
                           ))}
@@ -1505,7 +1505,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             style={{ ...smallBtnStyle, opacity: !hasAiKey ? 0.5 : bulkProgress ? 0.6 : 1 }}>
             {bulkProgress?.action === 'translate' ? `${t('rne.translating')} ${bulkProgress.current}/${bulkProgress.total}` : <><IconGlobe /> {t('rne.translate')}</>}
           </button>
-          <button onClick={goToStep3} style={{ marginLeft: 'auto', padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', transition: 'all 0.2s ease' }}>
+          <button onClick={goToStep3} style={{ marginLeft: 'auto', padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', transition: 'all 0.2s ease' }}>
             Preview →
           </button>
         </div>
@@ -1621,37 +1621,37 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <button onClick={() => setWizardStep(1)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={generateAllDescriptions} disabled={!!bulkProgress || !hasAiKey}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, cursor: 'pointer', border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
               {bulkProgress?.action === 'generate' ? `Generišem ${bulkProgress.current}/${bulkProgress.total}…` : 'Generiši sve'}
             </button>
             <button onClick={translateAll} disabled={!!bulkProgress || !hasAiKey}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
               {bulkProgress?.action === 'translate' ? `Prevodim ${bulkProgress.current}/${bulkProgress.total}…` : 'Prevedi sve'}
             </button>
             {Object.keys(aiBackup).length > 0 && (
               <button onClick={revertAllAi} title="Vrati sve AI izmene na original"
-                style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)' }}>
+                style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)' }}>
                 Vrati sve ({Object.keys(aiBackup).length})
               </button>
             )}
             <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 2px' }} />
             <button onClick={goToStep3}
-              style={{ padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'DM Sans', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
+              style={{ padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
               Dalje: Pregled →
             </button>
           </div>
         </div>
-        <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', marginBottom: 16 }}>
+        <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', marginBottom: 16 }}>
           Po kartici: dugme za AI opis i prevod, pa stilizuj tekst i ubaci slike · klikni naziv sekcije da je preimenuješ · redosled taskova se menja na koraku „Pregled".
         </div>
 
         {/* Document */}
         <div className="preview-wrap" style={{ maxWidth: 860, margin: '0 auto', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '40px 48px' }}>
           <div style={{ marginBottom: 40 }}>
-            <div style={{ fontFamily: 'DM Mono', fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 8 }}>INTELISALE</div>
-            <div style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 36, color: 'var(--text)', lineHeight: 1.1, marginBottom: 6 }}>Release Notes</div>
-            <div style={{ fontFamily: 'DM Mono', fontSize: 12, color: 'var(--textMuted)', marginBottom: 2 }}>{previewDate}</div>
-            {config.clientName && <div style={{ fontFamily: 'DM Mono', fontSize: 12, color: 'var(--textMuted)' }}>{config.clientName}{config.version ? ` · ${config.version}` : ''}</div>}
+            <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 8 }}>INTELISALE</div>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 36, color: 'var(--text)', lineHeight: 1.1, marginBottom: 6 }}>Release Notes</div>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', marginBottom: 2 }}>{previewDate}</div>
+            {config.clientName && <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>{config.clientName}{config.version ? ` · ${config.version}` : ''}</div>}
             <div style={{ height: 2, marginTop: 20, background: 'linear-gradient(90deg, var(--accent) 0%, transparent 70%)', borderRadius: 2, opacity: 0.35 }} />
           </div>
 
@@ -1683,20 +1683,20 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                           if (e.key === 'Enter') e.currentTarget.blur()
                           if (e.key === 'Escape') setEditingSection(null)
                         }}
-                        style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: cfg.color, background: 'transparent', border: 'none', borderBottom: `2px solid ${cfg.color}`, outline: 'none', padding: '0 2px', minWidth: 80, flex: 1 }}
+                        style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 18, color: cfg.color, background: 'transparent', border: 'none', borderBottom: `2px solid ${cfg.color}`, outline: 'none', padding: '0 2px', minWidth: 80, flex: 1 }}
                       />
                     ) : (
                       <span
                         onClick={() => { setEditingSection(prefix); setEditingSectionValue(getSectionLabel(prefix)) }}
                         title="Klikni da preimenješ sekciju"
-                        style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: cfg.color, cursor: 'pointer', borderBottom: '2px dashed transparent', transition: 'border-color 0.15s' }}
+                        style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 18, color: cfg.color, cursor: 'pointer', borderBottom: '2px dashed transparent', transition: 'border-color 0.15s' }}
                         onMouseEnter={e => e.currentTarget.style.borderBottomColor = `${cfg.color}60`}
                         onMouseLeave={e => e.currentTarget.style.borderBottomColor = 'transparent'}
                       >{cfg.label}</span>
                     )}
-                    <span style={{ fontFamily: 'DM Mono', fontSize: 11, padding: '2px 9px', borderRadius: 20, background: `${cfg.color}18`, color: cfg.color, border: `1px solid ${cfg.color}33` }}>{groups[prefix].length}</span>
+                    <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '2px 9px', borderRadius: 20, background: `${cfg.color}18`, color: cfg.color, border: `1px solid ${cfg.color}33` }}>{groups[prefix].length}</span>
                     {isDropTarget && dragFromPrefix.current !== prefix && (
-                      <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: cfg.color, marginLeft: 'auto', opacity: 0.8 }}>⟵ Pusti ovde</span>
+                      <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: cfg.color, marginLeft: 'auto', opacity: 0.8 }}>⟵ Pusti ovde</span>
                     )}
                   </div>
 
@@ -1718,27 +1718,27 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                             onDrop={e => { e.preventDefault(); e.stopPropagation(); applyDrop(prefix, task.id) }}
                             style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                              <span style={{ fontFamily: 'DM Mono', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`, flexShrink: 0 }}>{task.key}</span>
+                              <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`, flexShrink: 0 }}>{task.key}</span>
                               <input value={edit.name || ''} onChange={e => updateEdit(task.id, 'name', e.target.value)} placeholder={t('rne.taskNamePlaceholder')}
-                                style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14, fontWeight: 600 }} />
+                                style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14, fontWeight: 600 }} />
                               <button onClick={() => removeFromSelection(task.id)} title={t('rne.removeTask')} style={{ ...iconBtnStyle, color: 'var(--textMuted)' }}>×</button>
                             </div>
                             <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
                               <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && generateTaskDesc(task.id, { applyDirectly: true })}
                                 disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
                                 title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
-                                style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
+                                style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
                                 {aiLoadingIds.has(task.id) ? 'Generišem…' : 'Generiši tekst'}
                               </button>
                               <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && translateTask(task.id)}
                                 disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
                                 title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
-                                style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
+                                style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
                                 Prevedi
                               </button>
                               {aiBackup[task.id] && (
                                 <button onClick={() => revertAi(task.id)} title="Vrati tekst pre AI izmene"
-                                  style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'DM Sans', fontWeight: 600, border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', cursor: 'pointer' }}>
+                                  style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', cursor: 'pointer' }}>
                                   Vrati original
                                 </button>
                               )}
@@ -1752,11 +1752,11 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                             {helpLinks.map(link => (
                               <div key={link.key} style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8, marginTop: 4, borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
                                 <span style={{ color: 'var(--amber)', display: 'flex', alignItems: 'center' }}><IconLink /></span>
-                                <span style={{ fontFamily: 'DM Mono', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)', flexShrink: 0 }}>{link.key}</span>
-                                {link.summary && <span style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)', flex: 1 }}>{link.summary}</span>}
+                                <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)', flexShrink: 0 }}>{link.key}</span>
+                                {link.summary && <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', flex: 1 }}>{link.summary}</span>}
                                 {buildHelpUrl(link.key, user?.jiraUrl) && (
                                   <a href={buildHelpUrl(link.key, user?.jiraUrl)} target="_blank" rel="noopener noreferrer"
-                                    style={{ fontFamily: 'DM Sans', fontSize: 12, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none', padding: '3px 8px', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 6 }}>
+                                    style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none', padding: '3px 8px', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 6 }}>
                                     ↗ Otvori
                                   </a>
                                 )}
@@ -1772,7 +1772,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             })}
           </div>
 
-          <div style={{ marginTop: 60, paddingTop: 20, borderTop: '1px solid var(--border)', textAlign: 'center', fontFamily: 'DM Mono', fontSize: 10, color: 'var(--textSubtle)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <div style={{ marginTop: 60, paddingTop: 20, borderTop: '1px solid var(--border)', textAlign: 'center', fontFamily: 'Hanken Grotesk', fontSize: 10, color: 'var(--textSubtle)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             INTELISALE · Empowering Sales Excellence · www.intelisale.com
           </div>
         </div>
@@ -1789,8 +1789,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     const { groups, groupOrder } = buildGroups(selTasks)
     return (
       <div style={{ marginBottom: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
-          Redosled <span style={{ fontFamily: 'DM Sans', fontWeight: 400, fontSize: 12, color: 'var(--textMuted)' }}>— prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da promeniš redosled; pregled i PDF se odmah ažuriraju</span>
+        <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
+          Redosled <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 400, fontSize: 12, color: 'var(--textMuted)' }}>— prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da promeniš redosled; pregled i PDF se odmah ažuriraju</span>
         </div>
         <div style={{ padding: 8 }}>
           {groupOrder.map(prefix => {
@@ -1800,7 +1800,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                 onDragOver={e => { e.preventDefault(); if (dragOverPrefix !== prefix) setDragOverPrefix(prefix) }}
                 onDrop={e => { e.preventDefault(); applyDrop(prefix, null) }}
                 style={{ marginBottom: 6 }}>
-                <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: cfg.color, padding: '4px 6px' }}>{cfg.label}</div>
+                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: cfg.color, padding: '4px 6px' }}>{cfg.label}</div>
                 {groups[prefix].map(task => {
                   const edit = taskEdits[task.id] || {}
                   const isTarget = dragOverTaskId === task.id
@@ -1816,8 +1816,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                           onDragEnd={() => { setDragOverPrefix(null); setDragOverTaskId(null) }}
                           title="Prevuci da promeniš redosled"
                           style={{ cursor: 'grab', color: 'var(--textSubtle)', letterSpacing: 2, userSelect: 'none', flexShrink: 0 }}>⠿</span>
-                        <span style={{ fontFamily: 'DM Mono', fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{task.key}</span>
-                        <span style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{edit.name || task.fields?.summary || ''}</span>
+                        <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{task.key}</span>
+                        <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{edit.name || task.fields?.summary || ''}</span>
                       </div>
                     </div>
                   )
@@ -1837,19 +1837,19 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <button onClick={() => setWizardStep(2)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button onClick={openHtmlPreview} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer' }}>Pregled HTML ↗</button>
-            <button onClick={exportHtml} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#EA580C', color: '#fff', border: 'none', cursor: 'pointer' }}>Export HTML</button>
-            <button onClick={exportExcelRn} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#0D9488', color: '#fff', border: 'none', cursor: 'pointer' }}>Export Excel</button>
-            <button onClick={exportPdf} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: '#7C3AED', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.exportPdf')}</button>
+            <button onClick={openHtmlPreview} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer' }}>Pregled HTML ↗</button>
+            <button onClick={exportHtml} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#EA580C', color: '#fff', border: 'none', cursor: 'pointer' }}>Export HTML</button>
+            <button onClick={exportExcelRn} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#0D9488', color: '#fff', border: 'none', cursor: 'pointer' }}>Export Excel</button>
+            <button onClick={exportPdf} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#7C3AED', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.exportPdf')}</button>
             <button onClick={openPublishModal} disabled={publishState?.loading}
-              style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>
+              style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishState?.loading ? 'wait' : 'pointer' }}>
               {publishState?.loading ? t('app.loading') : 'Publish'}
             </button>
           </div>
         </div>
 
         {publishState?.error && (
-          <div style={{ padding: '12px 16px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, fontSize: 13, color: 'var(--red)', fontFamily: 'DM Sans', marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ padding: '12px 16px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, fontSize: 13, color: 'var(--red)', fontFamily: 'Hanken Grotesk', marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
             <span>{publishState.error}</span>
             <button onClick={() => setPublishState(null)} style={{ background: 'transparent', border: 'none', color: 'var(--red)', cursor: 'pointer' }}>×</button>
           </div>
@@ -1858,9 +1858,9 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
           <input value={previewTitle} onChange={e => setPreviewTitle(e.target.value)}
             placeholder={t('rne.titlePlaceholder')}
-            style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14, boxSizing: 'border-box' }} />
+            style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14, boxSizing: 'border-box' }} />
           <input value={previewDate} onChange={e => setPreviewDate(e.target.value)}
-            style={{ width: 220, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Mono', fontSize: 13, boxSizing: 'border-box' }} />
+            style={{ width: 220, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 13, boxSizing: 'border-box' }} />
         </div>
 
         {renderReorderList()}
@@ -1913,12 +1913,12 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
 const inputStyle = {
   width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
-  borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 14, boxSizing: 'border-box',
+  borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14, boxSizing: 'border-box',
 }
 
 const pillBtnStyle = {
   background: 'var(--surfaceAlt)', border: '1px solid var(--borderHover)', borderRadius: 6,
-  color: 'var(--text)', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans', cursor: 'pointer', padding: '5px 12px',
+  color: 'var(--text)', fontSize: 12, fontWeight: 600, fontFamily: 'Hanken Grotesk', cursor: 'pointer', padding: '5px 12px',
   transition: 'all 0.2s ease', whiteSpace: 'nowrap',
 }
 
@@ -1929,12 +1929,12 @@ const iconBtnStyle = {
 
 const smallBtnStyle = {
   background: 'var(--surfaceAlt)', border: '1px solid var(--borderHover)', borderRadius: 8,
-  color: 'var(--text)', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans', cursor: 'pointer', padding: '7px 16px',
+  color: 'var(--text)', fontSize: 12, fontWeight: 600, fontFamily: 'Hanken Grotesk', cursor: 'pointer', padding: '7px 16px',
   transition: 'all 0.2s ease', whiteSpace: 'nowrap',
 }
 
 const labelStyle = {
-  fontSize: 11, fontFamily: 'DM Mono', color: 'var(--textMuted)', textTransform: 'uppercase',
+  fontSize: 11, fontFamily: 'Hanken Grotesk', color: 'var(--textMuted)', textTransform: 'uppercase',
   display: 'block', marginBottom: 6, letterSpacing: '0.05em',
 }
 
@@ -1965,10 +1965,10 @@ function JqlFieldSelect({ label, fieldName, values, onChange, op, onOpChange, fe
   return (
     <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 3 }}>
-        <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: 'var(--textMuted)' }}>{label}</span>
+        <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)' }}>{label}</span>
         {onOpChange && (
           <select value={op} onChange={e => onOpChange(e.target.value)} title="Uključi ili isključi ove vrednosti"
-            style={{ fontFamily: 'DM Mono', fontSize: 10, padding: '1px 4px', borderRadius: 5, border: `1px solid ${op === 'not in' ? 'var(--red)' : 'var(--border)'}`, background: 'var(--bg)', color: op === 'not in' ? 'var(--red)' : 'var(--textMuted)', cursor: 'pointer' }}>
+            style={{ fontFamily: 'Hanken Grotesk', fontSize: 10, padding: '1px 4px', borderRadius: 5, border: `1px solid ${op === 'not in' ? 'var(--red)' : 'var(--border)'}`, background: 'var(--bg)', color: op === 'not in' ? 'var(--red)' : 'var(--textMuted)', cursor: 'pointer' }}>
             <option value="in">in</option>
             <option value="not in">not in</option>
           </select>
@@ -1976,26 +1976,26 @@ function JqlFieldSelect({ label, fieldName, values, onChange, op, onOpChange, fe
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 6px', minHeight: 34, alignItems: 'center' }}>
         {values.map(v => (
-          <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--text)' }}>
+          <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--text)' }}>
             {v}<button onMouseDown={e => { e.preventDefault(); remove(v) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textMuted)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
           </span>
         ))}
         <input value={q} onChange={e => setQ(e.target.value)} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 160)}
           onKeyDown={e => { if (e.key === 'Enter' && q.trim()) { e.preventDefault(); add(q) } }}
           placeholder={values.length ? '' : placeholder}
-          style={{ flex: '1 1 60px', minWidth: 60, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'DM Sans', fontSize: 12, padding: '2px' }} />
+          style={{ flex: '1 1 60px', minWidth: 60, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 12, padding: '2px' }} />
       </div>
       {open && (loading || free.length > 0) && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.18)', maxHeight: 220, overflowY: 'auto' }}>
-          {loading && <div style={{ padding: '8px 10px', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>Učitavam…</div>}
+          {loading && <div style={{ padding: '8px 10px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>Učitavam…</div>}
           {!loading && free.map(o => (
             <button key={o.value} onMouseDown={e => { e.preventDefault(); add(o.value) }}
-              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--text)' }}>
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--text)' }}>
               {o.label}
             </button>
           ))}
           {!loading && free.length === 0 && (
-            <div style={{ padding: '8px 10px', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>Nema predloga — Enter da dodaš ručno</div>
+            <div style={{ padding: '8px 10px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>Nema predloga — Enter da dodaš ručno</div>
           )}
         </div>
       )}
@@ -2031,11 +2031,11 @@ function Step1Row({ task, selected, onToggle }) {
       }}>
         {selected && <span style={{ color: '#fff', fontSize: 10, lineHeight: 1 }}>✓</span>}
       </div>
-      <span style={{ fontFamily: 'DM Mono', fontSize: 11, color: 'var(--accent)', flexShrink: 0, minWidth: 80 }}>{task.key}</span>
-      <span style={{ ...badgeStyle, fontSize: 10, fontFamily: 'DM Mono', padding: '2px 7px', borderRadius: 4, flexShrink: 0 }}>
+      <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--accent)', flexShrink: 0, minWidth: 80 }}>{task.key}</span>
+      <span style={{ ...badgeStyle, fontSize: 10, fontFamily: 'Hanken Grotesk', padding: '2px 7px', borderRadius: 4, flexShrink: 0 }}>
         {statusLabel(task)}
       </span>
-      <span style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {task.fields?.summary || task.summary || ''}
       </span>
     </div>
@@ -2064,14 +2064,14 @@ function Stepper({ step, maxStep, onStepClick }) {
             >
               <div style={{
                 width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontFamily: 'DM Mono', fontWeight: 500, flexShrink: 0,
+                fontSize: 11, fontFamily: 'Hanken Grotesk', fontWeight: 500, flexShrink: 0,
                 background: isDone ? 'var(--green)' : isActive ? 'var(--accent)' : 'var(--surfaceAlt)',
                 color: isDone || isActive ? '#fff' : 'var(--textMuted)',
                 border: isDone || isActive ? 'none' : '1px solid var(--border)',
               }}>
                 {isDone ? '✓' : s.n}
               </div>
-              <span style={{ fontFamily: 'DM Sans', fontSize: 13, fontWeight: isActive ? 600 : 400, color: isActive ? 'var(--accent)' : isDone ? 'var(--green)' : 'var(--textMuted)' }}>{s.label}</span>
+              <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, fontWeight: isActive ? 600 : 400, color: isActive ? 'var(--accent)' : isDone ? 'var(--green)' : 'var(--textMuted)' }}>{s.label}</span>
             </div>
             {i < steps.length - 1 && <span style={{ color: 'var(--border)', margin: '0 4px', fontSize: 16, userSelect: 'none' }}>›</span>}
           </div>
@@ -2089,7 +2089,7 @@ function Toast({ message, onClose }) {
       position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
       background: 'var(--surface)', border: '1px solid var(--red)', borderRadius: 8, zIndex: 2000,
       padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 10,
-      fontFamily: 'DM Sans', fontSize: 13, color: 'var(--red)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--red)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
       whiteSpace: 'nowrap', maxWidth: 'calc(100vw - 40px)',
     }}>
       ⚠️ {message}
@@ -2131,18 +2131,18 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>Release Notes</span>
+          <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>Release Notes</span>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>×</button>
         </div>
         <div style={{ padding: '16px 24px' }}>
 
           {/* Section picker — dropdown */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontFamily: 'DM Mono', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Sekcija</div>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Sekcija</div>
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setSectionDropOpen(o => !o)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 13, fontWeight: selectedSection ? 500 : 400, transition: 'all 0.15s',
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'Hanken Grotesk', fontSize: 13, fontWeight: selectedSection ? 500 : 400, transition: 'all 0.15s',
                   background: selectedSection ? 'rgba(79,142,247,0.08)' : 'var(--bg)',
                   border: `1px solid ${selectedSection ? 'rgba(79,142,247,0.35)' : 'var(--border)'}`,
                   color: selectedSection ? 'var(--accent)' : 'var(--textMuted)',
@@ -2157,7 +2157,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
                     {/* No section option */}
                     <button
                       onClick={() => { setSelectedSection(null); setSectionDropOpen(false) }}
-                      style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '8px 10px', background: !selectedSection ? 'rgba(79,142,247,0.08)' : 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s', color: !selectedSection ? 'var(--accent)' : 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 13 }}
+                      style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '8px 10px', background: !selectedSection ? 'rgba(79,142,247,0.08)' : 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s', color: !selectedSection ? 'var(--accent)' : 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 13 }}
                       onMouseEnter={e => { if (selectedSection) e.currentTarget.style.background = 'var(--surfaceAlt)' }}
                       onMouseLeave={e => { if (selectedSection) e.currentTarget.style.background = 'transparent' }}
                     >Bez sekcije</button>
@@ -2165,7 +2165,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
                     {sections.map(s => (
                       <button key={s.id}
                         onClick={() => { setSelectedSection(s); setSectionDropOpen(false) }}
-                        style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '8px 10px', background: selectedSection?.id === s.id ? 'rgba(79,142,247,0.08)' : 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s', color: selectedSection?.id === s.id ? 'var(--accent)' : 'var(--text)', fontFamily: 'DM Sans', fontSize: 13, fontWeight: 500 }}
+                        style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '8px 10px', background: selectedSection?.id === s.id ? 'rgba(79,142,247,0.08)' : 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s', color: selectedSection?.id === s.id ? 'var(--accent)' : 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 13, fontWeight: 500 }}
                         onMouseEnter={e => { if (selectedSection?.id !== s.id) e.currentTarget.style.background = 'var(--surfaceAlt)' }}
                         onMouseLeave={e => { if (selectedSection?.id !== s.id) e.currentTarget.style.background = 'transparent' }}
                       >{s.name}</button>
@@ -2174,7 +2174,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
                     <div style={{ height: 1, background: 'var(--border)', margin: '4px 6px' }} />
                     <button
                       onClick={() => { setSelectedSection({ id: 'new', name: '' }); setSectionDropOpen(false) }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 10px', background: isNew ? 'rgba(79,142,247,0.08)' : 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s', color: isNew ? 'var(--accent)' : 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 13 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 10px', background: isNew ? 'rgba(79,142,247,0.08)' : 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s', color: isNew ? 'var(--accent)' : 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 13 }}
                       onMouseEnter={e => { if (!isNew) e.currentTarget.style.background = 'var(--surfaceAlt)' }}
                       onMouseLeave={e => { if (!isNew) e.currentTarget.style.background = 'transparent' }}
                     >
@@ -2190,16 +2190,16 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
                 value={newSectionName}
                 onChange={e => setNewSectionName(e.target.value)}
                 placeholder="Naziv sekcije..."
-                style={{ marginTop: 8, width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' }}
+                style={{ marginTop: 8, width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' }}
               />
             )}
           </div>
 
-          <div style={{ fontSize: 13, color: 'var(--textMuted)', fontFamily: 'DM Sans', marginBottom: 16, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 13, color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', marginBottom: 16, lineHeight: 1.6 }}>
             {t('rn.assignClients')}
           </div>
           {clientUsers.length === 0 ? (
-            <div style={{ color: 'var(--textMuted)', fontFamily: 'DM Sans', fontSize: 13, padding: '20px 0', textAlign: 'center' }}>{t('rn.noClientUsers')}</div>
+            <div style={{ color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 13, padding: '20px 0', textAlign: 'center' }}>{t('rn.noClientUsers')}</div>
           ) : (
             <div style={{ maxHeight: 240, overflowY: 'auto' }}>
               {clientUsers.map(u => (
@@ -2208,24 +2208,24 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
                     {selected.has(u.id) && <span style={{ color: '#fff', fontSize: 12 }}>✓</span>}
                   </div>
                   <div>
-                    <div style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{u.name}</div>
-                    <div style={{ fontFamily: 'DM Mono', fontSize: 11, color: 'var(--textMuted)' }}>{u.email}</div>
+                    <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{u.name}</div>
+                    <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)' }}>{u.email}</div>
                   </div>
                 </div>
               ))}
             </div>
           )}
           {publishState?.error && (
-            <div style={{ marginTop: 12, padding: '10px 14px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, fontSize: 13, color: 'var(--red)', fontFamily: 'DM Sans' }}>
+            <div style={{ marginTop: 12, padding: '10px 14px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, fontSize: 13, color: 'var(--red)', fontFamily: 'Hanken Grotesk' }}>
               {publishState.error}
             </div>
           )}
         </div>
         <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <button onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer' }}>
             {t('rn.cancel')}
           </button>
-          <button onClick={handleConfirm} disabled={publishing || publishState?.loading} style={{ padding: '8px 24px', borderRadius: 8, fontSize: 13, fontFamily: 'DM Sans', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishing ? 'wait' : 'pointer' }}>
+          <button onClick={handleConfirm} disabled={publishing || publishState?.loading} style={{ padding: '8px 24px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: publishing ? 'wait' : 'pointer' }}>
             {publishing || publishState?.loading ? t('app.loading') : 'Publish'}
           </button>
         </div>

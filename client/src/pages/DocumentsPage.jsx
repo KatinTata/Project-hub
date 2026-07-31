@@ -149,11 +149,11 @@ function PdfThumbnail({ docId }) {
       {state !== 'done' && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--textSubtle)' }}>
           {state === 'loading' ? (
-            <div style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)', letterSpacing: '0.08em', animation: 'pulse 1.5s ease-in-out infinite', opacity: 0.6 }}>···</div>
+            <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', letterSpacing: '0.08em', animation: 'pulse 1.5s ease-in-out infinite', opacity: 0.6 }}>···</div>
           ) : (
             <>
               <IconPdf />
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: '0.08em' }}>PDF</span>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, letterSpacing: '0.08em' }}>PDF</span>
             </>
           )}
         </div>
@@ -216,12 +216,12 @@ function DocCard({ doc, isAdmin, onDelete }) {
 
       {/* Meta */}
       <div style={{ padding: '10px 12px' }}>
-        <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, fontWeight: 500, color: 'var(--text)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 6 }}>
+        <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, fontWeight: 500, color: 'var(--text)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 6 }}>
           {doc.name}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtDate(doc.created_at)}</span>
-          <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtFileSize(doc.file_size)}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtDate(doc.created_at)}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtFileSize(doc.file_size)}</span>
         </div>
       </div>
     </div>
@@ -328,7 +328,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
 
         {/* Header */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>
+          <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>
             {step === 1 ? t('docs.add') : t('docs.upload')}
           </span>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4 }}>×</button>
@@ -337,7 +337,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
         {/* Step indicator */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           {['Fajl', 'Detalji'].map((label, i) => (
-            <div key={i} style={{ flex: 1, padding: '10px 0', textAlign: 'center', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: step === i + 1 ? 600 : 400, color: step === i + 1 ? 'var(--accent)' : 'var(--textMuted)', borderBottom: step === i + 1 ? '2px solid var(--accent)' : '2px solid transparent', transition: 'all 0.2s' }}>
+            <div key={i} style={{ flex: 1, padding: '10px 0', textAlign: 'center', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: step === i + 1 ? 600 : 400, color: step === i + 1 ? 'var(--accent)' : 'var(--textMuted)', borderBottom: step === i + 1 ? '2px solid var(--accent)' : '2px solid transparent', transition: 'all 0.2s' }}>
               {i + 1}. {label}
             </div>
           ))}
@@ -345,7 +345,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
           {error && (
-            <div style={{ padding: '10px 14px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, fontSize: 13, color: 'var(--red)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", marginBottom: 16 }}>
+            <div style={{ padding: '10px 14px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, fontSize: 13, color: 'var(--red)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", marginBottom: 16 }}>
               {error}
             </div>
           )}
@@ -366,8 +366,8 @@ function UploadModal({ sections, onClose, onUploaded }) {
               style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: '48px 24px', textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
             >
               <div style={{ color: 'var(--textSubtle)' }}><IconPdf /></div>
-              <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>Prevuci PDF ili klikni za odabir</div>
-              <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textSubtle)' }}>PDF · max 20 MB</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>Prevuci PDF ili klikni za odabir</div>
+              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)' }}>PDF · max 20 MB</div>
             </div>
           )}
 
@@ -378,8 +378,8 @@ function UploadModal({ sections, onClose, onUploaded }) {
               <div style={{ padding: '10px 14px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ color: 'var(--textMuted)' }}><IconPdf /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file?.name}</div>
-                  <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>{fmtFileSize(file?.size)}</div>
+                  <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file?.name}</div>
+                  <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{fmtFileSize(file?.size)}</div>
                 </div>
                 <button onClick={() => { setFile(null); setStep(1) }} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 16, padding: 4 }}>×</button>
               </div>
@@ -413,7 +413,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
                       style={{ ...inputStyle, flex: 1 }}
                       autoFocus
                     />
-                    <button onClick={handleCreateSection} style={{ padding: '8px 14px', borderRadius: 8, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13 }}>
+                    <button onClick={handleCreateSection} style={{ padding: '8px 14px', borderRadius: 8, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13 }}>
                       Kreiraj
                     </button>
                   </div>
@@ -431,7 +431,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
                       onMouseLeave={e => e.currentTarget.style.background = 'var(--surfaceAlt)'}
                     >
                       <Checkbox checked={allSelected()} />
-                      <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Svi klijenti</span>
+                      <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Svi klijenti</span>
                     </div>
                     {/* Individual */}
                     <div style={{ maxHeight: 160, overflowY: 'auto' }}>
@@ -444,8 +444,8 @@ function UploadModal({ sections, onClose, onUploaded }) {
                           >
                             <Checkbox checked={checked} />
                             <div>
-                              <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)' }}>{c.name}</div>
-                              <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>{c.email}</div>
+                              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)' }}>{c.name}</div>
+                              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{c.email}</div>
                             </div>
                           </div>
                         )
@@ -458,7 +458,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
               {/* Upload progress */}
               {uploading && (
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
                     <span>{t('docs.uploading')}</span><span>{progress}%</span>
                   </div>
                   <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
@@ -473,10 +473,10 @@ function UploadModal({ sections, onClose, onUploaded }) {
         {/* Footer */}
         {step === 2 && (
           <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
-            <button onClick={() => setStep(1)} disabled={uploading} style={{ padding: '9px 20px', borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer' }}>
+            <button onClick={() => setStep(1)} disabled={uploading} style={{ padding: '9px 20px', borderRadius: 8, fontSize: 13, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer' }}>
               Nazad
             </button>
-            <button onClick={handleUpload} disabled={uploading || !docName.trim() || !sectionId} style={{ padding: '9px 24px', borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: uploading ? 'wait' : 'pointer', opacity: (!docName.trim() || !sectionId) ? 0.5 : 1 }}>
+            <button onClick={handleUpload} disabled={uploading || !docName.trim() || !sectionId} style={{ padding: '9px 24px', borderRadius: 8, fontSize: 13, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: uploading ? 'wait' : 'pointer', opacity: (!docName.trim() || !sectionId) ? 0.5 : 1 }}>
               {uploading ? t('docs.uploading') : t('docs.upload')}
             </button>
           </div>
@@ -595,15 +595,15 @@ export default function DocumentsPage({
         {/* Page header */}
         <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text)', marginBottom: 4 }}>{t('docs.title')}</h1>
-            <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
+            <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 28, color: 'var(--text)', marginBottom: 4 }}>{t('docs.title')}</h1>
+            <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
               {t('docs.onProject', { n: documents.length })}
             </div>
           </div>
           {isAdmin && (
             <button
               onClick={() => setUploadOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 9, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14, transition: 'background 0.2s' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 9, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14, transition: 'background 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--accentHover)'}
               onMouseLeave={e => e.currentTarget.style.background = 'var(--accent)'}
             >
@@ -614,19 +614,19 @@ export default function DocumentsPage({
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
             {t('app.loading')}
           </div>
         ) : documents.length === 0 && sections.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
             <div style={{ color: 'var(--textSubtle)' }}><IconPdf /></div>
-            <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>Nema dokumenata</div>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>Nema dokumenata</div>
             {isAdmin ? (
-              <button onClick={() => setUploadOpen(true)} style={{ padding: '9px 20px', borderRadius: 9, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14 }}>
+              <button onClick={() => setUploadOpen(true)} style={{ padding: '9px 20px', borderRadius: 9, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14 }}>
                 Dodaj prvi dokument
               </button>
             ) : (
-              <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--textMuted)' }}>Nema dostupnih dokumenata</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--textMuted)' }}>Nema dostupnih dokumenata</div>
             )}
           </div>
         ) : (
@@ -649,13 +649,13 @@ export default function DocumentsPage({
                           autoFocus
                           style={{ ...inputStyle, flex: 1, fontSize: 15 }}
                         />
-                        <button type="submit" style={{ padding: '6px 14px', borderRadius: 7, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13 }}>Sačuvaj</button>
-                        <button type="button" onClick={() => setRenameId(null)} style={{ padding: '6px 12px', borderRadius: 7, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>Otkaži</button>
+                        <button type="submit" style={{ padding: '6px 14px', borderRadius: 7, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13 }}>Sačuvaj</button>
+                        <button type="button" onClick={() => setRenameId(null)} style={{ padding: '6px 12px', borderRadius: 7, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>Otkaži</button>
                       </form>
                     ) : (
                       <>
-                        <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)', flex: 1 }}>{section.name}</span>
-                        <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 9px' }}>
+                        <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', flex: 1 }}>{section.name}</span>
+                        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 9px' }}>
                           {sectionDocs.length}
                         </span>
                         {isAdmin && !isConfirmingDelete && (
@@ -670,9 +670,9 @@ export default function DocumentsPage({
                         )}
                         {isAdmin && isConfirmingDelete && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--red)' }}>Obrisati sekciju i sve dokumente?</span>
-                            <button onClick={() => handleDeleteSection(section.id)} style={{ padding: '4px 12px', borderRadius: 6, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12 }}>Obriši</button>
-                            <button onClick={() => setConfirmDeleteSection(null)} style={{ padding: '4px 10px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12 }}>Otkaži</button>
+                            <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--red)' }}>Obrisati sekciju i sve dokumente?</span>
+                            <button onClick={() => handleDeleteSection(section.id)} style={{ padding: '4px 12px', borderRadius: 6, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12 }}>Obriši</button>
+                            <button onClick={() => setConfirmDeleteSection(null)} style={{ padding: '4px 10px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12 }}>Otkaži</button>
                           </div>
                         )}
                       </>
@@ -687,15 +687,15 @@ export default function DocumentsPage({
                           <DocCard doc={doc} isAdmin={isAdmin} onDelete={handleDeleteDoc} />
                           {confirmDeleteDoc === doc.id && (
                             <div style={{ marginTop: 6, padding: '8px 10px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, display: 'flex', gap: 6 }}>
-                              <button onClick={() => handleDeleteDoc(doc.id)} style={{ flex: 1, padding: '4px', borderRadius: 6, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12 }}>Obriši</button>
-                              <button onClick={() => setConfirmDeleteDoc(null)} style={{ flex: 1, padding: '4px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12 }}>Otkaži</button>
+                              <button onClick={() => handleDeleteDoc(doc.id)} style={{ flex: 1, padding: '4px', borderRadius: 6, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12 }}>Obriši</button>
+                              <button onClick={() => setConfirmDeleteDoc(null)} style={{ flex: 1, padding: '4px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12 }}>Otkaži</button>
                             </div>
                           )}
                         </div>
                       ))}
                     </div>
                   ) : isAdmin ? (
-                    <div style={{ padding: '24px 0', color: 'var(--textSubtle)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, textAlign: 'center' }}>
+                    <div style={{ padding: '24px 0', color: 'var(--textSubtle)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, textAlign: 'center' }}>
                       Sekcija je prazna
                     </div>
                   ) : null}
@@ -707,7 +707,7 @@ export default function DocumentsPage({
             {unsectioned.length > 0 && (
               <div>
                 <div style={{ marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--textMuted)' }}>Ostalo</span>
+                  <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--textMuted)' }}>Ostalo</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
                   {unsectioned.map(doc => (
@@ -729,7 +729,7 @@ export default function DocumentsPage({
 }
 
 const labelStyle = {
-  display: 'block', fontSize: 11, fontFamily: "'DM Mono'",
+  display: 'block', fontSize: 11, fontFamily: "'Hanken Grotesk'",
   textTransform: 'uppercase', letterSpacing: '0.06em',
   color: 'var(--textMuted)', marginBottom: 6,
 }
@@ -737,6 +737,6 @@ const labelStyle = {
 const inputStyle = {
   width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
   borderRadius: 8, padding: '9px 12px', color: 'var(--text)',
-  fontSize: 14, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontSize: 14, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   boxSizing: 'border-box',
 }

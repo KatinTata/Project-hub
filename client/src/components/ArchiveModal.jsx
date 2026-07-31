@@ -76,10 +76,10 @@ export default function ArchiveModal({ onClose, onRestore }) {
           flexShrink: 0,
         }}>
           <div>
-            <h3 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text)', marginBottom: 2 }}>
+            <h3 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 18, color: 'var(--text)', marginBottom: 2 }}>
               📦 {t('archive.title')}
             </h3>
-            <p style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
+            <p style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
               {t('archive.subtitle')}
             </p>
           </div>
@@ -94,16 +94,16 @@ export default function ArchiveModal({ onClose, onRestore }) {
         {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
           {loading ? (
-            <div style={{ padding: 32, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
               {t('archive.loading')}
             </div>
           ) : projects.length === 0 ? (
             <div style={{ padding: 48, textAlign: 'center' }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
-              <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 6 }}>
+              <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 6 }}>
                 {t('archive.empty')}
               </div>
-              <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
+              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
                 {t('archive.emptySub')}
               </div>
             </div>
@@ -119,17 +119,17 @@ export default function ArchiveModal({ onClose, onRestore }) {
                     display: 'flex', alignItems: 'center', gap: 12,
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 3 }}>
+                      <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 3 }}>
                         {p.displayName || p.epicKey}
                       </div>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         <span style={{
-                          fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textSubtle)',
+                          fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)',
                           background: 'var(--border)', borderRadius: 4, padding: '1px 6px',
                         }}>
                           {p.epicKey}
                         </span>
-                        <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
+                        <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
                           {t('archive.archivedAt', { date: fmtDate(p.archivedAt) })}
                         </span>
                       </div>
@@ -143,7 +143,7 @@ export default function ArchiveModal({ onClose, onRestore }) {
                         style={{
                           padding: '6px 14px', borderRadius: 7,
                           border: '1px solid var(--accent)', background: 'transparent',
-                          color: 'var(--accent)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                          color: 'var(--accent)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                           fontWeight: 600, fontSize: 12, cursor: working ? 'not-allowed' : 'pointer',
                           opacity: working ? 0.6 : 1, transition: 'all 0.2s',
                           whiteSpace: 'nowrap',
@@ -179,21 +179,21 @@ export default function ArchiveModal({ onClose, onRestore }) {
                       background: 'var(--redTint)', border: '1px solid #EF444430',
                       borderRadius: 8,
                     }}>
-                      <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)', marginBottom: 10 }}>
+                      <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)', marginBottom: 10 }}>
                         {t('archive.deleteConfirm')}
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => setConfirmDeleteId(null)} style={{
                           flex: 1, padding: '8px', borderRadius: 7,
                           border: '1px solid var(--border)', background: 'transparent',
-                          color: 'var(--text)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer',
+                          color: 'var(--text)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer',
                         }}>
                           {t('archive.cancel')}
                         </button>
                         <button onClick={() => handlePermanentDelete(p.id)} disabled={working} style={{
                           flex: 1, padding: '8px', borderRadius: 7, border: 'none',
                           background: 'var(--red)', color: '#fff',
-                          fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13,
+                          fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13,
                           cursor: working ? 'not-allowed' : 'pointer', opacity: working ? 0.7 : 1,
                         }}>
                           {t('archive.delete')}

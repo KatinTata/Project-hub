@@ -35,7 +35,7 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
 
   if (moduleData.length === 0) {
     return (
-      <div style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
+      <div style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
         Nema podataka o modulima
       </div>
     )
@@ -101,11 +101,11 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
             />
           ))}
           <text x={CX} y={CY - 10} textAnchor="middle" dominantBaseline="middle"
-            style={{ fontFamily: 'Syne', fontSize: 18, fontWeight: 800, fill: 'var(--text)' }}>
+            style={{ fontFamily: 'Hanken Grotesk', fontSize: 18, fontWeight: 800, fill: 'var(--text)' }}>
             {fmtHours(totalSpent)}
           </text>
           <text x={CX} y={CY + 14} textAnchor="middle"
-            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fill: 'var(--textMuted)' }}>
+            style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fill: 'var(--textMuted)' }}>
             ukupno
           </text>
         </svg>
@@ -119,7 +119,7 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                   <span style={{
                     display: 'flex', alignItems: 'center', gap: 6,
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                    fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12,
                     color: arc.isFaded ? 'var(--textMuted)' : 'var(--text)',
                     fontWeight: 500,
                     overflow: 'hidden',
@@ -129,7 +129,7 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
                       {arc.name}
                     </span>
                   </span>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: 'var(--textMuted)', flexShrink: 0, marginLeft: 10 }}>
+                  <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', flexShrink: 0, marginLeft: 10 }}>
                     {fmtHours(arc.totalSpent)} · {pct}%
                   </span>
                 </div>
@@ -158,7 +158,7 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
               display: 'flex', alignItems: 'center', gap: 5,
               background: 'none', border: '1px solid var(--border)', borderRadius: 6,
               cursor: 'pointer', padding: '4px 10px',
-              color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 11,
+              color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11,
               transition: 'all 0.15s',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--borderHover)'; e.currentTarget.style.color = 'var(--text)' }}
@@ -182,7 +182,7 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '2px 0', color: 'var(--textMuted)',
-              fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12,
             }}
           >
             <svg viewBox="0 0 12 12" width={11} height={11}
@@ -203,18 +203,18 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
+                        style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
                         onMouseEnter={e => e.target.style.textDecoration = 'underline'}
                         onMouseLeave={e => e.target.style.textDecoration = 'none'}
                       >
                         {t.key}
                       </a>
                     ) : (
-                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>
+                      <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>
                         {t.key}
                       </span>
                     )}
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {t.summary}
                     </span>
                   </div>

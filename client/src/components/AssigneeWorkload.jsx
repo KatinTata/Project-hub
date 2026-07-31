@@ -16,7 +16,7 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
 
   if (data.length === 0) {
     return (
-      <div style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
+      <div style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
         {t('chart.noAssignees')}
       </div>
     )
@@ -65,7 +65,7 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
               <span style={{ fontSize: 10, color: 'var(--textSubtle)', flexShrink: 0, width: 10, transition: 'transform 0.2s', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
 
               {/* Name */}
-              <div style={{ width: 120, flexShrink: 0, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: d.name === 'Neraspoređeno' ? 'var(--amber)' : 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ width: 120, flexShrink: 0, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: d.name === 'Neraspoređeno' ? 'var(--amber)' : 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {d.name}
               </div>
 
@@ -79,12 +79,12 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
               </div>
 
               {/* Hours */}
-              <div style={{ width: 44, flexShrink: 0, fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', textAlign: 'right' }}>
+              <div style={{ width: 44, flexShrink: 0, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', textAlign: 'right' }}>
                 {fmtHours(d.totalSpent)}
               </div>
 
               {/* Task count */}
-              <div style={{ width: 40, flexShrink: 0, fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textSubtle)', textAlign: 'right' }}>
+              <div style={{ width: 40, flexShrink: 0, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)', textAlign: 'right' }}>
                 {d.totalTasks}t
               </div>
             </div>
@@ -93,7 +93,7 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
             {isOpen && (
               <div style={{ marginLeft: 20, marginBottom: 6, borderLeft: `2px solid ${d.name === 'Neraspoređeno' ? 'var(--amber)' : 'var(--border)'}`, paddingLeft: 10 }}>
                 {rowTasks.length === 0 ? (
-                  <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', padding: '6px 0' }}>
+                  <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', padding: '6px 0' }}>
                     Nema taskova
                   </div>
                 ) : (
@@ -104,19 +104,19 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
                       <div key={task.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '1px solid var(--border)' }}>
                         {jiraUrl ? (
                           <a href={`https://${jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}/browse/${task.key}`} target="_blank" rel="noopener noreferrer"
-                            style={{ fontFamily: "'DM Mono'", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
+                            style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
                             onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                             onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
                           >{task.key}</a>
                         ) : (
-                          <span style={{ fontFamily: "'DM Mono'", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0 }}>
+                          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0 }}>
                             {task.key}
                           </span>
                         )}
-                        <span style={{ flex: 1, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ flex: 1, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {task.summary}
                         </span>
-                        <span style={{ fontFamily: "'DM Mono'", fontSize: 10, padding: '2px 7px', borderRadius: 4, background: sc.bg, color: sc.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, padding: '2px 7px', borderRadius: 4, background: sc.bg, color: sc.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
                           {task.status}
                         </span>
                       </div>
@@ -136,7 +136,7 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
           transform: 'translate(calc(50vw - 50%), -100%)',
           background: 'var(--surface)', border: '1px solid var(--border)',
           borderRadius: 8, padding: '7px 12px', fontSize: 12,
-          fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
           color: 'var(--text)', pointerEvents: 'none', whiteSpace: 'nowrap',
           boxShadow: '0 4px 16px rgba(0,0,0,0.25)', zIndex: 100,
         }}>
@@ -157,7 +157,7 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
         ].map(s => (
           <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0, opacity: s.color === 'var(--textSubtle)' ? 0.5 : 1 }} />
-            <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{s.label}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{s.label}</span>
           </div>
         ))}
       </div>

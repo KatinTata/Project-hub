@@ -16,7 +16,7 @@ App se hostuje na serveru, dostupna preko browsera.
 - **Auth**: JWT (JSON Web Tokens) + bcrypt za lozinke
 - **Charts**: Pure SVG (bez Recharts, bez chart biblioteka)
 - **Stilovi**: Inline JS objekti (bez CSS fajlova, bez Tailwind, bez UI biblioteka)
-- **Fontovi**: Google Fonts CDN — Syne + DM Mono + DM Sans
+- **Fontovi**: Google Fonts CDN — Hanken Grotesk (jedina familija, 400–800; TTF kopije u server/excel/fonts za resvg grafikone)
 - **Jira API**: Svi pozivi idu kroz backend (ne direktno sa frontenda)
 
 ---
@@ -114,12 +114,12 @@ const themes = {
 
 ### Fontovi (Google Fonts CDN u index.html)
 ```html
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 ```
 
-- **Syne 700–800**: naslovi, KPI vrednosti, project name
-- **DM Mono 400–500**: task ID-ovi, key badge-ovi, metrički labeli, numerički podaci
-- **DM Sans 400–600**: sav ostali tekst, dugmad, labeli
+- **Hanken Grotesk 700–800**: naslovi, KPI vrednosti, project name
+- **Hanken Grotesk 500–600 (uppercase + letter-spacing)**: task ID-ovi, key badge-ovi, metrički labeli
+- **Hanken Grotesk 400–600**: sav ostali tekst, dugmad, labeli
 
 ### Zajednički stilovi komponenti
 

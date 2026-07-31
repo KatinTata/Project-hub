@@ -58,10 +58,10 @@ export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
             alt="Intelisale"
             style={{ height: 40, marginBottom: 12, objectFit: 'contain' }}
           />
-          <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text)', marginBottom: 4 }}>
+          <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)', marginBottom: 4 }}>
             Project Hub
           </h1>
-          <p style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
+          <p style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
             {t('login.subtitle')}
           </p>
         </div>
@@ -103,7 +103,7 @@ export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
               borderRadius: 8,
               color: 'var(--red)',
               fontSize: 13,
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
             }}>{error}</div>
           )}
 
@@ -116,7 +116,7 @@ export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
               color: '#fff',
               borderRadius: 8,
               padding: '11px',
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               fontWeight: 600,
               fontSize: 15,
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -137,7 +137,7 @@ export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
 const labelStyle = {
   display: 'block',
   fontSize: 11,
-  fontFamily: "'DM Mono'",
+  fontFamily: "'Hanken Grotesk'",
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
   color: 'var(--textMuted)',
@@ -152,6 +152,6 @@ const inputStyle = {
   padding: '10px 14px',
   color: 'var(--text)',
   fontSize: 14,
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   transition: 'border-color 0.2s',
 }

@@ -175,7 +175,7 @@ const ALIGN_ICON = {
 }
 
 const SWATCHES = ['#0F1523', '#2563EB', '#16A34A', '#D97706', '#DC2626', '#7C3AED']
-const TB = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 30, height: 28, padding: '0 8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', borderRadius: 6, cursor: 'pointer', fontFamily: 'DM Sans', fontSize: 13, lineHeight: 1 }
+const TB = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 30, height: 28, padding: '0 8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', borderRadius: 6, cursor: 'pointer', fontFamily: 'Hanken Grotesk', fontSize: 13, lineHeight: 1 }
 const active = on => on ? { ...TB, background: 'var(--accent)', color: '#fff', borderColor: 'var(--accent)' } : TB
 const sep = <span style={{ width: 1, background: 'var(--border)', margin: '2px 2px', alignSelf: 'stretch' }} />
 
@@ -305,16 +305,16 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
   return (
     <div className="rbe" style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: 'var(--bg)' }}>
       <style>{`
-        .rbe .ProseMirror{outline:none;min-height:130px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6;color:var(--text)}
+        .rbe .ProseMirror{outline:none;min-height:130px;padding:10px 14px;font-family:'Hanken Grotesk',sans-serif;font-size:13px;line-height:1.6;color:var(--text)}
         .rbe .ProseMirror>*:first-child{margin-top:0}
         .rbe .ProseMirror p{margin:0 0 8px}
-        .rbe .ProseMirror h1{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin:10px 0 6px}
-        .rbe .ProseMirror h2{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin:10px 0 4px}
-        .rbe .ProseMirror h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin:8px 0 4px}
+        .rbe .ProseMirror h1{font-family:'Hanken Grotesk',sans-serif;font-weight:800;font-size:20px;margin:10px 0 6px}
+        .rbe .ProseMirror h2{font-family:'Hanken Grotesk',sans-serif;font-weight:700;font-size:17px;margin:10px 0 4px}
+        .rbe .ProseMirror h3{font-family:'Hanken Grotesk',sans-serif;font-weight:700;font-size:15px;margin:8px 0 4px}
         .rbe .ProseMirror ul,.rbe .ProseMirror ol{padding-left:22px;margin:6px 0}
         .rbe .ProseMirror li{margin:2px 0}
         .rbe .ProseMirror blockquote{border-left:3px solid var(--border);padding-left:12px;color:var(--textMuted);margin:8px 0}
-        .rbe .ProseMirror code{background:var(--surfaceAlt);padding:1px 4px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px}
+        .rbe .ProseMirror code{background:var(--surfaceAlt);padding:1px 4px;border-radius:4px;font-family:'Hanken Grotesk',sans-serif;font-size:12px}
         .rbe .ProseMirror a{color:var(--accent)}
         .rbe .ProseMirror .rbe-img{position:relative;display:inline-block;line-height:0}
         .rbe .ProseMirror .rbe-img img{width:100%;height:auto;display:block;border-radius:5px}
@@ -370,21 +370,21 @@ export default function RichBodyEditor({ value, onChange, placeholder, maxImageM
       </div>
 
       {imgActive && (
-        <div onMouseDown={e => e.preventDefault()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderBottom: '1px solid var(--border)', background: 'rgba(79,142,247,0.08)', fontFamily: 'DM Sans', fontSize: 12, color: 'var(--textMuted)' }}>
+        <div onMouseDown={e => e.preventDefault()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderBottom: '1px solid var(--border)', background: 'rgba(79,142,247,0.08)', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>
           <span>Slika:</span>
           {[['left', 'Levo'], ['full', 'Centar / puna'], ['right', 'Desno']].map(([a, lbl]) => (
             <button key={a} onClick={() => setImgStyle(FLOAT[a](widthOf(imgStyle)))} style={{ ...active(alignOf(imgStyle) === a), height: 24, fontSize: 12 }}>{lbl}</button>
           ))}
           {sep}
           <button onClick={() => setImgStyle(FLOAT[alignOf(imgStyle)](Math.max(20, widthOf(imgStyle) - 10)))} style={{ ...TB, height: 24, minWidth: 26 }}>−</button>
-          <span style={{ fontFamily: 'DM Mono', minWidth: 38, textAlign: 'center' }}>{widthOf(imgStyle)}%</span>
+          <span style={{ fontFamily: 'Hanken Grotesk', minWidth: 38, textAlign: 'center' }}>{widthOf(imgStyle)}%</span>
           <button onClick={() => setImgStyle(FLOAT[alignOf(imgStyle)](Math.min(100, widthOf(imgStyle) + 10)))} style={{ ...TB, height: 24, minWidth: 26 }}>＋</button>
           <button onClick={run(c => c.deleteSelection())} style={{ ...TB, height: 24, marginLeft: 'auto', color: 'var(--red)', borderColor: 'var(--red)' }}>Ukloni</button>
         </div>
       )}
 
       <EditorContent editor={editor} />
-      <div ref={dragLabelRef} style={{ display: 'none', position: 'fixed', zIndex: 9999, pointerEvents: 'none', background: 'var(--accent)', color: '#fff', fontFamily: 'DM Sans', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 6, boxShadow: '0 4px 14px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }} />
+      <div ref={dragLabelRef} style={{ display: 'none', position: 'fixed', zIndex: 9999, pointerEvents: 'none', background: 'var(--accent)', color: '#fff', fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 6, boxShadow: '0 4px 14px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }} />
     </div>
   )
 }

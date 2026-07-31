@@ -301,7 +301,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   if (!initialized) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 16 }}>{t('app.loading')}</div>
+        <div style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 16 }}>{t('app.loading')}</div>
       </div>
     )
   }
@@ -384,7 +384,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               border: '1px solid var(--amber)',
               borderRadius: 10,
               fontSize: 14,
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               color: 'var(--amber)',
               display: 'flex',
               alignItems: 'center',
@@ -427,10 +427,10 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
       ) : isClient ? (
         <div style={{ maxWidth: 480, margin: '80px auto', padding: '0 16px', textAlign: 'center' }}>
           <div style={{ fontSize: 48, marginBottom: 20 }}>📋</div>
-          <h2 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 22, color: 'var(--text)', marginBottom: 12 }}>
+          <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 22, color: 'var(--text)', marginBottom: 12 }}>
             {t('dash.noProjects')}
           </h2>
-          <p style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 15, lineHeight: 1.6 }}>
+          <p style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 15, lineHeight: 1.6 }}>
             {t('dash.noProjectsSub')}
           </p>
         </div>
@@ -443,10 +443,10 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               alt="Intelisale"
               style={{ height: 36, marginBottom: 20, opacity: 0.9 }}
             />
-            <h2 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text)', marginBottom: 10 }}>
+            <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 26, color: 'var(--text)', marginBottom: 10 }}>
               {t('dash.welcome')}
             </h2>
-            <p style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 15, lineHeight: 1.6 }}>
+            <p style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 15, lineHeight: 1.6 }}>
               {t('dash.welcomeSub')}
             </p>
           </div>
@@ -501,15 +501,15 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
                   background: s.done ? 'var(--green)' : 'var(--accent)',
                   color: '#fff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'Syne', fontWeight: 800, fontSize: 14,
+                  fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 14,
                 }}>
                   {s.done ? '✓' : s.step}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 3 }}>
+                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 3 }}>
                     {s.title}
                   </div>
-                  <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)', lineHeight: 1.5 }}>
+                  <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)', lineHeight: 1.5 }}>
                     {s.desc}
                   </div>
                   {s.action && !s.disabled && (
@@ -519,7 +519,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
                         marginTop: 10,
                         background: 'var(--accent)', color: '#fff', border: 'none',
                         borderRadius: 7, padding: '7px 16px',
-                        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13,
+                        fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13,
                         cursor: 'pointer',
                       }}
                     >
@@ -539,7 +539,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               color: '#fff',
               borderRadius: 8,
               padding: '11px 24px',
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               fontWeight: 600,
               fontSize: 15,
               cursor: 'pointer',

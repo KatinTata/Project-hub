@@ -7,14 +7,14 @@ import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney, col
 // ── shared styles / helpers ───────────────────────────────────────────────────
 
 const card = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }
-const label = { fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }
-const big = { fontFamily: 'Syne', fontWeight: 800, fontSize: 23, color: 'var(--text)' }
-const sub = { fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 3 }
-const thStyle = { padding: '8px 12px', fontFamily: 'Syne', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--textMuted)', textAlign: 'left' }
-const tdStyle = { padding: '8px 12px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'var(--text)', borderTop: '1px solid var(--border)' }
-const tdMono = { ...tdStyle, fontFamily: "'DM Mono'", fontSize: 12 }
-const inputS = { background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", fontSize: 13, boxSizing: 'border-box' }
-const btnS = { padding: '7px 16px', borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, border: '1px solid var(--borderHover)', background: 'var(--surfaceAlt)', color: 'var(--text)', cursor: 'pointer' }
+const label = { fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }
+const big = { fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 23, color: 'var(--text)' }
+const sub = { fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 3 }
+const thStyle = { padding: '8px 12px', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--textMuted)', textAlign: 'left' }
+const tdStyle = { padding: '8px 12px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)', borderTop: '1px solid var(--border)' }
+const tdMono = { ...tdStyle, fontFamily: "'Hanken Grotesk'", fontSize: 12 }
+const inputS = { background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, boxSizing: 'border-box' }
+const btnS = { padding: '7px 16px', borderRadius: 8, fontSize: 13, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, border: '1px solid var(--borderHover)', background: 'var(--surfaceAlt)', color: 'var(--text)', cursor: 'pointer' }
 const btnPrimary = { ...btnS, background: 'var(--accent)', color: '#fff', border: 'none' }
 const iso = d => d.toISOString().slice(0, 10)
 
@@ -37,14 +37,14 @@ function AlertNotes({ alerts, onAck, compact }) {
   const c = worst === 'limit' ? { border: 'var(--red)', bg: 'var(--redTint)', fg: 'var(--red)' } : { border: 'var(--amber)', bg: 'var(--amberTint)', fg: 'var(--amber)' }
   return (
     <div style={{ ...card, borderColor: c.border, background: c.bg }}>
-      <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: c.fg, marginBottom: 8 }}>
+      <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: c.fg, marginBottom: 8 }}>
         Obaveštenja o budžetu ({alerts.length})
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {alerts.map(a => (
-          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>
+          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>
             <span style={{
-              fontFamily: "'DM Mono'", fontSize: 9, padding: '1px 7px', borderRadius: 4, flexShrink: 0,
+              fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 7px', borderRadius: 4, flexShrink: 0,
               background: a.level === 'limit' ? 'var(--red)' : 'var(--amber)', color: '#fff',
             }}>{a.level === 'limit' ? 'LIMIT' : 'UPOZORENJE'}</span>
             <span style={{ flex: 1 }}>
@@ -52,7 +52,7 @@ function AlertNotes({ alerts, onAck, compact }) {
               {fmtMoney(a.spent_eur, 'EUR')} od {fmtMoney(a.limit_eur, 'EUR')} ({Math.round(a.pct)}%) · {a.month}
               {a.mail_sent ? '' : ' · mejl nije poslat'}
             </span>
-            <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textMuted)' }}>{String(a.created_at).slice(0, 16)}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)' }}>{String(a.created_at).slice(0, 16)}</span>
             {onAck && <button onClick={() => onAck(a.id)} title="Označi kao pročitano" style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.fg, fontSize: 15, lineHeight: 1, padding: '0 2px' }}>×</button>}
           </div>
         ))}
@@ -65,8 +65,8 @@ function Section({ title, hint, right, children }) {
   return (
     <div style={{ ...card, padding: 0, overflow: 'visible' }}>
       <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
-        {hint && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{hint}</span>}
+        <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
+        {hint && <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{hint}</span>}
         {right && <span style={{ marginLeft: 'auto' }}>{right}</span>}
       </div>
       <div style={{ padding: 18 }}>{children}</div>
@@ -104,7 +104,7 @@ function FilterBar({ preset, setPreset, range, setRange, onExport, onExportPdf, 
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
       {PRESETS.map(([k, l]) => (
         <button key={k} onClick={() => { setPreset(k); setRange(presetRange(k)) }} style={{
-          padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+          padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", cursor: 'pointer',
           border: preset === k ? '1px solid var(--accent)' : '1px solid var(--border)',
           background: preset === k ? 'var(--accent)' : 'var(--surfaceAlt)', color: preset === k ? '#fff' : 'var(--text)',
         }}>{l}</button>
@@ -124,7 +124,7 @@ function FilterBar({ preset, setPreset, range, setRange, onExport, onExportPdf, 
           PDF izveštaj
         </button>
       )}
-      {loading && <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>učitavam…</span>}
+      {loading && <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>učitavam…</span>}
     </div>
   )
 }
@@ -194,15 +194,15 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
             <div>
-              <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>AI Tokeni</h1>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
+              <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>AI Tokeni</h1>
+              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
                 Potrošnja i trošak po našoj ceni — uživo iz Agentic platforme · trošak na ekranu je u USD
               </div>
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
               {[['dashboard', 'Dashboard'], ['report', 'Izveštaj po kupcu'], ...(isSuperAdmin ? [['settings', 'Podešavanja']] : [])].map(([k, l]) => (
                 <button key={k} onClick={() => setView(k)} style={{
-                  padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+                  padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", cursor: 'pointer',
                   background: view === k ? 'var(--accent)' : 'transparent', color: view === k ? '#fff' : 'var(--textMuted)',
                   border: view === k ? '1px solid var(--accent)' : '1px solid var(--border)',
                 }}>{l}</button>
@@ -211,7 +211,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
           </div>
 
           {notConfigured && (
-            <div style={{ ...card, borderColor: 'var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', fontFamily: "'DM Sans', sans-serif", fontSize: 13, marginBottom: 14 }}>
+            <div style={{ ...card, borderColor: 'var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, marginBottom: 14 }}>
               Agentic Admin API nije konfigurisan. {isSuperAdmin ? 'Unesi URL i master ključ u Podešavanjima.' : 'Zamoli super admina da unese pristupni ključ.'}
             </div>
           )}
@@ -226,11 +226,11 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
 
               {alerts.length > 0 && (
                 <div style={{ ...card, borderColor: alerts.some(a => a.status.level === 'limit') ? 'var(--red)' : 'var(--amber)', background: alerts.some(a => a.status.level === 'limit') ? 'var(--redTint)' : 'var(--amberTint)' }}>
-                  <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: alerts.some(a => a.status.level === 'limit') ? 'var(--red)' : 'var(--amber)', marginBottom: 6 }}>
+                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: alerts.some(a => a.status.level === 'limit') ? 'var(--red)' : 'var(--amber)', marginBottom: 6 }}>
                     Budžet — {alerts.length} {alerts.length === 1 ? 'tenant zahteva pažnju' : 'tenanata zahteva pažnju'} ({budgets?.month})
                   </div>
                   {alerts.map(a => (
-                    <div key={a.tenant_id} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)', padding: '2px 0' }}>
+                    <div key={a.tenant_id} style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)', padding: '2px 0' }}>
                       <strong>{a.tenant_name}</strong> — {fmtMoney(a.status.spent_eur, 'EUR')} od {fmtMoney(a.status.limit_eur, 'EUR')} ({Math.round(a.status.pct)}%)
                       {a.status.level === 'limit' ? ' — limit prekoračen' : ' — približava se limitu'}
                     </div>
@@ -248,7 +248,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
               </div>
 
               {d.dash?.unpriced_models?.length > 0 && (
-                <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}>
+                <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
                   Modeli bez cene (trošak im se računa kao 0): {d.dash.unpriced_models.join(', ')} — dodaj cene u Podešavanjima → Cenovnik.
                 </div>
               )}
@@ -316,8 +316,8 @@ function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
-        <span style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textMuted)' }}>ukupno {fmtMoney(total)}</span>
+        <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
+        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>ukupno {fmtMoney(total)}</span>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
@@ -361,8 +361,8 @@ function SimpleTable({ title, rows, nameKey, costKey = 'cost', cur = 'USD' }) {
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
-        <span style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textMuted)' }}>ukupno {fmtMoney(total, cur)}</span>
+        <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
+        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>ukupno {fmtMoney(total, cur)}</span>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
@@ -388,7 +388,7 @@ function ModelsTable({ rows }) {
   if (!rows?.length) return null
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-      <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Detalji po modelu</div>
+      <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Detalji po modelu</div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
           <th style={thStyle}>Model</th><th style={{ ...thStyle, textAlign: 'right' }}>Zahtevi</th>
@@ -399,7 +399,7 @@ function ModelsTable({ rows }) {
           <tr key={r.model}>
             <td style={tdStyle}>
               {r.model}
-              {!r.priced && <span title="Model nema cenu — trošak se računa kao 0" style={{ marginLeft: 8, fontFamily: "'DM Mono'", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'var(--amberTint)', color: 'var(--amber)', border: '1px solid var(--amber)' }}>bez cene</span>}
+              {!r.priced && <span title="Model nema cenu — trošak se računa kao 0" style={{ marginLeft: 8, fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'var(--amberTint)', color: 'var(--amber)', border: '1px solid var(--amber)' }}>bez cene</span>}
             </td>
             <td style={{ ...tdMono, textAlign: 'right' }}>{fmtNum(r.requests)}</td>
             <td style={{ ...tdMono, textAlign: 'right' }}>{fmtTok(r.prompt_tokens)}</td>
@@ -436,7 +436,7 @@ function ReportView({ range, preset, setPreset, setRange }) {
     const cur = report.currency
     const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
     const money = v => fmtMoney(v, cur)
-    const rowsHtml = (arr, cols) => arr.map(r => `<tr>${cols.map(c => `<td style="padding:6px 10px;border-bottom:1px solid #E2E6F0;${c.right ? 'text-align:right;font-family:monospace' : ''}">${esc(c.v(r))}</td>`).join('')}</tr>`).join('')
+    const rowsHtml = (arr, cols) => arr.map(r => `<tr>${cols.map(c => `<td style="padding:6px 10px;border-bottom:1px solid #E2E6F0;${c.right ? 'text-align:right' : ''}">${esc(c.v(r))}</td>`).join('')}</tr>`).join('')
     const table = (title, head, body) => body ? `
       <h2 style="font-size:15px;margin:26px 0 8px;color:#0F2746;border-bottom:2px solid #38BDF8;padding-bottom:6px">${title}</h2>
       <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -445,7 +445,8 @@ function ReportView({ range, preset, setPreset, setRange }) {
     const cols = [{ v: r => r.name }, { v: r => fmtNum(r.requests), right: 1 }, { v: r => fmtTok(r.tokens), right: 1 }, { v: r => money(r.cost), right: 1 }]
     const head = [{ t: 'Naziv' }, { t: 'Zahtevi', right: 1 }, { t: 'Tokeni', right: 1 }, { t: 'Trošak', right: 1 }]
     const html = `<!DOCTYPE html><html lang="sr"><head><meta charset="UTF-8"><title>AI potrošnja — ${esc(report.customer?.name)}</title>
-      <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'Segoe UI',Arial,sans-serif;color:#0F1523;max-width:820px;margin:0 auto;padding:28px}@page{size:A4;margin:0}@media print{.noprint{display:none}body{padding:12mm 14mm}}</style></head><body>
+      <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet">
+      <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'Hanken Grotesk','Segoe UI',Arial,sans-serif;color:#0F1523;max-width:820px;margin:0 auto;padding:28px}@page{size:A4;margin:0}@media print{.noprint{display:none}body{padding:12mm 14mm}}</style></head><body>
       <div class="noprint" style="text-align:right;margin-bottom:12px"><button onclick="window.print()" style="background:#7C3AED;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-weight:600;cursor:pointer">Sačuvaj kao PDF</button></div>
       <div style="background:linear-gradient(135deg,#0b1a2f,#0f2746 55%,#163e6b);border-radius:16px;padding:24px 28px;color:#fff;margin-bottom:8px">
         <div style="font-size:11px;letter-spacing:0.16em;color:#38BDF8;margin-bottom:8px">INTELISALE — IZVEŠTAJ O AI POTROŠNJI</div>
@@ -480,20 +481,20 @@ function ReportView({ range, preset, setPreset, setRange }) {
         </select>
         {PRESETS.slice(1, 5).map(([k, l]) => (
           <button key={k} onClick={() => { setPreset(k); setRange(presetRange(k)) }} style={{
-            padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+            padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", cursor: 'pointer',
             border: preset === k ? '1px solid var(--accent)' : '1px solid var(--border)',
             background: preset === k ? 'var(--accent)' : 'var(--surfaceAlt)', color: preset === k ? '#fff' : 'var(--text)',
           }}>{l}</button>
         ))}
         <button onClick={load} disabled={!tenantGuid || busy} style={btnPrimary}>{busy ? 'Učitavam…' : 'Učitaj'}</button>
         {report && <button onClick={exportPdf} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>Export PDF</button>}
-        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{range.from} — {range.to}</span>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{range.from} — {range.to}</span>
       </div>
 
       {report && (
         <>
           {report.rate_available === false && (
-            <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}>
+            <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
               Kurs za izabranu valutu nije dostupan — iznosi su u USD (Podešavanja → Dohvati kurseve).
             </div>
           )}
@@ -556,7 +557,7 @@ function SettingsView() {
     setHistOpen(o => !o)
   }
 
-  if (!cfg) return <div style={{ padding: 20, color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>Učitavam…</div>
+  if (!cfg) return <div style={{ padding: 20, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Učitavam…</div>
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -568,7 +569,7 @@ function SettingsView() {
           <button onClick={saveConfig} disabled={busy} style={btnPrimary}>Sačuvaj</button>
         </div>
         {(testMsg || cfg.last_test_message) && (
-          <div style={{ marginTop: 8, fontFamily: "'DM Mono'", fontSize: 12, color: (testMsg ? testMsg.ok : cfg.last_test_ok) ? 'var(--green)' : 'var(--red)' }}>
+          <div style={{ marginTop: 8, fontFamily: "'Hanken Grotesk'", fontSize: 12, color: (testMsg ? testMsg.ok : cfg.last_test_ok) ? 'var(--green)' : 'var(--red)' }}>
             {testMsg ? testMsg.message : cfg.last_test_message}
           </div>
         )}
@@ -579,7 +580,7 @@ function SettingsView() {
         hint={cfg.pricing?.last_sync_message ? `poslednji sync: ${cfg.pricing.last_sync_message}` : 'bazne Azure cene + marže'}
         right={
           <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-            <label style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <label style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               Globalna marža %
               <input value={globalMarkup} onChange={e => setGlobalMarkup(e.target.value)} type="number" step="0.5" style={{ ...inputS, width: 74 }} />
             </label>
@@ -617,14 +618,14 @@ function SettingsView() {
             })}</tbody>
           </table>
         </div>
-        {(models?.models || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>Nema modela — pokreni „Sync Azure cena".</div>}
-        <button onClick={toggleHistory} style={{ marginTop: 10, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)', padding: 0 }}>
+        {(models?.models || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Nema modela — pokreni „Sync Azure cena".</div>}
+        <button onClick={toggleHistory} style={{ marginTop: 10, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', padding: 0 }}>
           <span style={{ display: 'inline-block', transform: histOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', marginRight: 8 }}>▸</span>Istorija promena cena
         </button>
         {histOpen && (
           <div style={{ marginTop: 8, maxHeight: 240, overflowY: 'auto' }}>
             {(history || []).map(h => (
-              <div key={h.id} style={{ display: 'flex', gap: 10, padding: '4px 0', borderTop: '1px solid var(--border)', fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', flexWrap: 'wrap' }}>
+              <div key={h.id} style={{ display: 'flex', gap: 10, padding: '4px 0', borderTop: '1px solid var(--border)', fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', flexWrap: 'wrap' }}>
                 <span style={{ color: 'var(--text)', minWidth: 110 }}>{h.model_name}</span>
                 <span>in {h.old_input_per_1m ?? '—'} → {h.new_input_per_1m}</span>
                 <span>out {h.old_output_per_1m ?? '—'} → {h.new_output_per_1m}</span>
@@ -632,7 +633,7 @@ function SettingsView() {
                 <span style={{ marginLeft: 'auto' }}>{String(h.changed_at).slice(0, 16)}</span>
               </div>
             ))}
-            {(history || []).length === 0 && <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema promena.</div>}
+            {(history || []).length === 0 && <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema promena.</div>}
           </div>
         )}
       </Section>
@@ -747,7 +748,7 @@ function PackagesCard() {
         </table>
       </div>
       {packages.length === 0 && !draft && (
-        <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
+        <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>
           Nema paketa — klikni „Novi paket" (npr. Basic 200 € + 90 €, Standard 300 € + 190 €, Pro 400 € + 390 €).
         </div>
       )}
@@ -794,7 +795,7 @@ function MappingsCard() {
             <td style={tdStyle}>
               <button onClick={() => setTracked(m.tenant_id, !m.is_tracked)} title="Prikazuj ovog tenanta u izveštajima i budžetima"
                 style={{
-                  padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+                  padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", cursor: 'pointer',
                   border: `1px solid ${m.is_tracked ? 'var(--green)' : 'var(--border)'}`,
                   background: m.is_tracked ? 'var(--greenTint)' : 'transparent',
                   color: m.is_tracked ? 'var(--green)' : 'var(--textMuted)',
@@ -804,7 +805,7 @@ function MappingsCard() {
           </tr>
         ))}</tbody>
       </table>
-      {(data?.mappings || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>Nema tenanata — klikni „Preuzmi tenante".</div>}
+      {(data?.mappings || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Nema tenanata — klikni „Preuzmi tenante".</div>}
     </Section>
   )
 }
@@ -816,25 +817,25 @@ function MultiUserPicker({ tenant, clients, onToggle }) {
     <div style={{ position: 'relative' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
         {(tenant.users || []).map(u => (
-          <span key={u.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 7px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>
+          <span key={u.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 7px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>
             {u.name}
             <button onClick={() => onToggle(tenant, u.id)} title="Ukloni" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textMuted)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
           </span>
         ))}
-        <button onClick={() => setOpen(o => !o)} style={{ background: 'transparent', border: '1px dashed var(--border)', borderRadius: 6, padding: '2px 10px', cursor: 'pointer', fontSize: 12, color: 'var(--accent)', fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>
+        <button onClick={() => setOpen(o => !o)} style={{ background: 'transparent', border: '1px dashed var(--border)', borderRadius: 6, padding: '2px 10px', cursor: 'pointer', fontSize: 12, color: 'var(--accent)', fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600 }}>
           {open ? 'Zatvori' : '+ Dodaj'}
         </button>
       </div>
       {open && (
         <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 30, marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.18)', maxHeight: 240, overflowY: 'auto', minWidth: 270 }}>
           {clients.map(c => (
-            <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderBottom: '1px solid var(--border)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>
+            <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderBottom: '1px solid var(--border)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>
               <input type="checkbox" checked={assigned.has(c.id)} onChange={() => onToggle(tenant, c.id)} />
               <span>{c.name}</span>
               <span style={{ color: 'var(--textMuted)', marginLeft: 'auto', fontSize: 11 }}>{c.email}</span>
             </label>
           ))}
-          {clients.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema klijent naloga</div>}
+          {clients.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema klijent naloga</div>}
         </div>
       )}
     </div>
@@ -947,7 +948,7 @@ function BudgetsCard() {
           })}</tbody>
         </table>
       </div>
-      {(data?.budgets || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>Nema tenanata — prvo „Preuzmi tenante" u sekciji iznad.</div>}
+      {(data?.budgets || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Nema tenanata — prvo „Preuzmi tenante" u sekciji iznad.</div>}
     </Section>
   )
 }
@@ -995,14 +996,14 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
         <Topbar {...navProps} currentPage="aiUsage" onOpenChat={onGoToMessages} />
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '22px 22px 60px' }}>
           <div style={{ marginBottom: 14 }}>
-            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>AI potrošnja</h1>
-            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
+            <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>AI potrošnja</h1>
+            <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
               {data?.customer?.name ? `${data.customer.name} — potrošnja AI servisa po aplikacijama i modelima` : 'Potrošnja AI servisa vaše organizacije'}
             </div>
           </div>
 
           {data?.not_mapped ? (
-            <div style={{ ...card, textAlign: 'center', padding: 40, color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+            <div style={{ ...card, textAlign: 'center', padding: 40, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>
               Vaš nalog još nije povezan sa AI potrošnjom. Kontaktirajte Intelisale tim da aktivira prikaz.
             </div>
           ) : (
@@ -1012,7 +1013,7 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
               </div>
 
               {data?.rate_available === false && (
-                <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}>
+                <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
                   Kurs za izabranu valutu trenutno nije dostupan — iznosi su u USD.
                 </div>
               )}
@@ -1024,13 +1025,13 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
                   {budget.package ? (
                     <>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
-                        <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
                           Vaš paket
-                          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, background: 'var(--accent)', color: '#fff', borderRadius: 6, padding: '2px 10px' }}>
+                          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, fontWeight: 600, background: 'var(--accent)', color: '#fff', borderRadius: 6, padding: '2px 10px' }}>
                             {budget.package.name}
                           </span>
                         </div>
-                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
+                        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
                           {fmtMoney(budget.package.fee_eur + budget.package.included_eur, 'EUR')} / mes
                           <span style={{ fontSize: 11, color: 'var(--textMuted)', marginLeft: 8 }}>
                             pristup {fmtMoney(budget.package.fee_eur, 'EUR')} + potrošnja {fmtMoney(budget.package.included_eur, 'EUR')}
@@ -1038,7 +1039,7 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
                         </div>
                       </div>
                       <BudgetGauge name={`Uključena potrošnja — ${budget.month}`} spent={budget.spent_eur} limit={budget.limit_eur} pct={budget.pct} level={budget.level} />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginTop: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
                         <span>
                           {budget.overage_eur > 0
                             ? <span style={{ color: 'var(--red)', fontWeight: 600 }}>Prekoračenje uključene potrošnje: {fmtMoney(budget.overage_eur, 'EUR')}</span>
@@ -1049,7 +1050,7 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
                     </>
                   ) : (
                     <>
-                      <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 8 }}>
+                      <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 8 }}>
                         Mesečni budžet — {budget.month}
                       </div>
                       <BudgetGauge name={budget.tenant_name} spent={budget.spent_eur} limit={budget.limit_eur} pct={budget.pct} level={budget.level} />

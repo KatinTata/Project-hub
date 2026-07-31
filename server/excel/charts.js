@@ -1,7 +1,7 @@
 // Pure SVG chart builders for the Excel project report.
 // No external deps — return SVG strings that are rasterized to PNG (via resvg)
 // before being embedded into the workbook. The rasterizer is given the bundled
-// Inter font explicitly (loadSystemFonts:false), so text renders identically on
+// Hanken Grotesk font explicitly (loadSystemFonts:false), so text renders identically on
 // any machine — including font-less Linux containers (Railway).
 
 export const PALETTE = {
@@ -17,7 +17,7 @@ export const PALETTE = {
   surfaceAlt: '#F8F9FC',
 }
 
-const FONT = 'Inter'
+const FONT = 'Hanken Grotesk'
 
 function esc(s) {
   return String(s ?? '')

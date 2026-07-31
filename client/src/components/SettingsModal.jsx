@@ -172,7 +172,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
           alignItems: 'center',
           flexShrink: 0,
         }}>
-          <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)' }}>Podešavanja</h2>
+          <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)' }}>Podešavanja</h2>
           <button onClick={onClose} style={{ fontSize: 18, color: 'var(--textMuted)', padding: 8, minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
 
@@ -193,7 +193,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
                   style={{
                     flex: 1,
                     padding: '12px 8px',
-                    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                    fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                     fontSize: 13,
                     color: tab === tb.key ? 'var(--accent)' : 'var(--textMuted)',
                     borderBottom: tab === tb.key ? '2px solid var(--accent)' : '2px solid transparent',
@@ -246,7 +246,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
                     borderRadius: 8,
                     borderTop: 'none', borderRight: 'none', borderBottom: 'none',
                     borderLeft: `3px solid ${tab === tb.key ? 'var(--accent)' : 'transparent'}`,
-                    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                    fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                     fontSize: 14,
                     color: tab === tb.key ? 'var(--accent)' : 'var(--textMuted)',
                     background: tab === tb.key ? 'rgba(79,142,247,0.08)' : 'transparent',
@@ -352,8 +352,8 @@ function SettingsContent({
 
       <h3 style={{ ...sectionTitle, marginTop: 28, color: 'var(--red)' }}>{t('settings.profile.dangerZone')}</h3>
       <div style={{ background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 10, padding: '16px 20px' }}>
-        <div style={{ fontFamily: 'Syne', fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>{t('settings.profile.deleteAccount')}</div>
-        <div style={{ fontSize: 13, color: 'var(--textMuted)', marginBottom: 16, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>{t('settings.profile.deleteAccount')}</div>
+        <div style={{ fontSize: 13, color: 'var(--textMuted)', marginBottom: 16, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
           {t('settings.profile.deleteConfirm')}
         </div>
         {!deleteConfirm ? (
@@ -362,7 +362,7 @@ function SettingsContent({
           </button>
         ) : (
           <div>
-            <div style={{ color: 'var(--red)', fontSize: 13, marginBottom: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            <div style={{ color: 'var(--red)', fontSize: 13, marginBottom: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
               {t('settings.profile.deleteConfirm')}
             </div>
             <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
@@ -389,7 +389,7 @@ function SettingsContent({
       <div style={{ marginBottom: 16 }}>
         <label style={fieldLabel}>{t('settings.jira.token')}</label>
         <input type="password" value={jiraToken} onChange={e => setJiraToken(e.target.value)} placeholder={t('settings.jira.tokenPlaceholder')} style={inputStyle} />
-        <div style={{ fontSize: 11, color: 'var(--textMuted)', marginTop: 4, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <div style={{ fontSize: 11, color: 'var(--textMuted)', marginTop: 4, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
           Token se čuva enkriptovan. Ostavite prazno da ne menjate.
         </div>
       </div>
@@ -426,7 +426,7 @@ function SettingsContent({
         borderRadius: 10,
         marginBottom: 20,
       }}>
-        <div style={{ fontFamily: "'DM Mono'", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
+        <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
           {t('settings.appearance.theme')}
         </div>
         <div style={{
@@ -451,7 +451,7 @@ function SettingsContent({
                 border: 'none',
                 background: theme === opt.value ? 'var(--accent)' : 'transparent',
                 color: theme === opt.value ? '#fff' : 'var(--textMuted)',
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                 fontSize: 13,
                 fontWeight: theme === opt.value ? 600 : 400,
                 cursor: 'pointer',
@@ -472,7 +472,7 @@ function SettingsContent({
         border: '1px solid var(--border)',
         borderRadius: 10,
       }}>
-        <div style={{ fontFamily: "'DM Mono'", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
+        <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
           {t('settings.appearance.language')}
         </div>
         <div style={{
@@ -497,7 +497,7 @@ function SettingsContent({
                 border: 'none',
                 background: lang === opt.value ? 'var(--accent)' : 'transparent',
                 color: lang === opt.value ? '#fff' : 'var(--textMuted)',
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                 fontSize: 13,
                 fontWeight: lang === opt.value ? 600 : 400,
                 cursor: 'pointer',
@@ -516,7 +516,7 @@ function SettingsContent({
   if (tab === 'ai') return (
     <div>
       <h3 style={sectionTitle}>{t('settings.tab.ai')}</h3>
-      <div style={{ fontSize: 13, color: 'var(--textMuted)', marginBottom: 16, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", lineHeight: 1.6 }}>
+      <div style={{ fontSize: 13, color: 'var(--textMuted)', marginBottom: 16, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", lineHeight: 1.6 }}>
         API ključ se koristi za AI funkcije u Release Notes (sumiraj, simplifikuj, prevedi).
         Ključ se čuva enkriptovan, kao i Jira token.
       </div>
@@ -534,7 +534,7 @@ function SettingsContent({
           placeholder={hasAnthropicKey ? '••••••••••••  (ostavite prazno da ne menjate)' : 'sk-ant-api03-...'}
           style={inputStyle}
         />
-        <div style={{ fontSize: 11, color: 'var(--textMuted)', marginTop: 4, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <div style={{ fontSize: 11, color: 'var(--textMuted)', marginTop: 4, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
           Ključ možete kreirati na console.anthropic.com
         </div>
       </div>
@@ -552,7 +552,7 @@ function SettingsContent({
   if (tab === 'refresh') return (
     <div>
       <h3 style={sectionTitle}>Automatsko osvežavanje</h3>
-      <div style={{ fontSize: 13, color: 'var(--textMuted)', marginBottom: 20, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", lineHeight: 1.6 }}>
+      <div style={{ fontSize: 13, color: 'var(--textMuted)', marginBottom: 20, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", lineHeight: 1.6 }}>
         Jednom dnevno, u izabrano vreme, svi projekti će se automatski osvežiti iz Jire.
       </div>
 
@@ -569,7 +569,7 @@ function SettingsContent({
           border: '1px solid var(--border)',
           borderRadius: 8,
           color: 'var(--text)',
-          fontFamily: "'DM Mono', monospace",
+          fontFamily: "'Hanken Grotesk', sans-serif",
           fontSize: 14,
           cursor: 'pointer',
           outline: 'none',
@@ -586,7 +586,7 @@ function SettingsContent({
         background: autoRefreshTime ? 'var(--greenTint)' : 'var(--surfaceAlt)',
         border: `1px solid ${autoRefreshTime ? 'rgba(34,197,94,0.25)' : 'var(--border)'}`,
         borderRadius: 10,
-        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
         fontSize: 13,
         color: autoRefreshTime ? 'var(--green)' : 'var(--textMuted)',
         lineHeight: 1.5,
@@ -602,7 +602,7 @@ function SettingsContent({
 }
 
 const sectionTitle = {
-  fontFamily: 'Syne',
+  fontFamily: 'Hanken Grotesk',
   fontWeight: 700,
   fontSize: 16,
   color: 'var(--text)',
@@ -614,7 +614,7 @@ const fieldGroup = { marginBottom: 12 }
 const fieldLabel = {
   display: 'block',
   fontSize: 11,
-  fontFamily: "'DM Mono'",
+  fontFamily: "'Hanken Grotesk'",
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
   color: 'var(--textMuted)',
@@ -622,7 +622,7 @@ const fieldLabel = {
 }
 
 const fieldValue = {
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   fontSize: 14,
   color: 'var(--text)',
   padding: '8px 12px',
@@ -639,14 +639,14 @@ const inputStyle = {
   padding: '9px 12px',
   color: 'var(--text)',
   fontSize: 14,
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
 }
 
 const msgStyle = {
   padding: '8px 12px',
   borderRadius: 6,
   fontSize: 13,
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   border: '1px solid transparent',
   marginBottom: 8,
 }
@@ -656,7 +656,7 @@ const btnPrimary = {
   color: '#fff',
   borderRadius: 8,
   padding: '10px 18px',
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   fontWeight: 600,
   fontSize: 14,
   cursor: 'pointer',
@@ -669,7 +669,7 @@ const btnSecondary = {
   color: 'var(--text)',
   borderRadius: 8,
   padding: '10px 18px',
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   fontSize: 14,
   cursor: 'pointer',
   border: '1px solid var(--border)',
@@ -681,7 +681,7 @@ const btnDanger = {
   color: '#fff',
   borderRadius: 8,
   padding: '10px 18px',
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   fontWeight: 600,
   fontSize: 14,
   cursor: 'pointer',

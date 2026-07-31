@@ -76,15 +76,15 @@ function LivePreview({ jql }) {
   if (!state) return null
 
   if (state.loading) return (
-    <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textSubtle)', marginLeft: 6 }}>···</span>
+    <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)', marginLeft: 6 }}>···</span>
   )
   if (state.error) return (
-    <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--red)', marginLeft: 6 }} title={state.error}>
+    <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--red)', marginLeft: 6 }} title={state.error}>
       ✗ {state.error.length > 60 ? state.error.slice(0, 60) + '…' : state.error}
     </span>
   )
   return (
-    <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--green)', marginLeft: 6 }}>
+    <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--green)', marginLeft: 6 }}>
       ✓ {t('jql.issues', { count: state.count })}
     </span>
   )
@@ -159,7 +159,7 @@ function JqlHints({ jql, onChange }) {
         }}>
           <span style={{ fontSize: 12, flexShrink: 0 }}>⚠</span>
           <span style={{
-            fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+            fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
             fontSize: 12,
             color: 'var(--amber)',
             flex: 1,
@@ -176,7 +176,7 @@ function JqlHints({ jql, onChange }) {
               borderRadius: 4,
               padding: '2px 8px',
               fontSize: 11,
-              fontFamily: "'DM Mono'",
+              fontFamily: "'Hanken Grotesk'",
               color: 'var(--amber)',
               cursor: 'pointer',
               transition: 'all 0.15s',
@@ -327,7 +327,7 @@ export default function JqlEditor({ value, onChange, placeholder, rows = 4, show
           padding: '9px 12px',
           color: 'var(--text)',
           fontSize: 13,
-          fontFamily: "'DM Mono', monospace",
+          fontFamily: "'Hanken Grotesk', sans-serif",
           lineHeight: 1.6,
           resize: 'vertical',
           boxSizing: 'border-box',
@@ -342,7 +342,7 @@ export default function JqlEditor({ value, onChange, placeholder, rows = 4, show
       {/* Live preview row */}
       {showPreview && (
         <div style={{ display: 'flex', alignItems: 'center', minHeight: 20, marginTop: 4 }}>
-          <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textSubtle)', letterSpacing: '0.04em' }}>
+          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)', letterSpacing: '0.04em' }}>
             LIVE
           </span>
           <LivePreview jql={value} />
@@ -387,7 +387,7 @@ export default function JqlEditor({ value, onChange, placeholder, rows = 4, show
               }}
             >
               <span style={{
-                fontFamily: "'DM Mono'",
+                fontFamily: "'Hanken Grotesk'",
                 fontSize: 9,
                 padding: '1px 5px',
                 borderRadius: 4,
@@ -399,11 +399,11 @@ export default function JqlEditor({ value, onChange, placeholder, rows = 4, show
               }}>
                 {s.isKeyword ? 'KW' : s.isOperator ? 'OP' : s.isFunction ? 'FN' : s.isValue ? 'VAL' : 'FLD'}
               </span>
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 13, color: i === activeIdx ? 'var(--accent)' : 'var(--text)', flex: 1 }}>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: i === activeIdx ? 'var(--accent)' : 'var(--text)', flex: 1 }}>
                 {s.value}
               </span>
               {s.displayName && s.displayName !== s.value && (
-                <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', flexShrink: 0, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', flexShrink: 0, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {s.displayName}
                 </span>
               )}

@@ -33,7 +33,7 @@ export default function ComponentBreakdown({ data = [] }) {
 
   if (data.length === 0) {
     return (
-      <div style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
+      <div style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
         {tFn('chart.noComponents')}
       </div>
     )
@@ -77,11 +77,11 @@ export default function ComponentBreakdown({ data = [] }) {
           ))}
           {/* Center */}
           <text x={CX} y={CY - 7} textAnchor="middle" dominantBaseline="middle"
-            style={{ fontFamily: 'Syne', fontSize: 15, fontWeight: 800, fill: 'var(--text)' }}>
+            style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 800, fill: 'var(--text)' }}>
             {fmtHours(totalSpentAll)}
           </text>
           <text x={CX} y={CY + 12} textAnchor="middle"
-            style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, fill: 'var(--textMuted)' }}>
+            style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, fill: 'var(--textMuted)' }}>
             ukupno
           </text>
         </svg>
@@ -93,7 +93,7 @@ export default function ComponentBreakdown({ data = [] }) {
             transform: 'translate(-50%, calc(-50% - 90px))',
             background: 'var(--surface)', border: '1px solid var(--border)',
             borderRadius: 8, padding: '6px 11px',
-            fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+            fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
             color: 'var(--text)', pointerEvents: 'none', whiteSpace: 'nowrap',
             boxShadow: '0 4px 16px rgba(0,0,0,0.25)', zIndex: 100,
           }}>
@@ -108,9 +108,9 @@ export default function ComponentBreakdown({ data = [] }) {
         {arcs.map((arc, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: arc.color, flexShrink: 0 }} />
-            <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', flex: 1 }}>{arc.name}</span>
-            <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: arc.color }}>{Math.round(arc.pct * 100)}%</span>
-            <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textSubtle)', width: 36, textAlign: 'right' }}>{fmtHours(arc.totalSpent)}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', flex: 1 }}>{arc.name}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: arc.color }}>{Math.round(arc.pct * 100)}%</span>
+            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)', width: 36, textAlign: 'right' }}>{fmtHours(arc.totalSpent)}</span>
           </div>
         ))}
       </div>

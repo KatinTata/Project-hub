@@ -105,7 +105,7 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '8px 14px', borderRadius: 20, border: 'none',
                   background: 'var(--accent)', color: '#fff',
-                  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14,
+                  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14,
                   cursor: 'pointer', minHeight: 44,
                   boxShadow: '0 2px 12px rgba(79,142,247,0.35)', maxWidth: '100%',
                 }}
@@ -143,7 +143,7 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                                 border: active ? 'none' : '1px solid var(--border)',
                                 background: active ? 'var(--accent)' : 'transparent',
                                 color: active ? '#fff' : 'var(--text)',
-                                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                                 fontWeight: active ? 600 : 400, fontSize: 14,
                                 cursor: 'pointer', minHeight: 44, textAlign: 'left',
                                 boxShadow: active ? '0 2px 8px rgba(79,142,247,0.25)' : 'none',
@@ -170,14 +170,14 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                           </div>
                           {confirming && (
                             <div style={{ margin: '4px 0 2px 0', padding: '10px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 8 }}>
-                              <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)', marginBottom: 8 }}>
+                              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)', marginBottom: 8 }}>
                                 {t('tabs.archiveConfirm')}
                               </div>
                               <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: '6px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer' }}>
+                                <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: '6px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer' }}>
                                   {t('tabs.cancel')}
                                 </button>
-                                <button onClick={() => handleArchiveConfirm(p.id)} style={{ flex: 1, padding: '6px', borderRadius: 6, border: 'none', background: 'var(--red)', color: '#fff', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>
+                                <button onClick={() => handleArchiveConfirm(p.id)} style={{ flex: 1, padding: '6px', borderRadius: 6, border: 'none', background: 'var(--red)', color: '#fff', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>
                                   {t('tabs.archive')}
                                 </button>
                               </div>
@@ -191,7 +191,7 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                       style={{
                         padding: '8px 12px', borderRadius: 8, border: 'none',
                         background: 'transparent', color: 'var(--textMuted)',
-                        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12,
+                        fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12,
                         cursor: 'pointer', textAlign: 'left', marginTop: 4,
                         borderTop: '1px solid var(--border)', paddingTop: 10,
                       }}
@@ -254,7 +254,7 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                       border: `1px solid ${overflowOpen || activeInOverflow ? 'var(--accent)' : 'var(--border)'}`,
                       background: overflowOpen ? 'rgba(79,142,247,0.1)' : activeInOverflow ? 'rgba(79,142,247,0.06)' : 'transparent',
                       color: overflowOpen || activeInOverflow ? 'var(--accent)' : 'var(--textMuted)',
-                      fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                      fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                       fontSize: 13, fontWeight: 500,
                       cursor: 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap',
                     }}
@@ -285,7 +285,7 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                                   padding: '8px 10px', borderRadius: 8, border: 'none',
                                   background: active ? 'var(--accent)' : 'transparent',
                                   color: active ? '#fff' : 'var(--text)',
-                                  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                                  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                                   fontWeight: active ? 600 : 400, fontSize: 13,
                                   cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s',
                                 }}
@@ -313,14 +313,14 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                             </div>
                             {confirming && (
                               <div style={{ margin: '4px 0 2px', padding: '10px 10px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 8 }}>
-                                <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)', marginBottom: 8 }}>
+                                <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)', marginBottom: 8 }}>
                                   {t('tabs.archiveConfirm')}
                                 </div>
                                 <div style={{ display: 'flex', gap: 8 }}>
-                                  <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: '6px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer' }}>
+                                  <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: '6px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer' }}>
                                     {t('tabs.cancel')}
                                   </button>
-                                  <button onClick={() => handleArchiveConfirm(p.id)} style={{ flex: 1, padding: '6px', borderRadius: 6, border: 'none', background: 'var(--red)', color: '#fff', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>
+                                  <button onClick={() => handleArchiveConfirm(p.id)} style={{ flex: 1, padding: '6px', borderRadius: 6, border: 'none', background: 'var(--red)', color: '#fff', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>
                                     {t('tabs.archive')}
                                   </button>
                                 </div>
@@ -367,7 +367,7 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
                       border: addHover ? '2px solid var(--accent)' : '2px dashed var(--borderHover)',
                       background: addHover ? 'rgba(79,142,247,0.08)' : 'transparent',
                       color: addHover ? 'var(--accent)' : 'var(--textMuted)',
-                      fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                      fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                       fontSize: 12, fontWeight: 600,
                       display: 'flex', alignItems: 'center', gap: 5,
                       cursor: 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap',
@@ -393,17 +393,17 @@ export default function ProjectTabs({ projects, activeId, onSelect, onAdd, onArc
             borderRadius: 12, padding: '20px 24px', minWidth: 300,
             boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}>
-            <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 6 }}>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 6 }}>
               {t('tabs.archiveConfirm')}
             </div>
-            <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)', marginBottom: 20 }}>
+            <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)', marginBottom: 20 }}>
               {t('tabs.archiveDesc')}
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: '9px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, cursor: 'pointer' }}>
+              <button onClick={() => setConfirmId(null)} style={{ flex: 1, padding: '9px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, cursor: 'pointer' }}>
                 {t('tabs.cancel')}
               </button>
-              <button onClick={() => handleArchiveConfirm(confirmId)} style={{ flex: 1, padding: '9px', borderRadius: 8, border: 'none', background: 'var(--red)', color: '#fff', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+              <button onClick={() => handleArchiveConfirm(confirmId)} style={{ flex: 1, padding: '9px', borderRadius: 8, border: 'none', background: 'var(--red)', color: '#fff', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                 {t('tabs.archive')}
               </button>
             </div>
@@ -431,7 +431,7 @@ function ProjectPill({ project, active, dot, onSelect, onArchive, confirmId, set
           border: active ? 'none' : `1px solid ${hover ? 'var(--borderHover)' : 'var(--border)'}`,
           background: active ? 'var(--accent)' : hover ? 'var(--surfaceAlt)' : 'transparent',
           color: active ? '#fff' : 'var(--text)',
-          fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
           fontWeight: active ? 600 : 500, fontSize: 14,
           whiteSpace: 'nowrap', transition: 'all 0.2s ease',
           boxShadow: active ? '0 2px 12px rgba(79,142,247,0.35)' : 'none',

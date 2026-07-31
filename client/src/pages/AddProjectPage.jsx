@@ -88,7 +88,7 @@ export default function AddProjectPage({ onAdd, onCancel, editProject = null }) 
 
       <button
         onClick={onCancel}
-        style={{ position: 'absolute', top: 20, left: 20, zIndex: 1, display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 14px', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, cursor: 'pointer', transition: 'all 0.2s ease' }}
+        style={{ position: 'absolute', top: 20, left: 20, zIndex: 1, display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 14px', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, cursor: 'pointer', transition: 'all 0.2s ease' }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--borderHover)'; e.currentTarget.style.color = 'var(--text)' }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
       >
@@ -98,8 +98,8 @@ export default function AddProjectPage({ onAdd, onCancel, editProject = null }) 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 560, background: 'var(--surface)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 16px 48px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '28px 32px 0' }}>
-          <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 22, color: 'var(--text)', marginBottom: 4 }}>{editProject ? 'Izmeni projekat' : t('addProject.title')}</h1>
-          <p style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, marginBottom: 20 }}>
+          <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 22, color: 'var(--text)', marginBottom: 4 }}>{editProject ? 'Izmeni projekat' : t('addProject.title')}</h1>
+          <p style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, marginBottom: 20 }}>
             {t('addProject.subtitle')}
           </p>
 
@@ -125,7 +125,7 @@ export default function AddProjectPage({ onAdd, onCancel, editProject = null }) 
           />
 
           {error && (
-            <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 8, color: 'var(--red)', fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 8, color: 'var(--red)', fontSize: 13, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
               {error}
             </div>
           )}
@@ -133,7 +133,7 @@ export default function AddProjectPage({ onAdd, onCancel, editProject = null }) 
           <button
             type="submit"
             disabled={loading}
-            style={{ width: '100%', background: 'var(--accent)', color: '#fff', borderRadius: 8, padding: '11px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', border: 'none', opacity: loading ? 0.7 : 1, transition: 'all 0.2s ease' }}
+            style={{ width: '100%', background: 'var(--accent)', color: '#fff', borderRadius: 8, padding: '11px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', border: 'none', opacity: loading ? 0.7 : 1, transition: 'all 0.2s ease' }}
           >
             {loading ? t('addProject.submitting') : (editProject ? 'Sačuvaj izmene' : t('addProject.submit'))}
           </button>
@@ -174,7 +174,7 @@ function JqlTab({ t, jql, setJql, name, setName, onTest, testLoading, testResult
             type="button"
             onClick={onTest}
             disabled={testLoading || !jql.trim()}
-            style={{ background: 'transparent', border: '1px solid var(--accent)', borderRadius: 6, padding: '5px 14px', color: 'var(--accent)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: testLoading || !jql.trim() ? 'not-allowed' : 'pointer', opacity: !jql.trim() ? 0.5 : 1, transition: 'all 0.2s ease' }}
+            style={{ background: 'transparent', border: '1px solid var(--accent)', borderRadius: 6, padding: '5px 14px', color: 'var(--accent)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: testLoading || !jql.trim() ? 'not-allowed' : 'pointer', opacity: !jql.trim() ? 0.5 : 1, transition: 'all 0.2s ease' }}
           >
             {testLoading ? t('addProject.jql.testing') : t('addProject.jql.test')}
           </button>
@@ -250,7 +250,7 @@ function CombinedTab({ t, epicKey, setEpicKey, project, setProject, status, setS
               type="button"
               onClick={onTest}
               disabled={testLoading}
-              style={{ background: 'transparent', border: '1px solid var(--accent)', borderRadius: 6, padding: '5px 14px', color: 'var(--accent)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: testLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease' }}
+              style={{ background: 'transparent', border: '1px solid var(--accent)', borderRadius: 6, padding: '5px 14px', color: 'var(--accent)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: testLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease' }}
             >
               {testLoading ? t('addProject.jql.testing') : t('addProject.jql.test')}
             </button>
@@ -326,13 +326,13 @@ function TestResult({ t, result, error, jql }) {
     const hints = enrichJiraError(error, jql)
     return (
       <div style={{ marginTop: 8, borderRadius: 6, overflow: 'hidden' }}>
-        <div style={{ padding: '8px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', color: 'var(--red)', fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-          <span style={{ fontFamily: "'DM Mono'", marginRight: 6 }}>✗</span>{error}
+        <div style={{ padding: '8px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', color: 'var(--red)', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+          <span style={{ fontFamily: "'Hanken Grotesk'", marginRight: 6 }}>✗</span>{error}
         </div>
         {hints.length > 0 && (
           <div style={{ padding: '8px 12px', background: 'var(--amberTint)', border: '1px solid rgba(245,158,11,0.25)', borderTop: 'none', display: 'flex', flexDirection: 'column', gap: 3 }}>
             {hints.map((h, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", color: 'var(--amber)' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", color: 'var(--amber)' }}>
                 <span style={{ flexShrink: 0 }}>→</span>
                 <span>{h}</span>
               </div>
@@ -345,14 +345,14 @@ function TestResult({ t, result, error, jql }) {
   if (!result) return null
   return (
     <div style={{ marginTop: 8, padding: '10px 12px', background: 'var(--greenTint)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 6 }}>
-      <div style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--green)', marginBottom: result.preview.length ? 8 : 0 }}>
+      <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--green)', marginBottom: result.preview.length ? 8 : 0 }}>
         ✓ {t('addProject.found', { count: result.count })}
       </div>
       {result.preview.map(p => (
         <div key={p.key} style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
-          <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{p.key}</span>
-          <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.summary}</span>
-          <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)', flexShrink: 0 }}>{p.status}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{p.key}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.summary}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', flexShrink: 0 }}>{p.status}</span>
         </div>
       ))}
     </div>
@@ -386,7 +386,7 @@ function FieldSelect({ fieldName, values, onChange, placeholder }) {
   const add = o => { if (!chosen.has(o.value)) onChange([...values, o]); setQ('') }
   const addManual = () => { const val = q.trim(); if (val && !values.some(v => v.value === val)) onChange([...values, { value: val, label: val }]); setQ('') }
   const remove = v => onChange(values.filter(x => x.value !== v))
-  const chip = { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }
+  const chip = { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 6px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }
   return (
     <div style={{ position: 'relative' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 8px', minHeight: 38, alignItems: 'center' }}>
@@ -396,18 +396,18 @@ function FieldSelect({ fieldName, values, onChange, placeholder }) {
         <input value={q} onChange={e => setQ(e.target.value)} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 160)}
           onKeyDown={e => { if (e.key === 'Enter' && q.trim()) { e.preventDefault(); addManual() } }}
           placeholder={values.length ? '' : (placeholder || 'Kucaj za pretragu…')}
-          style={{ flex: '1 1 120px', minWidth: 100, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", fontSize: 13, padding: '2px' }} />
+          style={{ flex: '1 1 120px', minWidth: 100, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, padding: '2px' }} />
       </div>
       {open && (loading || free.length > 0) && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.18)', maxHeight: 240, overflowY: 'auto' }}>
-          {loading && <div style={{ padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Učitavam…</div>}
+          {loading && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Učitavam…</div>}
           {!loading && free.map(o => (
             <button key={o.value} type="button" onMouseDown={e => { e.preventDefault(); add(o) }}
-              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'var(--text)' }}>
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)' }}>
               {o.label}
             </button>
           ))}
-          {!loading && free.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema predloga — Enter da dodaš ručno</div>}
+          {!loading && free.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema predloga — Enter da dodaš ručno</div>}
         </div>
       )}
     </div>
@@ -438,7 +438,7 @@ function buildCombinedJql({ epicKey, project, fixVersion, clientScope, clientReq
 const labelStyle = {
   display: 'block',
   fontSize: 11,
-  fontFamily: "'DM Mono'",
+  fontFamily: "'Hanken Grotesk'",
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
   color: 'var(--textMuted)',
@@ -453,7 +453,7 @@ const inputStyle = {
   padding: '10px 14px',
   color: 'var(--text)',
   fontSize: 14,
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   transition: 'border-color 0.2s',
   boxSizing: 'border-box',
 }

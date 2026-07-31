@@ -151,7 +151,7 @@ export function generateStyledHtml(tasks, config, meta) {
   <title>${title}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -161,7 +161,7 @@ export function generateStyledHtml(tasks, config, meta) {
       --accent: #4F8EF7;
     }
     body {
-      font-family: 'DM Sans', -apple-system, sans-serif;
+      font-family: 'Hanken Grotesk', -apple-system, sans-serif;
       background: var(--bg); color: var(--text);
       min-height: 100vh; font-size: 15px; line-height: 1.6;
     }
@@ -172,10 +172,10 @@ export function generateStyledHtml(tasks, config, meta) {
       display: flex; align-items: center; justify-content: space-between;
       padding: 10px 28px; gap: 12px;
     }
-    .pbar-left { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+    .pbar-left { font-family: 'Hanken Grotesk', sans-serif; font-size: 12px; color: var(--muted); }
     .pbtn {
       background: var(--accent); color: #fff; border: none; border-radius: 8px;
-      padding: 7px 18px; font-family: 'DM Sans', sans-serif; font-weight: 600;
+      padding: 7px 18px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 600;
       font-size: 13px; cursor: pointer; transition: opacity 0.2s;
     }
     .pbtn:hover { opacity: 0.85; }
@@ -184,42 +184,42 @@ export function generateStyledHtml(tasks, config, meta) {
     /* Doc header */
     .doc-hdr { margin-bottom: 48px; }
     .doc-hdr-top { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-    .brand { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 10px; }
-    .doc-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 40px; color: var(--text); line-height: 1.1; letter-spacing: -0.02em; }
+    .brand { font-family: 'Hanken Grotesk', sans-serif; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 10px; }
+    .doc-title { font-family: 'Hanken Grotesk', sans-serif; font-weight: 800; font-size: 40px; color: var(--text); line-height: 1.1; letter-spacing: -0.02em; }
     .meta-col { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-top: 4px; }
-    .badge-accent { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; padding: 5px 12px; border-radius: 6px; background: rgba(79,142,247,0.1); color: var(--accent); border: 1px solid rgba(79,142,247,0.25); }
-    .badge-green  { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; padding: 5px 12px; border-radius: 6px; background: rgba(34,197,94,0.1); color: #22C55E; border: 1px solid rgba(34,197,94,0.25); }
-    .doc-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-    .doc-client { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+    .badge-accent { font-family: 'Hanken Grotesk', sans-serif; font-size: 13px; font-weight: 500; padding: 5px 12px; border-radius: 6px; background: rgba(79,142,247,0.1); color: var(--accent); border: 1px solid rgba(79,142,247,0.25); }
+    .badge-green  { font-family: 'Hanken Grotesk', sans-serif; font-size: 13px; font-weight: 500; padding: 5px 12px; border-radius: 6px; background: rgba(34,197,94,0.1); color: #22C55E; border: 1px solid rgba(34,197,94,0.25); }
+    .doc-date { font-family: 'Hanken Grotesk', sans-serif; font-size: 11px; color: var(--muted); }
+    .doc-client { font-family: 'Hanken Grotesk', sans-serif; font-size: 11px; color: var(--muted); }
     .divider { height: 2px; margin-top: 24px; background: linear-gradient(90deg, var(--accent) 0%, transparent 70%); border-radius: 2px; opacity: 0.35; }
     /* Groups */
     .groups { display: flex; flex-direction: column; gap: 44px; }
     .section-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid; }
     .sec-icon { font-size: 20px; line-height: 1; }
-    .sec-label { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
-    .sec-count { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 20px; margin-left: 2px; }
+    .sec-label { font-family: 'Hanken Grotesk', sans-serif; font-weight: 800; font-size: 18px; }
+    .sec-count { font-family: 'Hanken Grotesk', sans-serif; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 20px; margin-left: 2px; }
     /* Task cards */
     .task-list { display: flex; flex-direction: column; gap: 8px; }
     .task-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 13px 16px; transition: border-color 0.2s; break-inside: avoid; }
     .task-card.open { border-color: var(--border2); }
     .task-row { display: flex; align-items: center; gap: 12px; }
-    .key-badge { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 6px; flex-shrink: 0; letter-spacing: 0.04em; white-space: nowrap; }
-    .task-summary { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); flex: 1; line-height: 1.4; }
+    .key-badge { font-family: 'Hanken Grotesk', sans-serif; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 6px; flex-shrink: 0; letter-spacing: 0.04em; white-space: nowrap; }
+    .task-summary { font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); flex: 1; line-height: 1.4; }
     .expand-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 17px; padding: 0 2px; flex-shrink: 0; transition: transform 0.25s ease, color 0.2s; display: flex; align-items: center; line-height: 1; }
     .expand-btn:hover { color: var(--text); }
     .expand-btn.open { transform: rotate(180deg); color: var(--accent); }
     .task-desc { max-height: 0; overflow: hidden; transition: max-height 0.32s cubic-bezier(0.4,0,0.2,1); }
     .task-desc.open { max-height: 1000px; }
-    .task-desc-inner { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.75; }
+    .task-desc-inner { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-family: 'Hanken Grotesk', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.75; }
     /* Inline HELP links */
     .help-link-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); flex-wrap: wrap; }
     .help-rel { font-size: 13px; flex-shrink: 0; }
-    .help-summary { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); flex: 1; min-width: 0; }
-    .status-badge { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
-    .help-open { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none; padding: 3px 8px; border: 1px solid rgba(79,142,247,0.3); border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+    .help-summary { font-family: 'Hanken Grotesk', sans-serif; font-size: 13px; color: var(--muted); flex: 1; min-width: 0; }
+    .status-badge { font-family: 'Hanken Grotesk', sans-serif; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+    .help-open { font-family: 'Hanken Grotesk', sans-serif; font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none; padding: 3px 8px; border: 1px solid rgba(79,142,247,0.3); border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
     .help-open:hover { background: rgba(79,142,247,0.1); }
     /* Footer */
-    .footer { margin-top: 72px; padding-top: 22px; border-top: 1px solid var(--border); text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--subtle); letter-spacing: 0.1em; text-transform: uppercase; }
+    .footer { margin-top: 72px; padding-top: 22px; border-top: 1px solid var(--border); text-align: center; font-family: 'Hanken Grotesk', sans-serif; font-size: 10px; color: var(--subtle); letter-spacing: 0.1em; text-transform: uppercase; }
     /* Responsive */
     @media (max-width: 600px) {
       .wrap { padding: 72px 16px 60px; }
@@ -261,7 +261,7 @@ export function generateStyledHtml(tasks, config, meta) {
     </div>
 
     <div class="groups">
-      ${sectionsHtml || '<p style="color:var(--muted);font-family:DM Sans,sans-serif;text-align:center;padding:40px 0">Nema taskova.</p>'}
+      ${sectionsHtml || '<p style="color:var(--muted);font-family:Hanken Grotesk,sans-serif;text-align:center;padding:40px 0">Nema taskova.</p>'}
     </div>
 
 

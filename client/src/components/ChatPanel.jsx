@@ -97,8 +97,8 @@ export default function ChatPanel({ project, currentUser, jiraUrl, onClose, onMe
       {/* Header */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10, minHeight: 57 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{t('chat.title')}</div>
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{t('chat.title')}</div>
+          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {project.displayName || project.epicKey}
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function ChatPanel({ project, currentUser, jiraUrl, onClose, onMe
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {messages.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--textSubtle)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, marginTop: 40 }}>
+          <div style={{ textAlign: 'center', color: 'var(--textSubtle)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, marginTop: 40 }}>
             {t('chat.noMessages')}
           </div>
         )}
@@ -119,7 +119,7 @@ export default function ChatPanel({ project, currentUser, jiraUrl, onClose, onMe
           const isMe = m.sender_id === currentUser.id
           return (
             <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
-              <div style={{ fontSize: 11, color: 'var(--textSubtle)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", marginBottom: 4 }}>
+              <div style={{ fontSize: 11, color: 'var(--textSubtle)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", marginBottom: 4 }}>
                 {isMe ? t('msg.me') : m.sender_name} · {fmtTime(m.created_at, t)}
               </div>
               {m.task_key && (
@@ -131,7 +131,7 @@ export default function ChatPanel({ project, currentUser, jiraUrl, onClose, onMe
                 borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                 background: isMe ? 'var(--accent)' : 'var(--surfaceAlt)',
                 border: isMe ? 'none' : '1px solid var(--border)',
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                 fontSize: 13,
                 color: isMe ? '#fff' : 'var(--text)',
                 lineHeight: 1.5,
@@ -154,7 +154,7 @@ export default function ChatPanel({ project, currentUser, jiraUrl, onClose, onMe
               value={taskKey}
               onChange={e => setTaskKey(e.target.value)}
               placeholder={t('chat.taskPlaceholder')}
-              style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 10px', color: 'var(--text)', fontSize: 12, fontFamily: "'DM Mono'", outline: 'none' }}
+              style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 10px', color: 'var(--text)', fontSize: 12, fontFamily: "'Hanken Grotesk'", outline: 'none' }}
               onFocus={e => e.target.style.borderColor = 'var(--accent)'}
               onBlur={e => e.target.style.borderColor = 'var(--border)'}
             />
@@ -162,11 +162,11 @@ export default function ChatPanel({ project, currentUser, jiraUrl, onClose, onMe
           </div>
           {taskInfo && (
             <div style={{ marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 6, padding: '3px 8px' }}>
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M5 6.5a2.5 2.5 0 003.5.3l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M7 5.5a2.5 2.5 0 00-3.5-.3l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></svg>
                 {taskInfo.key}
               </span>
-              <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
                 {taskInfo.summary.length > 40 ? taskInfo.summary.slice(0, 40) + '...' : taskInfo.summary}
               </span>
               <button onClick={() => { setTaskKey(''); setTaskInfo(null) }} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
@@ -182,7 +182,7 @@ export default function ChatPanel({ project, currentUser, jiraUrl, onClose, onMe
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
             placeholder={t('chat.messagePlaceholder')}
             rows={2}
-            style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", resize: 'none', lineHeight: 1.4, outline: 'none' }}
+            style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", resize: 'none', lineHeight: 1.4, outline: 'none' }}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'}
           />
@@ -203,7 +203,7 @@ function TaskChip({ taskKey, jiraUrl }) {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 4,
-    fontFamily: "'DM Mono'",
+    fontFamily: "'Hanken Grotesk'",
     fontSize: 11,
     color: 'var(--accent)',
     background: 'rgba(79,142,247,0.1)',

@@ -98,20 +98,20 @@ export default function ProjectEstimateSummary({ tasks, phases, createdAt, peopl
   if (!data) return null
 
   const box = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px' }
-  const label = { fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }
-  const big = { fontFamily: 'Syne', fontWeight: 800, fontSize: 22, color: 'var(--text)' }
-  const sub = { fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 3 }
+  const label = { fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }
+  const big = { fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 22, color: 'var(--text)' }
+  const sub = { fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 3 }
   const teamStr = STACKS.map(s => `${STACK_SHORT[s]} ${teamMap[s]}`).join(' · ')
   const onTrack = data.lateDays <= 0
 
   return (
     <div className="glass-card" style={box}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-        <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
-          Procena resursa &amp; završetka <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: 11, color: 'var(--textMuted)' }}>· tim: {teamStr}</span>
+        <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
+          Procena resursa &amp; završetka <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500, fontSize: 11, color: 'var(--textMuted)' }}>· tim: {teamStr}</span>
         </div>
         {!data.hasPhases && (
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'var(--amber)', background: 'var(--amberTint)', border: '1px solid var(--amber)', borderRadius: 6, padding: '2px 8px' }}>
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--amber)', background: 'var(--amberTint)', border: '1px solid var(--amber)', borderRadius: 6, padding: '2px 8px' }}>
             nema faza — gruba procena; napravi faze za precizniji datum
           </span>
         )}
@@ -146,7 +146,7 @@ export default function ProjectEstimateSummary({ tasks, phases, createdAt, peopl
       </div>
 
       {(data.openOverCount > 0 || data.openNoEst > 0 || data.unassignedManDays > 0.05) && (
-        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 5, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 5, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
           {data.openOverCount > 0 && (
             <div><strong style={{ color: 'var(--red)' }}>{data.openOverCount}</strong> {data.openOverCount === 1 ? 'otvoren task već prekoračuje' : 'otvorenih taskova već prekoračuje'} estimaciju (+{fmtDays(data.openOverHours)}h preko plana) — procena ne uključuje dalja prekoračenja.</div>
           )}

@@ -15,7 +15,7 @@ export default function BarChart({ data = [], width = 600, height = 260 }) {
   // Top 12 tasks by largest estimate
   const filtered = data.filter(d => d.est > 0).sort((a, b) => b.est - a.est).slice(0, 12)
   if (filtered.length === 0) return (
-    <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       {t('chart.noTasks')}
     </div>
   )
@@ -42,7 +42,7 @@ export default function BarChart({ data = [], width = 600, height = 260 }) {
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       {/* Legend */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
         <span><span style={{ color: 'var(--accent)' }}>●</span> {t('chart.legend.est').replace('● ', '')}</span>
         <span><span style={{ color: 'var(--green)' }}>●</span> {t('chart.legend.spent').replace('● ', '')}</span>
         <span><span style={{ color: 'var(--red)' }}>●</span> {t('chart.legend.over').replace('● ', '')}</span>
@@ -60,7 +60,7 @@ export default function BarChart({ data = [], width = 600, height = 260 }) {
                 stroke="var(--border)" strokeWidth={1}
               />
               <text x={paddingLeft - 4} y={y + 4} textAnchor="end"
-                style={{ fontSize: 10, fill: 'var(--textMuted)', fontFamily: "'DM Mono'" }}>
+                style={{ fontSize: 10, fill: 'var(--textMuted)', fontFamily: "'Hanken Grotesk'" }}>
                 {tick}h
               </text>
             </g>
@@ -106,7 +106,7 @@ export default function BarChart({ data = [], width = 600, height = 260 }) {
                 x={xCenter} y={paddingTop + chartH + 8}
                 textAnchor="end"
                 transform={`rotate(-45, ${xCenter}, ${paddingTop + chartH + 8})`}
-                style={{ fontSize: 10, fill: 'var(--textMuted)', fontFamily: "'DM Mono'" }}>
+                style={{ fontSize: 10, fill: 'var(--textMuted)', fontFamily: "'Hanken Grotesk'" }}>
                 {d.label}
               </text>
             </g>
@@ -126,7 +126,7 @@ export default function BarChart({ data = [], width = 600, height = 260 }) {
           borderRadius: 8,
           padding: '8px 12px',
           fontSize: 12,
-          fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
           pointerEvents: 'none',
           whiteSpace: 'nowrap',
           boxShadow: '0 4px 16px rgba(0,0,0,0.2)',

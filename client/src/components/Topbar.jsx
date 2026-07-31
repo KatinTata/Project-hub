@@ -144,14 +144,14 @@ function ModuleCard({ icon, iconBg, iconColor, label, subtitle, active, onClick,
       {/* Text */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <span style={{
-          fontFamily: "'DM Sans', -apple-system, sans-serif",
+          fontFamily: "'Hanken Grotesk', -apple-system, sans-serif",
           fontSize: 12, fontWeight: 600,
           color: active ? 'var(--accent)' : 'var(--text)',
           lineHeight: 1.3, whiteSpace: 'nowrap',
         }}>{label}</span>
         {!hideSubtitle && (
           <span style={{
-            fontFamily: "'DM Mono', monospace",
+            fontFamily: "'Hanken Grotesk', sans-serif",
             fontSize: 10, color: 'var(--textMuted)', whiteSpace: 'nowrap',
           }}>{subtitle}</span>
         )}
@@ -162,7 +162,7 @@ function ModuleCard({ icon, iconBg, iconColor, label, subtitle, active, onClick,
           position: 'absolute', top: 6, right: 6,
           minWidth: 16, height: 16, borderRadius: 8,
           background: 'var(--red)', color: '#fff',
-          fontSize: 9, fontFamily: "'DM Mono'", fontWeight: 700,
+          fontSize: 9, fontFamily: "'Hanken Grotesk'", fontWeight: 700,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: '0 4px', lineHeight: 1,
         }}>{badge > 99 ? '99+' : badge}</span>
@@ -223,7 +223,7 @@ export default function Topbar({
             style={{ height: 28, flexShrink: 0 }}
           />
           {!isMobile && (
-            <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text)', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 16, color: 'var(--text)', flexShrink: 0 }}>
               Project Insight Hub
             </span>
           )}
@@ -255,7 +255,7 @@ export default function Topbar({
               style={{
                 width: isMobile ? 40 : 36, height: isMobile ? 40 : 36, borderRadius: '50%',
                 background: 'var(--accent)', color: '#fff',
-                fontFamily: 'Syne', fontWeight: 700, fontSize: 13,
+                fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: 'none', cursor: 'pointer', transition: 'background 0.15s', flexShrink: 0,
               }}
@@ -274,8 +274,8 @@ export default function Topbar({
               }}>
                 {/* User info header */}
                 <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{user?.name}</div>
-                  <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>{user?.email}</div>
+                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{user?.name}</div>
+                  <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>{user?.email}</div>
                 </div>
                 {/* Users (admin only) */}
                 {onOpenUsers && (
@@ -405,7 +405,7 @@ export default function Topbar({
 const dropItemStyle = {
   display: 'flex', alignItems: 'center', gap: 10,
   width: '100%', textAlign: 'left', padding: '10px 16px',
-  fontFamily: "'DM Sans', -apple-system, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, sans-serif",
   fontSize: 14, color: 'var(--text)',
   border: 'none', background: 'transparent',
   cursor: 'pointer', transition: 'background 0.15s',

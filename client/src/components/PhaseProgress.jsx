@@ -3,7 +3,7 @@ export default function PhaseProgress({ phases, tasksByPhase }) {
 
   if (visible.length === 0) {
     return (
-      <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
+      <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
         Nema definisanih faza za ovaj projekat.
       </div>
     )
@@ -40,13 +40,13 @@ export default function PhaseProgress({ phases, tasksByPhase }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: phase.color, flexShrink: 0 }} />
               <span style={{
-                flex: 1, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                flex: 1, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                 fontSize: 13, fontWeight: 600, color: 'var(--text)',
               }}>
                 {phase.name}
               </span>
               <span style={{
-                fontFamily: "'DM Mono'", fontSize: 10, padding: '3px 9px',
+                fontFamily: "'Hanken Grotesk'", fontSize: 10, padding: '3px 9px',
                 borderRadius: 20, background: statusBg, color: statusColor,
                 border: `1px solid ${statusBorder}`, fontWeight: 600, flexShrink: 0,
               }}>
@@ -61,7 +61,7 @@ export default function PhaseProgress({ phases, tasksByPhase }) {
                 {todoPct > 0 && <div style={{ width: `${todoPct * 100}%`, background: 'var(--textSubtle)', opacity: 0.35, transition: 'width 0.5s' }} />}
               </div>
               <span style={{
-                fontFamily: 'Syne', fontSize: 13, fontWeight: 700,
+                fontFamily: 'Hanken Grotesk', fontSize: 13, fontWeight: 700,
                 color: statusColor, minWidth: 36, textAlign: 'right', flexShrink: 0,
               }}>
                 {Math.round(donePct * 100)}%

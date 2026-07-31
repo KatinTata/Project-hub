@@ -23,7 +23,7 @@ function MetricCard({ label, value, subtitle, valueColor, isMobile }) {
         e.currentTarget.style.boxShadow = ''
       }}>
       <div style={{
-        fontFamily: "'DM Mono'",
+        fontFamily: "'Hanken Grotesk'",
         fontSize: isMobile ? 10 : 11,
         letterSpacing: '0.08em',
         textTransform: 'uppercase',
@@ -34,7 +34,7 @@ function MetricCard({ label, value, subtitle, valueColor, isMobile }) {
         textOverflow: 'ellipsis',
       }}>{label}</div>
       <div style={{
-        fontFamily: 'Syne',
+        fontFamily: 'Hanken Grotesk',
         fontSize: isMobile ? 20 : 28,
         fontWeight: 700,
         color: valueColor || 'var(--text)',
@@ -42,7 +42,7 @@ function MetricCard({ label, value, subtitle, valueColor, isMobile }) {
         marginBottom: 4,
       }}>{value}</div>
       {!isMobile && (
-        <div style={{ fontSize: 12, color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>{subtitle}</div>
+        <div style={{ fontSize: 12, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>{subtitle}</div>
       )}
     </div>
   )

@@ -166,8 +166,8 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
       {/* Header */}
       <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10, minHeight: 57 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{t('msgsPanel.title')}</div>
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{t('msgsPanel.title')}</div>
+          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {project.displayName || project.epicKey}
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
           <button
             onClick={handleExport}
             title={t('msgsPanel.export')}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'transparent', border: '1px solid var(--border)', borderRadius: 7, padding: '5px 10px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'transparent', border: '1px solid var(--border)', borderRadius: 7, padding: '5px 10px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
           >
@@ -202,7 +202,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
               }
             }}
             style={{
-              fontFamily: th.id === 'all' ? "'DM Mono'" : "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: th.id === 'all' ? "'Hanken Grotesk'" : "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               fontSize: 11,
               padding: '4px 10px',
               borderRadius: 12,
@@ -225,10 +225,10 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
       {/* Message list */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {loading && (
-          <div style={{ textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: 32 }}>{t('msgsPanel.loading')}</div>
+          <div style={{ textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: 32 }}>{t('msgsPanel.loading')}</div>
         )}
         {!loading && filtered.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--textSubtle)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: 40 }}>
+          <div style={{ textAlign: 'center', color: 'var(--textSubtle)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: 40 }}>
             {threadFilter === 'all' ? t('msgsPanel.noMessages') : t('msgsPanel.noThreadMessages')}
           </div>
         )}
@@ -240,29 +240,29 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
             <div key={m.id} style={{ marginTop: showSender && i > 0 ? 10 : 2 }}>
               {showSender && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontFamily: 'Syne', fontSize: 12, fontWeight: 700, color: isMe ? 'var(--accent)' : 'var(--text)' }}>
+                  <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 700, color: isMe ? 'var(--accent)' : 'var(--text)' }}>
                     {isMe ? t('msg.me') : m.sender_name}
                   </span>
                   {!isMe && m.recipient_name && (
-                    <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)' }}>→ {m.recipient_name}</span>
+                    <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>→ {m.recipient_name}</span>
                   )}
                   {!isMe && !m.recipient_name && !isClient && (
-                    <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)' }}>{t('msg.toAllClients')}</span>
+                    <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>{t('msg.toAllClients')}</span>
                   )}
-                  <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)', marginLeft: 'auto' }}>{fmtTime(m.created_at, t)}</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', marginLeft: 'auto' }}>{fmtTime(m.created_at, t)}</span>
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
                 {showSender && (m.subject || m.task_key) && (
                   <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 2, marginBottom: 3, alignItems: isMe ? 'flex-end' : 'flex-start' }}>
                     {m.subject && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 11, color: 'var(--text)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 8px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 11, color: 'var(--text)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 8px' }}>
                         <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M1 2.5A1 1 0 012 1.5h8a1 1 0 011 1v5a1 1 0 01-1 1H7L5.5 10 4 8.5H2a1 1 0 01-1-1z"/></svg>
                         {m.subject}
                       </span>
                     )}
                     {m.task_key && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 4, padding: '1px 6px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 4, padding: '1px 6px' }}>
                         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M5 6.5a2.5 2.5 0 003.5.3l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M7 5.5a2.5 2.5 0 00-3.5-.3l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></svg>
                         {m.task_key}
                       </span>
@@ -275,7 +275,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
                   borderRadius: isMe ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
                   background: isMe ? 'var(--accent)' : 'var(--surfaceAlt)',
                   border: isMe ? 'none' : '1px solid var(--border)',
-                  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                   fontSize: 13,
                   color: isMe ? '#fff' : 'var(--text)',
                   lineHeight: 1.5,
@@ -306,7 +306,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
             value={topicInput}
             onChange={handleTopicChange}
             placeholder={t('msg.topicPlaceholder')}
-            style={{ ...inputStyle, fontFamily: topicType === 'task' ? "'DM Mono'" : "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}
+            style={{ ...inputStyle, fontFamily: topicType === 'task' ? "'Hanken Grotesk'" : "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}
             onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'}
           />
@@ -316,7 +316,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
               {topicType === 'task' ? (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5,
-                  fontFamily: "'DM Mono'", fontSize: 11,
+                  fontFamily: "'Hanken Grotesk'", fontSize: 11,
                   color: 'var(--accent)', background: 'rgba(79,142,247,0.1)',
                   border: '1px solid rgba(79,142,247,0.3)', borderRadius: 6, padding: '3px 10px',
                 }}>
@@ -330,7 +330,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
               ) : (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5,
-                  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 11,
+                  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 11,
                   color: 'var(--text)', background: 'var(--surfaceAlt)',
                   border: '1px solid var(--border)', borderRadius: 6, padding: '3px 10px',
                 }}>
@@ -371,19 +371,19 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
                     background: selected ? 'var(--accent)' : 'var(--surfaceAlt)',
                     color: selected ? '#fff' : 'var(--textMuted)',
                     fontSize: isAll ? 13 : 9, fontWeight: 700,
-                    fontFamily: isAll ? 'inherit' : 'Syne',
+                    fontFamily: isAll ? 'inherit' : 'Hanken Grotesk',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     border: selected ? 'none' : '1px solid var(--border)',
                   }}>{avatar}</span>
                   {/* Name */}
                   <span style={{
-                    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                    fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                     fontSize: 12, color: selected ? 'var(--accent)' : 'var(--text)', fontWeight: selected ? 600 : 400,
                   }}>{c.name}</span>
                   {/* Role badge */}
                   {!isAll && (
                     <span style={{
-                      fontFamily: "'DM Mono'", fontSize: 9, fontWeight: 700,
+                      fontFamily: "'Hanken Grotesk'", fontSize: 9, fontWeight: 700,
                       background: selected ? 'var(--accent)' : 'var(--surfaceAlt)',
                       color: selected ? '#fff' : 'var(--textMuted)',
                       border: selected ? 'none' : '1px solid var(--border)',
@@ -406,7 +406,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
             placeholder={t('msg.messagePlaceholder')}
             style={{
               ...inputStyle,
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               minHeight: 80,
               resize: 'none',
               lineHeight: 1.5,
@@ -418,7 +418,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
           {text.length > 0 && (
             <span style={{
               position: 'absolute', bottom: 7, right: 10,
-              fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)',
+              fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)',
               pointerEvents: 'none',
             }}>{text.length}</span>
           )}
@@ -426,7 +426,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
 
         {/* Row 4: Hint + Send button */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)' }}>
+          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>
             {t('msg.hint')}
           </span>
           <button
@@ -438,7 +438,7 @@ export default function MessagesPanel({ project, currentUser, isClient, initialT
               color: !text.trim() || sending ? 'var(--textMuted)' : '#fff',
               border: 'none', borderRadius: 8,
               padding: '8px 16px',
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
               fontWeight: 600, fontSize: 13,
               cursor: !text.trim() || sending ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s ease',

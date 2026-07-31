@@ -221,10 +221,10 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
         {/* Header */}
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <h2 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 20, color: 'var(--text)', marginBottom: 2 }}>
+            <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 20, color: 'var(--text)', marginBottom: 2 }}>
               {t('users.title')}
             </h2>
-            <p style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
+            <p style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
               {t('users.subtitle')}
             </p>
           </div>
@@ -236,18 +236,18 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
 
         <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
           {error && (
-            <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 8, color: 'var(--red)', fontSize: 13, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>{error}</div>
+            <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 8, color: 'var(--red)', fontSize: 13, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>{error}</div>
           )}
 
           {/* Organizations section — super admin only */}
           {isSuperAdmin && (
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontFamily: "'DM Mono'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)' }}>
+                <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)' }}>
                   Organizacije
                 </div>
                 {!creatingOrg && (
-                  <button onClick={() => setCreatingOrg(true)} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, padding: '3px 10px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  <button onClick={() => setCreatingOrg(true)} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, padding: '3px 10px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.2s ease' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
                   >+ Dodaj organizaciju</button>
@@ -266,10 +266,10 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
                     onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                     onBlur={e => e.target.style.borderColor = 'var(--border)'}
                   />
-                  <button type="submit" disabled={newOrgLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 14px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  <button type="submit" disabled={newOrgLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     {newOrgLoading ? 'Kreiranje...' : 'Kreiraj'}
                   </button>
-                  <button type="button" onClick={() => { setCreatingOrg(false); setNewOrgError('') }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '8px 14px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  <button type="button" onClick={() => { setCreatingOrg(false); setNewOrgError('') }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '8px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     Otkaži
                   </button>
                 </form>
@@ -278,9 +278,9 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {organizations.length === 0 ? (
-                  <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>Nema organizacija</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>Nema organizacija</span>
                 ) : organizations.map(o => (
-                  <span key={o.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 20, padding: '3px 12px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)' }}>
+                  <span key={o.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 20, padding: '3px 12px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)' }}>
                     {o.name}
                     <button onClick={() => handleDeleteOrg(o.id)} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center' }}
                       onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
@@ -296,12 +296,12 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
           {/* Add user / Import buttons */}
           {!creating && !importing && (
             <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-              <button onClick={() => setCreating(true)} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease' }}
+              <button onClick={() => setCreating(true)} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--accentHover)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'var(--accent)'}
               >+ Dodaj korisnika</button>
               <button onClick={() => { setImporting(true); setImportRows([]); setImportResults(null); setImportError('') }}
-                style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 18px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease' }}
+                style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 18px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
               >↑ Import CSV</button>
@@ -312,21 +312,21 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
           {importing && !importResults && (
             <div style={{ marginBottom: 20, padding: '20px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Import korisnika iz CSV-a</div>
+                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Import korisnika iz CSV-a</div>
                 <button onClick={() => { setImporting(false); setImportRows([]) }} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 18 }}>×</button>
               </div>
 
-              <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', marginBottom: 14, lineHeight: 1.6 }}>
-                CSV kolone: <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'DM Mono'", fontSize: 11 }}>name, email, organization, role</code><br />
-                Kolona <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'DM Mono'", fontSize: 11 }}>role</code> je opciona (default: user). Organizacija se kreira automatski ako ne postoji.
+              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', marginBottom: 14, lineHeight: 1.6 }}>
+                CSV kolone: <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>name, email, organization, role</code><br />
+                Kolona <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>role</code> je opciona (default: user). Organizacija se kreira automatski ako ne postoji.
               </div>
 
               <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--accent)', color: '#fff', borderRadius: 7, padding: '7px 14px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--accent)', color: '#fff', borderRadius: 7, padding: '7px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
                   Odaberi CSV fajl
                   <input type="file" accept=".csv,text/csv" onChange={handleFileUpload} style={{ display: 'none' }} />
                 </label>
-                <button onClick={downloadTemplate} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 14px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
+                <button onClick={downloadTemplate} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
                   ↓ Preuzmi template
                 </button>
               </div>
@@ -335,15 +335,15 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
 
               {importRows.length > 0 && (
                 <>
-                  <div style={{ fontFamily: "'DM Mono'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)', marginBottom: 8 }}>
+                  <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)', marginBottom: 8 }}>
                     Preview — {importRows.length} {importRows.length === 1 ? 'red' : 'redova'}
                   </div>
                   <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 14 }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
                       <thead>
                         <tr style={{ background: 'var(--bg)' }}>
                           {['Ime', 'Email', 'Organizacija', 'Uloga'].map(h => (
-                            <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'DM Mono'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                            <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -351,10 +351,10 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
                         {importRows.map((r, i) => (
                           <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                             <td style={{ padding: '6px 10px', color: 'var(--text)' }}>{r.name || <span style={{ color: 'var(--red)' }}>!</span>}</td>
-                            <td style={{ padding: '6px 10px', color: 'var(--textMuted)', fontFamily: "'DM Mono'", fontSize: 11 }}>{r.email || <span style={{ color: 'var(--red)' }}>!</span>}</td>
+                            <td style={{ padding: '6px 10px', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>{r.email || <span style={{ color: 'var(--red)' }}>!</span>}</td>
                             <td style={{ padding: '6px 10px', color: 'var(--textMuted)' }}>{r.organization || '—'}</td>
                             <td style={{ padding: '6px 10px' }}>
-                              <span style={{ fontFamily: "'DM Mono'", fontSize: 10, padding: '2px 7px', borderRadius: 20, background: (ROLE_COLORS[r.role] || ROLE_COLORS.user).bg, color: (ROLE_COLORS[r.role] || ROLE_COLORS.user).text }}>
+                              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, padding: '2px 7px', borderRadius: 20, background: (ROLE_COLORS[r.role] || ROLE_COLORS.user).bg, color: (ROLE_COLORS[r.role] || ROLE_COLORS.user).text }}>
                                 {ROLE_LABELS[r.role] || r.role || 'user'}
                               </span>
                             </td>
@@ -364,10 +364,10 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
                     </table>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={handleImport} disabled={importLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 18px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: importLoading ? 'not-allowed' : 'pointer', opacity: importLoading ? 0.7 : 1 }}>
+                    <button onClick={handleImport} disabled={importLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 18px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: importLoading ? 'not-allowed' : 'pointer', opacity: importLoading ? 0.7 : 1 }}>
                       {importLoading ? 'Importujem...' : `Importuj ${importRows.length} korisnika`}
                     </button>
-                    <button onClick={() => setImportRows([])} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 14px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
+                    <button onClick={() => setImportRows([])} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
                       Otkaži
                     </button>
                   </div>
@@ -380,7 +380,7 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
           {importResults && (
             <div style={{ marginBottom: 20, padding: '20px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Rezultati importa</div>
+                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Rezultati importa</div>
                 <button onClick={() => { setImporting(false); setImportResults(null); setImportRows([]) }} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 18 }}>×</button>
               </div>
               <div style={{ display: 'flex', gap: 16, marginBottom: 14 }}>
@@ -389,18 +389,18 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
                   { label: 'Preskočeno', count: importResults.filter(r => r.status === 'skipped').length, color: 'var(--amber)' },
                   { label: 'Greška', count: importResults.filter(r => r.status === 'error').length, color: 'var(--red)' },
                 ].map(s => (
-                  <div key={s.label} style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
-                    <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 20, color: s.color }}>{s.count}</span>
+                  <div key={s.label} style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
+                    <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: s.color }}>{s.count}</span>
                     <span style={{ color: 'var(--textMuted)', marginLeft: 6 }}>{s.label}</span>
                   </div>
                 ))}
               </div>
               <div style={{ maxHeight: 260, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
                   <thead>
                     <tr style={{ background: 'var(--bg)' }}>
                       {['Status', 'Ime', 'Email', 'Org', 'Privremena lozinka'].map(h => (
-                        <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'DM Mono'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                        <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -408,16 +408,16 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
                     {importResults.map((r, i) => (
                       <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: r.status === 'error' ? 'var(--redTint)' : r.status === 'skipped' ? 'var(--amberTint)' : 'transparent' }}>
                         <td style={{ padding: '6px 10px' }}>
-                          <span style={{ color: r.status === 'created' ? 'var(--green)' : r.status === 'skipped' ? 'var(--amber)' : 'var(--red)', fontFamily: "'DM Mono'", fontSize: 10 }}>
+                          <span style={{ color: r.status === 'created' ? 'var(--green)' : r.status === 'skipped' ? 'var(--amber)' : 'var(--red)', fontFamily: "'Hanken Grotesk'", fontSize: 10 }}>
                             {r.status === 'created' ? '✓ OK' : r.status === 'skipped' ? '— skip' : '✕ err'}
                           </span>
                         </td>
                         <td style={{ padding: '6px 10px', color: 'var(--text)' }}>{r.name}</td>
-                        <td style={{ padding: '6px 10px', color: 'var(--textMuted)', fontFamily: "'DM Mono'", fontSize: 11 }}>{r.email}</td>
+                        <td style={{ padding: '6px 10px', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>{r.email}</td>
                         <td style={{ padding: '6px 10px', color: 'var(--textMuted)' }}>{r.organization || '—'}</td>
                         <td style={{ padding: '6px 10px' }}>
                           {r.tempPassword
-                            ? <code style={{ background: 'var(--bg)', padding: '2px 7px', borderRadius: 4, fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--text)', userSelect: 'all' }}>{r.tempPassword}</code>
+                            ? <code style={{ background: 'var(--bg)', padding: '2px 7px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--text)', userSelect: 'all' }}>{r.tempPassword}</code>
                             : <span style={{ color: 'var(--textMuted)', fontSize: 11 }}>{r.reason || '—'}</span>
                           }
                         </td>
@@ -426,7 +426,7 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
                   </tbody>
                 </table>
               </div>
-              <div style={{ marginTop: 10, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
+              <div style={{ marginTop: 10, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
                 Sačuvaj privremene lozinke pre nego što zatvoriš ovaj prozor.
               </div>
             </div>
@@ -435,7 +435,7 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
           {/* Create form */}
           {creating && (
             <form onSubmit={handleCreateUser} style={{ marginBottom: 20, padding: '16px 20px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12 }}>
-              <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 14 }}>
+              <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 14 }}>
                 Novi korisnik
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 130px', gap: 10, marginBottom: 10 }}>
@@ -471,10 +471,10 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
               )}
               {newError && <div style={{ marginBottom: 12, padding: '8px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 6, color: 'var(--red)', fontSize: 12 }}>{newError}</div>}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" disabled={newLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 16px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: newLoading ? 'not-allowed' : 'pointer', opacity: newLoading ? 0.7 : 1 }}>
+                <button type="submit" disabled={newLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 16px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: newLoading ? 'not-allowed' : 'pointer', opacity: newLoading ? 0.7 : 1 }}>
                   {newLoading ? 'Kreiranje...' : 'Kreiraj'}
                 </button>
-                <button type="button" onClick={() => { setCreating(false); setNewError('') }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 16px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
+                <button type="button" onClick={() => { setCreating(false); setNewError('') }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 16px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
                   Otkaži
                 </button>
               </div>
@@ -483,11 +483,11 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
 
           {/* Users list */}
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 32, color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            <div style={{ textAlign: 'center', padding: 32, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
               Učitavam korisnike...
             </div>
           ) : users.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 32, color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            <div style={{ textAlign: 'center', padding: 32, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
               Nema korisnika. Dodajte prvog klikom na dugme iznad.
             </div>
           ) : (
@@ -552,34 +552,34 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
       {/* User info row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: editMode ? 14 : (isUserRole ? 10 : 0) }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: roleColors.text, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: roleColors.text, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
             {user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{user.name}</span>
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '2px 7px', borderRadius: 20, background: roleColors.bg, color: roleColors.text, border: `1px solid ${roleColors.border}` }}>
+              <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{user.name}</span>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '2px 7px', borderRadius: 20, background: roleColors.bg, color: roleColors.text, border: `1px solid ${roleColors.border}` }}>
                 {ROLE_LABELS[user.role] || user.role}
               </span>
               {user.organizationName && (
-                <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 20, padding: '1px 8px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 20, padding: '1px 8px' }}>
                   {user.organizationName}
                 </span>
               )}
             </div>
-            <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>{user.email}</div>
+            <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{user.email}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => { setEditMode(m => !m); setEditError(''); setEditForm({ name: user.name, email: user.email, role: user.role, password: '', organizationId: user.organizationId || '' }) }}
-            style={{ background: editMode ? 'var(--surfaceAlt)' : 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 10px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer', transition: 'all 0.2s ease' }}
+            style={{ background: editMode ? 'var(--surfaceAlt)' : 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 10px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer', transition: 'all 0.2s ease' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
           >
             {editMode ? 'Otkaži' : 'Izmeni'}
           </button>
           <button onClick={onDelete}
-            style={{ background: 'transparent', color: 'var(--red)', border: '1px solid #EF444430', borderRadius: 6, padding: '4px 10px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer', transition: 'all 0.2s ease' }}
+            style={{ background: 'transparent', color: 'var(--red)', border: '1px solid #EF444430', borderRadius: 6, padding: '4px 10px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer', transition: 'all 0.2s ease' }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--redTint)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
@@ -623,7 +623,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
             </div>
           )}
           {editError && <div style={{ marginBottom: 10, padding: '7px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 6, color: 'var(--red)', fontSize: 12 }}>{editError}</div>}
-          <button type="submit" disabled={editLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 18px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.7 : 1 }}>
+          <button type="submit" disabled={editLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 18px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.7 : 1 }}>
             {editLoading ? 'Čuvam...' : 'Sačuvaj izmene'}
           </button>
         </form>
@@ -633,15 +633,15 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
       {isUserRole && !editMode && (
         <>
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontFamily: "'DM Mono'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 6 }}>
+            <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 6 }}>
               Projekti
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {(user.projects || []).length === 0 ? (
-                <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>Nema dodeljenih projekata</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>Nema dodeljenih projekata</span>
               ) : (
                 (user.projects || []).map(p => (
-                  <span key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 20, padding: '3px 10px', fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--accent)' }}>
+                  <span key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 20, padding: '3px 10px', fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)' }}>
                     {p.displayName || p.epicKey}
                     <button onClick={() => onUnassign(p.id)} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center' }}
                       onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
@@ -654,12 +654,12 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
           </div>
           {availableProjects.length > 0 && (
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <select value={selectedProject} onChange={e => setSelectedProject(e.target.value)} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 10px', color: 'var(--text)', fontSize: 12, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", cursor: 'pointer' }}>
+              <select value={selectedProject} onChange={e => setSelectedProject(e.target.value)} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 10px', color: 'var(--text)', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", cursor: 'pointer' }}>
                 <option value="">Dodeli projekat...</option>
                 {availableProjects.map(p => <option key={p.id} value={p.id}>{p.displayName || p.epicKey}</option>)}
               </select>
               <button onClick={() => { if (selectedProject) { onAssign(selectedProject); setSelectedProject('') } }} disabled={!selectedProject}
-                style={{ background: selectedProject ? 'var(--accent)' : 'var(--border)', color: selectedProject ? '#fff' : 'var(--textMuted)', border: 'none', borderRadius: 6, padding: '5px 12px', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: selectedProject ? 'pointer' : 'not-allowed', transition: 'all 0.2s ease' }}
+                style={{ background: selectedProject ? 'var(--accent)' : 'var(--border)', color: selectedProject ? '#fff' : 'var(--textMuted)', border: 'none', borderRadius: 6, padding: '5px 12px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: selectedProject ? 'pointer' : 'not-allowed', transition: 'all 0.2s ease' }}
               >
                 Dodeli
               </button>
@@ -672,7 +672,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
 }
 
 const labelStyle = {
-  display: 'block', fontSize: 10, fontFamily: "'DM Mono'",
+  display: 'block', fontSize: 10, fontFamily: "'Hanken Grotesk'",
   textTransform: 'uppercase', letterSpacing: '0.08em',
   color: 'var(--textMuted)', marginBottom: 5,
 }
@@ -680,6 +680,6 @@ const labelStyle = {
 const inputStyle = {
   width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
   borderRadius: 7, padding: '8px 12px', color: 'var(--text)', fontSize: 13,
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
   transition: 'border-color 0.2s',
 }

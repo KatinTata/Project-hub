@@ -48,7 +48,7 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
             position: 'absolute', top: 4, right: 4,
             minWidth: 15, height: 15, borderRadius: 8,
             background: 'var(--red)', color: '#fff',
-            fontSize: 9, fontFamily: "'DM Mono'", fontWeight: 700,
+            fontSize: 9, fontFamily: "'Hanken Grotesk'", fontWeight: 700,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '0 3px', lineHeight: 1, pointerEvents: 'none',
           }}>
@@ -73,11 +73,11 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
         }}>
           {/* Header */}
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
+            <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
               {t('notif.title')}
             </span>
             {unreadCount > 0 && (
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', borderRadius: 10, padding: '2px 8px' }}>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', borderRadius: 10, padding: '2px 8px' }}>
                 {t('notif.new', { n: unreadCount })}
               </span>
             )}
@@ -85,7 +85,7 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
 
           {/* List */}
           {notifications.length === 0 ? (
-            <div style={{ padding: '28px 16px', textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
+            <div style={{ padding: '28px 16px', textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
               {t('notif.empty')}
             </div>
           ) : (
@@ -98,20 +98,20 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'Syne', fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>
+                  <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>
                     {n.project_name || n.epic_key}
                   </span>
-                  <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textSubtle)' }}>
+                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>
                     {fmtTime(n.created_at)}
                   </span>
                 </div>
                 {n.task_key && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 4, padding: '1px 6px', marginBottom: 4 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 4, padding: '1px 6px', marginBottom: 4 }}>
                     <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M5 6.5a2.5 2.5 0 003.5.3l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M7 5.5a2.5 2.5 0 00-3.5-.3l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></svg>
                     {n.task_key}
                   </span>
                 )}
-                <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   <span style={{ color: 'var(--text)', fontWeight: 600 }}>{n.sender_name}: </span>
                   {n.text.length > 60 ? n.text.slice(0, 60) + '...' : n.text}
                 </div>
@@ -123,7 +123,7 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
           <div style={{ padding: '10px 16px' }}>
             <button
               onClick={() => { onMarkAllRead(); setOpen(false) }}
-              style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }}
+              style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }}
             >
               {t('notif.markAllRead')}
             </button>

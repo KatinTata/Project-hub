@@ -18,7 +18,7 @@ export default function OverrunBanner({ overTasks = [] }) {
       gap: 12,
       flexWrap: 'wrap',
     }}>
-      <span style={{ color: 'var(--red)', fontWeight: 600, fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
+      <span style={{ color: 'var(--red)', fontWeight: 600, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14 }}>
         ⚠️  {overTasks.length} {overTasks.length === 1 ? t('overrun.singular') : overTasks.length < 5 ? t('overrun.plural') : t('overrun.plural2')}
       </span>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -28,7 +28,7 @@ export default function OverrunBanner({ overTasks = [] }) {
             color: 'var(--red)',
             borderRadius: 6,
             padding: '3px 8px',
-            fontFamily: "'DM Mono'",
+            fontFamily: "'Hanken Grotesk'",
             fontSize: 12,
           }}>
             {task.key} {task.overPct > 0 ? `+${task.overPct}%` : ''}

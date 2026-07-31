@@ -8,7 +8,7 @@ export const P = {
   text: '#0F1523', muted: '#5A6480', border: '#E2E6F0', surface: '#F8F9FC',
 }
 export const SERIES = [P.accent, P.cyan, P.violet, P.green, P.amber, P.red, P.teal, '#D946EF', '#059669', '#64748B']
-const FONT = 'Inter'
+const FONT = 'Hanken Grotesk'
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const cut = (s, n) => { s = String(s ?? ''); return s.length > n ? s.slice(0, n - 1) + '…' : s }

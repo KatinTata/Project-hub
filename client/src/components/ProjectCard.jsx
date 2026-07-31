@@ -200,12 +200,12 @@ function ChangesFeed({ data, previousData, previousTime, jiraUrl, projectId }) {
               <rect x="10" y="2" width="3" height="11" rx="0.5" fill="var(--green)"/>
             </svg>
           )}
-          <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
+          <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
             {changes.length === 0 ? 'Nema novih promena' : `${changes.length} ${changes.length === 1 ? 'promena' : changes.length < 5 ? 'promene' : 'promena'} od poslednjeg osvežavanja`}
           </span>
         </div>
         {time && (
-          <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textSubtle)' }}>
+          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)' }}>
             {fmtLastRefresh(time, t)}
           </span>
         )}
@@ -231,22 +231,22 @@ function ChangesFeed({ data, previousData, previousTime, jiraUrl, projectId }) {
                   href={link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}
+                  style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}
                   onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                   onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
                 >{c.key}</a>
               ) : (
-                <span style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>{c.key}</span>
+                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>{c.key}</span>
               )}
-              <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                 {c.summary}
               </span>
               {author && (
-                <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--text)', flexShrink: 0, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 6px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--text)', flexShrink: 0, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 6px' }}>
                   {author}
                 </span>
               )}
-              <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: 600, color, flexShrink: 0 }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: 600, color, flexShrink: 0 }}>
                 {c.type === 'new'    && 'Novi task'}
                 {c.type === 'status' && <>{c.from} <span style={{ color: 'var(--textSubtle)' }}>→</span> {c.to}</>}
                 {c.type === 'est'    && <>{fmtHours(c.from)} <span style={{ color: 'var(--textSubtle)' }}>→</span> {fmtHours(c.to)}</>}
@@ -300,7 +300,7 @@ export default function ProjectCard({
 
   if (loading) {
     return (
-      <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
         Učitavam podatke iz Jire...
       </div>
     )
@@ -310,8 +310,8 @@ export default function ProjectCard({
     return (
       <div style={{ padding: 48, textAlign: 'center' }}>
         <div style={{ fontSize: 32, marginBottom: 16 }}>❌</div>
-        <div style={{ color: 'var(--red)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", marginBottom: 8 }}>{error}</div>
-        <button onClick={onArchive} style={{ color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
+        <div style={{ color: 'var(--red)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", marginBottom: 8 }}>{error}</div>
+        <button onClick={onArchive} style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
           Ukloni projekat
         </button>
       </div>
@@ -320,7 +320,7 @@ export default function ProjectCard({
 
   if (!data) {
     return (
-      <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
         Nema podataka
       </div>
     )
@@ -408,7 +408,7 @@ export default function ProjectCard({
           gap: 16,
         }}>
           <div>
-            <h2 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: isMobile ? 20 : 24, color: 'var(--text)', marginBottom: 8 }}>
+            <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: isMobile ? 20 : 24, color: 'var(--text)', marginBottom: 8 }}>
               {project.displayName || project.epicKey}
             </h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -418,7 +418,7 @@ export default function ProjectCard({
                 <button
                   onClick={onEditProject}
                   title="Izmeni kriterijume projekta"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, border: '1px solid var(--border)', background: 'transparent', color: 'var(--accent)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, border: '1px solid var(--border)', background: 'transparent', color: 'var(--accent)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease' }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'rgba(79,142,247,0.08)' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent' }}
                 >
@@ -426,7 +426,7 @@ export default function ProjectCard({
                   Izmeni
                 </button>
               )}
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textMuted)' }}>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>
                 {total} taskova
               </span>
             </div>
@@ -436,16 +436,16 @@ export default function ProjectCard({
             {/* Percentages row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 20, color: 'var(--green)' }}>{Math.round(donePct * 100)}%</span>
-                <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>završeno</span>
+                <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--green)' }}>{Math.round(donePct * 100)}%</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>završeno</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 20, color: 'var(--amber)' }}>{Math.round(testingPct * 100)}%</span>
-                <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>testing</span>
+                <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--amber)' }}>{Math.round(testingPct * 100)}%</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>testing</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 20, color: 'var(--accent)' }}>{Math.round(inprogPct * 100)}%</span>
-                <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>in progress</span>
+                <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--accent)' }}>{Math.round(inprogPct * 100)}%</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>in progress</span>
               </div>
             </div>
 
@@ -466,8 +466,8 @@ export default function ProjectCard({
               ].map(s => (
                 <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
-                  <span style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{s.label}</span>
-                  <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: s.color }}>{s.count}</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{s.label}</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: s.color }}>{s.count}</span>
                 </div>
               ))}
             </div>
@@ -496,7 +496,7 @@ export default function ProjectCard({
                 border: 'none',
                 borderRadius: 8,
                 padding: '6px 14px',
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                 fontWeight: 600,
                 fontSize: 13,
                 cursor: refreshing || loading ? 'not-allowed' : 'pointer',
@@ -525,7 +525,7 @@ export default function ProjectCard({
                 border: 'none',
                 borderRadius: 8,
                 padding: '6px 14px',
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                 fontWeight: 600,
                 fontSize: 13,
                 cursor: exporting ? 'not-allowed' : 'pointer',
@@ -543,7 +543,7 @@ export default function ProjectCard({
             </button>
 
             {lastRefresh && (
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 12, color: 'var(--textSubtle)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textSubtle)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                 {refreshing || loading ? 'Osvežavam...' : `${fmtLastRefresh(lastRefresh, t)}`}
                 {!refreshing && !loading && autoRefreshTime && (
                   <span style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 6px', fontSize: 11, color: 'var(--textMuted)' }}>
@@ -586,7 +586,7 @@ export default function ProjectCard({
           borderRadius: 12,
           padding: isMobile ? '16px' : '20px 24px',
         }}>
-          <h3 style={{ fontFamily: 'Syne', fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
+          <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
             Distribucija taskova
           </h3>
           <DonutChart segments={donutSegments} size={isMobile ? 160 : 200} innerRadius={isMobile ? 56 : 70} horizontal={isClient && !isMobile} />
@@ -601,7 +601,7 @@ export default function ProjectCard({
             padding: isMobile ? '16px' : '20px 24px',
             overflow: 'hidden',
           }}>
-            <h3 style={{ fontFamily: 'Syne', fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
+            <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
               Estimacija vs Utrošeno (top taskovi)
             </h3>
             <div style={{ overflowX: isMobile ? 'auto' : 'hidden' }}>
@@ -618,10 +618,10 @@ export default function ProjectCard({
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px 24px' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Moduli</div>
-                  <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>Distribucija logovanog vremena po modulu</div>
+                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Moduli</div>
+                  <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>Distribucija logovanog vremena po modulu</div>
                 </div>
-                <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {moduleData.filter(d => d.name !== 'Bez modula').length} modula
                 </span>
               </div>
@@ -631,22 +631,22 @@ export default function ProjectCard({
 
           {data.hasBillableField && (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px 24px', ...(moduleData.length === 0 ? { maxWidth: 300 } : {}) }}>
-              <h3 style={{ fontFamily: 'Syne', fontSize: 12, fontWeight: 700, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>Billable sati</h3>
+              <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 700, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>Billable sati</h3>
               <DonutChart segments={billableSegments} size={180} innerRadius={62} centerText={`${billablePct}%`} centerSubtext="billable" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>Billable</span>
+                    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>Billable</span>
                   </div>
-                  <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>{(billableSpent / 3600).toFixed(1)}h</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{(billableSpent / 3600).toFixed(1)}h</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--textSubtle)', flexShrink: 0 }} />
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>Non-billable</span>
+                    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>Non-billable</span>
                   </div>
-                  <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)' }}>{(nonBillableSpent / 3600).toFixed(1)}h</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{(nonBillableSpent / 3600).toFixed(1)}h</span>
                 </div>
               </div>
             </div>
@@ -664,14 +664,14 @@ export default function ProjectCard({
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
-                <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Opterećenje po članu tima
                 </div>
-                <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+                <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
                   Logovano vreme i distribucija taskova
                 </div>
               </div>
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                 {assigneeData.filter(d => d.name !== 'Neraspoređeno').length} članova
               </span>
             </div>
@@ -683,14 +683,14 @@ export default function ProjectCard({
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     Component Breakdown
                   </div>
-                  <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+                  <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
                     Distribucija logovanog vremena po komponenti
                   </div>
                 </div>
-                <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {componentData.length} komponenti
                 </span>
               </div>
@@ -700,14 +700,14 @@ export default function ProjectCard({
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     Overrun Heatmap
                   </div>
-                  <div style={{ fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+                  <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
                     Prekoračenje estimacije po tasku
                   </div>
                 </div>
-                <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {tasks.filter(task => task.est > 0).length} sa estimacijom
                 </span>
               </div>
@@ -731,7 +731,7 @@ export default function ProjectCard({
               onClick={() => setActiveTab(tab.id)}
               style={{
                 padding: '6px 16px', borderRadius: 7, fontSize: 13, fontWeight: 600,
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                 cursor: 'pointer', transition: 'all 0.15s',
                 background: activeTab === tab.id ? 'var(--accent)' : 'transparent',
                 color: activeTab === tab.id ? '#fff' : 'var(--textMuted)',
@@ -770,7 +770,7 @@ function FilterBadge({ project }) {
 
   if (ft === 'epic') {
     return (
-      <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px' }}>
+      <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px' }}>
         Epic {project.epicKey}
       </span>
     )
@@ -785,7 +785,7 @@ function FilterBadge({ project }) {
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 4, padding: '2px 6px', cursor: 'default' }}>
+      <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 4, padding: '2px 6px', cursor: 'default' }}>
         {label}
       </span>
       {showTooltip && tooltip && (
@@ -794,7 +794,7 @@ function FilterBadge({ project }) {
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
           padding: '8px 12px', minWidth: 260, maxWidth: 400,
           boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-          fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)',
+          fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)',
           lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-all',
         }}>
           {tooltip}

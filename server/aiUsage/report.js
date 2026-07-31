@@ -17,14 +17,16 @@ import { donut, trend, hbars, compareBars, gauge, P, SERIES } from './reportChar
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FONT_FILES = [
-  path.join(__dirname, '..', 'excel', 'fonts', 'Inter-Regular.ttf'),
-  path.join(__dirname, '..', 'excel', 'fonts', 'Inter-Bold.ttf'),
+  path.join(__dirname, '..', 'excel', 'fonts', 'HankenGrotesk-Regular.ttf'),
+  path.join(__dirname, '..', 'excel', 'fonts', 'HankenGrotesk-SemiBold.ttf'),
+  path.join(__dirname, '..', 'excel', 'fonts', 'HankenGrotesk-Bold.ttf'),
+  path.join(__dirname, '..', 'excel', 'fonts', 'HankenGrotesk-ExtraBold.ttf'),
 ]
 const MAX_APPS = 40
 
 function svgToPng(svg) {
   return new Resvg(svg, {
-    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Inter' },
+    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Hanken Grotesk' },
     fitTo: { mode: 'zoom', value: 2 },
   }).render().asPng()
 }
@@ -290,7 +292,7 @@ function charts(d) {
 // ── Excel ─────────────────────────────────────────────────────────────────────
 
 const A = { navy: 'FF0F2746', accent: 'FF2563EB', text: 'FF0F1523', muted: 'FF5A6480', white: 'FFFFFFFF', border: 'FFE2E6F0', alt: 'FFF1F5F9', green: 'FF16A34A', red: 'FFDC2626', amber: 'FFD97706' }
-const XF = (o = {}) => ({ name: 'Inter', size: 11, ...o })
+const XF = (o = {}) => ({ name: 'Hanken Grotesk', size: 11, ...o })
 
 export async function buildXlsx(d) {
   const wb = new ExcelJS.Workbook()
@@ -509,7 +511,7 @@ export function buildReportHtml(d) {
 <title>AI potrošnja — ${esc(d.scopeName)} (${d.period.from} — ${d.period.to})</title>
 <style>
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body{font-family:'Segoe UI',Arial,sans-serif;color:#0F1523;background:#F0F2F8;margin:0;padding:26px}
+  body{font-family:'Hanken Grotesk','Segoe UI',Arial,sans-serif;color:#0F1523;background:#F0F2F8;margin:0;padding:26px}
   .page{max-width:900px;margin:0 auto}
   svg{max-width:100%;height:auto}
   /* margin:0 removes the browser's own header/footer (URL, date, page title);

@@ -11,8 +11,10 @@ import { donutSVG, columnSVG, hbarSVG, PALETTE } from './charts.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FONT_FILES = [
-  path.join(__dirname, 'fonts', 'Inter-Regular.ttf'),
-  path.join(__dirname, 'fonts', 'Inter-Bold.ttf'),
+  path.join(__dirname, 'fonts', 'HankenGrotesk-Regular.ttf'),
+  path.join(__dirname, 'fonts', 'HankenGrotesk-SemiBold.ttf'),
+  path.join(__dirname, 'fonts', 'HankenGrotesk-Bold.ttf'),
+  path.join(__dirname, 'fonts', 'HankenGrotesk-ExtraBold.ttf'),
 ]
 
 // ── Colors (ARGB) ───────────────────────────────────────────────────────────
@@ -23,7 +25,7 @@ const C = {
   greenTint: 'FFF0FDF4', redTint: 'FFFEF2F2', amberTint: 'FFFFFBEB', accentTint: 'FFEFF6FF',
   headerBg: 'FF0F1523',
 }
-const FONT = 'Segoe UI'
+const FONT = 'Hanken Grotesk'
 const HOURS_FMT = '0.0" h"'
 const PCT_FMT = '0%'
 
@@ -37,10 +39,10 @@ function fmtDate(iso) {
 
 const CAT_LABEL = { done: 'Završeno', testing: 'Testing', inprog: 'In Progress', todo: 'To Do' }
 
-// SVG → PNG with the bundled Inter font (no reliance on system/container fonts).
+// SVG → PNG with the bundled Hanken Grotesk font (no reliance on system/container fonts).
 function svgToPng(svg) {
   const r = new Resvg(svg, {
-    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Inter' },
+    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Hanken Grotesk' },
     fitTo: { mode: 'zoom', value: 2 }, // 2× for crisp embedding
   })
   return r.render().asPng()

@@ -182,7 +182,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
               style={{
                 background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
                 padding: '7px 12px', color: 'var(--text)',
-                fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer',
+                fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, cursor: 'pointer',
               }}
             >
               <option value="">{t('epic.selectProject')}</option>
@@ -201,7 +201,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
               style={{
                 background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
                 padding: '7px 12px', color: 'var(--text)', width: 180,
-                fontFamily: "'DM Mono', monospace", fontSize: 13, outline: 'none', transition: 'border-color 0.2s',
+                fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, outline: 'none', transition: 'border-color 0.2s',
               }}
               onFocus={e => e.target.style.borderColor = 'var(--accent)'}
               onBlur={e => e.target.style.borderColor = 'var(--border)'}
@@ -210,7 +210,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
               type="submit"
               style={{
                 background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8,
-                padding: '7px 16px', fontFamily: "'DM Sans', sans-serif", fontWeight: 600,
+                padding: '7px 16px', fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600,
                 fontSize: 13, cursor: 'pointer', transition: 'background 0.2s',
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--accentHover)'}
@@ -226,7 +226,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
               marginLeft: 'auto', background: 'transparent',
               border: '1px solid var(--border)', borderRadius: 8,
               padding: '7px 16px', color: 'var(--textMuted)',
-              fontFamily: "'DM Sans', sans-serif", fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
+              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
@@ -239,22 +239,22 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
               <div>
                 <div style={{
-                  fontFamily: "'DM Mono', monospace", fontSize: 10, color: 'var(--textMuted)',
+                  fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)',
                   textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 10,
                 }}>INTELISALE</div>
                 <h1 style={{
-                  fontFamily: 'Syne', fontWeight: 800, fontSize: 40,
+                  fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 40,
                   color: 'var(--text)', margin: 0, lineHeight: 1.1, letterSpacing: '-0.02em',
                 }}>Release Notes</h1>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, paddingTop: 4 }}>
                 <span style={{
-                  fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 500,
+                  fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, fontWeight: 500,
                   padding: '5px 12px', borderRadius: 6,
                   background: 'rgba(79,142,247,0.1)', color: 'var(--accent)',
                   border: '1px solid rgba(79,142,247,0.25)',
                 }}>{epicKey}</span>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: 'var(--textMuted)' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
                   {today}
                 </span>
               </div>
@@ -285,7 +285,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
           <div style={{
             padding: '18px 22px', borderRadius: 12,
             background: 'var(--redTint)', border: '1px solid var(--red)',
-            fontFamily: "'DM Sans', sans-serif", color: 'var(--red)', fontSize: 14,
+            fontFamily: "'Hanken Grotesk', sans-serif", color: 'var(--red)', fontSize: 14,
           }}>⚠️ {error}</div>
         )}
 
@@ -293,7 +293,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
         {!loading && !error && epicKey && tasks.length === 0 && (
           <div style={{
             textAlign: 'center', padding: '60px 0',
-            color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 14,
+            color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14,
           }}>{t('epic.noTasks', { key: epicKey })}</div>
         )}
 
@@ -301,7 +301,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
         {!epicKey && !loading && (
           <div style={{
             textAlign: 'center', padding: '80px 0',
-            color: 'var(--textMuted)', fontFamily: "'DM Sans', sans-serif", fontSize: 14,
+            color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14,
           }}>{t('epic.empty')}</div>
         )}
 
@@ -322,10 +322,10 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
                   }}>
                     <span style={{ fontSize: 20, lineHeight: 1 }}>{cfg.icon}</span>
                     <span style={{
-                      fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: cfg.color,
+                      fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 18, color: cfg.color,
                     }}>{cfg.label}</span>
                     <span style={{
-                      fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500,
+                      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 500,
                       padding: '2px 9px', borderRadius: 20, marginLeft: 2,
                       background: `${cfg.color}18`, color: cfg.color,
                       border: `1px solid ${cfg.color}33`,
@@ -354,7 +354,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
 
                             {/* Key badge */}
                             <span style={{
-                              fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500,
+                              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 500,
                               padding: '3px 9px', borderRadius: 6, flexShrink: 0,
                               background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`,
                               letterSpacing: '0.04em',
@@ -362,7 +362,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
 
                             {/* Summary */}
                             <span style={{
-                              fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500,
+                              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, fontWeight: 500,
                               color: 'var(--text)', flex: 1, lineHeight: 1.4,
                             }}>{summary}</span>
 
@@ -399,7 +399,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
                               <div style={{
                                 marginTop: 12, paddingTop: 12,
                                 borderTop: '1px solid var(--border)',
-                                fontFamily: "'DM Sans', sans-serif", fontSize: 13,
+                                fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13,
                                 color: 'var(--textMuted)', lineHeight: 1.75,
                                 whiteSpace: 'pre-wrap',
                               }}>{desc}</div>
@@ -417,18 +417,18 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
                               }}>
                                 <span style={{ fontSize: 13 }}>🔗</span>
                                 <span style={{
-                                  fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500,
+                                  fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 500,
                                   padding: '3px 9px', borderRadius: 6, flexShrink: 0,
                                   background: 'rgba(245,158,11,0.15)', color: '#F59E0B',
                                   border: '1px solid rgba(245,158,11,0.3)',
                                 }}>{link.key}</span>
                                 <span style={{
-                                  fontFamily: "'DM Sans', sans-serif", fontSize: 13,
+                                  fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13,
                                   color: 'var(--textMuted)', flex: 1, minWidth: 0,
                                 }}>{link.summary}</span>
                                 {link.status && (
                                   <span style={{
-                                    fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500,
+                                    fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 500,
                                     padding: '3px 9px', borderRadius: 6, flexShrink: 0,
                                     background: isDone ? 'rgba(34,197,94,0.12)' : 'rgba(79,142,247,0.12)',
                                     color: isDone ? 'var(--green)' : 'var(--accent)',
@@ -437,7 +437,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
                                 )}
                                 {url && (
                                   <a href={url} target="_blank" rel="noopener noreferrer" style={{
-                                    fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600,
+                                    fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, fontWeight: 600,
                                     color: 'var(--accent)', textDecoration: 'none', flexShrink: 0,
                                     padding: '3px 8px', border: '1px solid rgba(79,142,247,0.3)',
                                     borderRadius: 6, transition: 'background 0.2s',
@@ -464,7 +464,7 @@ export default function EpicViewerPage({ initialEpicKey, user, theme, onLogout, 
           marginTop: 72, paddingTop: 22,
           borderTop: '1px solid var(--border)',
           textAlign: 'center',
-          fontFamily: "'DM Mono', monospace", fontSize: 10,
+          fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10,
           color: 'var(--textSubtle)', letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>
           INTELISALE · Empowering Sales Excellence · www.intelisale.com

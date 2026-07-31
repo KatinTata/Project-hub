@@ -29,7 +29,7 @@ export default function OverrunHeatmap({ tasks = [] }) {
 
   if (withEst.length === 0) {
     return (
-      <div style={{ color: 'var(--green)', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
+      <div style={{ color: 'var(--green)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, padding: '20px 0', textAlign: 'center' }}>
         {t('chart.allOnTarget')}
       </div>
     )
@@ -49,23 +49,23 @@ export default function OverrunHeatmap({ tasks = [] }) {
 
           return (
             <div key={task.key} style={{ ...cs, borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <span style={{ fontFamily: "'DM Mono'", fontSize: 11, color: task.overPct > 15 ? 'var(--red)' : 'var(--accent)', fontWeight: 600 }}>
+              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: task.overPct > 15 ? 'var(--red)' : 'var(--accent)', fontWeight: 600 }}>
                 {task.key}
               </span>
               <div style={{
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
                 fontSize: 12, color: 'var(--textMuted)', lineHeight: 1.4,
                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>
                 {task.summary}
               </div>
-              <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
                 {fmtHours(task.spent)} / {fmtHours(task.est)}
               </div>
               <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${spentPct * 100}%`, background: barColor, borderRadius: 2, transition: 'width 0.4s ease' }} />
               </div>
-              <div style={{ fontFamily: "'DM Mono'", fontSize: 11, fontWeight: 600, color: lbl.color }}>
+              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, fontWeight: 600, color: lbl.color }}>
                 {lbl.text}
               </div>
             </div>
@@ -80,7 +80,7 @@ export default function OverrunHeatmap({ tasks = [] }) {
           style={{
             marginTop: 10, width: '100%', padding: '7px 0',
             background: 'transparent', border: '1px solid var(--border)',
-            borderRadius: 7, cursor: 'pointer', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+            borderRadius: 7, cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
             fontSize: 12, color: 'var(--textMuted)', transition: 'all 0.2s ease',
           }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--borderHover)'; e.currentTarget.style.color = 'var(--text)' }}
