@@ -559,7 +559,6 @@ export function buildReportHtml(d) {
           <span>iskorišćeno ${money(b.spent_eur, 'EUR')} od ${money(b.limit_eur, 'EUR')} uključene potrošnje (${Math.round(b.pct || 0)}%)</span>
           <span>${(b.overage_eur || 0) > 0 ? `<strong style="color:#DC2626">prekoračenje ${money(b.overage_eur, 'EUR')}</strong>` : 'resetuje se 1. u mesecu'}</span>
         </div>
-        ${p.description ? `<div style="font-size:11.5px;color:#5A6480;margin-top:8px;border-top:1px solid #E2E6F0;padding-top:8px">${esc(p.description)}</div>` : ''}
       </div>`
     }).join('')
   })()}

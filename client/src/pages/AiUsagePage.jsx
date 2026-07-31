@@ -664,7 +664,6 @@ function PackagesCard() {
         name: e.name ?? p.name,
         monthly_fee_eur: e.monthly_fee_eur ?? p.monthly_fee_eur,
         included_eur: e.included_eur ?? p.included_eur,
-        description: e.description ?? p.description ?? '',
         sort_order: e.sort_order ?? p.sort_order,
         is_active: (e.is_active ?? p.is_active) ? true : false,
       })
@@ -693,7 +692,7 @@ function PackagesCard() {
     <Section
       title="AI paketi"
       hint={'fiksni pristup + uključena potrošnja tokena · paket se vezuje za tenanta u sekciji Budžeti ispod'}
-      right={!draft && <button onClick={() => setDraft({ name: '', monthly_fee_eur: 0, included_eur: 0, description: '' })} style={btnPrimary}>Novi paket</button>}
+      right={!draft && <button onClick={() => setDraft({ name: '', monthly_fee_eur: 0, included_eur: 0 })} style={btnPrimary}>Novi paket</button>}
     >
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
@@ -702,7 +701,6 @@ function PackagesCard() {
             <th style={{ ...thStyle, textAlign: 'right' }}>Pristup (EUR/mes)</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>Uklj. potrošnja (EUR/mes)</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>Ukupno / mes</th>
-            <th style={thStyle}>Predviđeni obim (opis)</th>
             <th style={thStyle}>Aktivan</th>
             <th style={thStyle} />
           </tr></thead>
@@ -721,10 +719,6 @@ function PackagesCard() {
                   <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(val('included_eur', p.included_eur), ev => set('included_eur', ev.target.value))}</td>
                   <td style={{ ...tdMono, textAlign: 'right', fontWeight: 700 }}>{fmtMoney(total, 'EUR')}</td>
                   <td style={tdStyle}>
-                    <input value={val('description', p.description || '')} placeholder="npr. ~500 porudžbina + ~1.000 stranica prevoda"
-                      onChange={ev => set('description', ev.target.value)} style={{ ...inputS, width: 260, padding: '3px 8px', fontSize: 12 }} />
-                  </td>
-                  <td style={tdStyle}>
                     <input type="checkbox" checked={!!val('is_active', p.is_active)} onChange={ev => set('is_active', ev.target.checked)} />
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -742,9 +736,6 @@ function PackagesCard() {
                 <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(draft.monthly_fee_eur, ev => setDraft(d => ({ ...d, monthly_fee_eur: ev.target.value })))}</td>
                 <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(draft.included_eur, ev => setDraft(d => ({ ...d, included_eur: ev.target.value })))}</td>
                 <td style={{ ...tdMono, textAlign: 'right', fontWeight: 700 }}>{fmtMoney((Number(draft.monthly_fee_eur) || 0) + (Number(draft.included_eur) || 0), 'EUR')}</td>
-                <td style={tdStyle}>
-                  <input value={draft.description} placeholder="predviđeni mesečni obim" onChange={ev => setDraft(d => ({ ...d, description: ev.target.value }))} style={{ ...inputS, width: 260, padding: '3px 8px', fontSize: 12 }} />
-                </td>
                 <td style={tdStyle} />
                 <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <button onClick={createPkg} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11, background: 'var(--accent)', color: '#fff', border: 'none' }}>Dodaj</button>
@@ -1055,11 +1046,6 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
                         </span>
                         <span>resetuje se 1. u mesecu</span>
                       </div>
-                      {budget.package.description && (
-                        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
-                          Paket obuhvata: {budget.package.description}
-                        </div>
-                      )}
                     </>
                   ) : (
                     <>
