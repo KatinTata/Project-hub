@@ -85,7 +85,8 @@ export async function listBudgetStatuses() {
   return out.sort((a, b) => (b.pct || 0) - (a.pct || 0))
 }
 
-// Checker: send warning/limit emails once per month per threshold.
+// Checker: raise an in-app alert once per month per threshold; email is a
+// best-effort extra on top (works with SMTP off).
 export async function checkBudgets() {
   const month = currentMonthKey()
   const rows = db.prepare(`
@@ -98,28 +99,49 @@ export async function checkBudgets() {
   for (const row of rows) {
     try {
       const st = await budgetStatus(row)
-      const level = st.level === 'limit' && row.limit_sent_month !== month ? 'limit'
-        : st.level === 'warning' && row.warning_sent_month !== month ? 'warning'
-        : null
-      if (!level) continue
+      if (st.level !== 'limit' && st.level !== 'warning') continue
+      const level = st.level
 
-      const to = recipients(row.tenant_id, row.extra_emails)
-      const res = await sendMail({
-        to,
-        subject: level === 'limit'
-          ? `[Intelisale] Prekoračen AI limit — ${st.tenant_name} (${month})`
-          : `[Intelisale] AI potrošnja na ${Math.round(st.pct)}% limita — ${st.tenant_name} (${month})`,
-        html: budgetAlertHtml({ level, tenantName: st.tenant_name, spent: st.spent_eur, limit: st.limit_eur, pct: st.pct, month }),
-      })
-      if (res.ok) {
-        db.prepare(`UPDATE tenant_budgets SET ${level === 'limit' ? 'limit_sent_month' : 'warning_sent_month'} = ? WHERE tenant_id = ?`)
-          .run(month, row.tenant_id)
+      // The alerts table itself is the dedup (UNIQUE tenant+level+month)
+      const ins = db.prepare(`
+        INSERT OR IGNORE INTO ai_usage_alerts (tenant_id, tenant_name, level, month, spent_eur, limit_eur, pct)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(row.tenant_id, st.tenant_name, level, month, st.spent_eur, st.limit_eur, st.pct)
+      if (ins.changes === 0) continue // already raised this month
+
+      let mail = { ok: false, skipped: true, error: 'SMTP nije podešen' }
+      if (mailConfigured()) {
+        mail = await sendMail({
+          to: recipients(row.tenant_id, row.extra_emails),
+          subject: level === 'limit'
+            ? `[Intelisale] Prekoračen AI limit — ${st.tenant_name} (${month})`
+            : `[Intelisale] AI potrošnja na ${Math.round(st.pct)}% limita — ${st.tenant_name} (${month})`,
+          html: budgetAlertHtml({ level, tenantName: st.tenant_name, spent: st.spent_eur, limit: st.limit_eur, pct: st.pct, month }),
+        })
+        if (mail.ok) {
+          db.prepare('UPDATE ai_usage_alerts SET mail_sent = 1 WHERE tenant_id = ? AND level = ? AND month = ?').run(row.tenant_id, level, month)
+          db.prepare(`UPDATE tenant_budgets SET ${level === 'limit' ? 'limit_sent_month' : 'warning_sent_month'} = ? WHERE tenant_id = ?`)
+            .run(month, row.tenant_id)
+        }
       }
-      results.push({ tenant: st.tenant_name, level, pct: Math.round(st.pct), mail: res })
+      results.push({ tenant: st.tenant_name, level, pct: Math.round(st.pct), mail })
     } catch (err) {
       if (err instanceof AdminApiNotConfiguredError) break
       results.push({ tenant: row.tenant_name || row.tenant_id, error: err.message })
     }
   }
   return { month, mail_configured: mailConfigured(), results }
+}
+
+// In-app notes: unacknowledged alerts (admins see all, clients only theirs)
+export function listAlerts(userId, isAdminUser) {
+  if (isAdminUser) {
+    return db.prepare('SELECT * FROM ai_usage_alerts WHERE acked_at IS NULL ORDER BY created_at DESC LIMIT 50').all()
+  }
+  return db.prepare(`
+    SELECT a.* FROM ai_usage_alerts a
+    JOIN client_tenant_users ctu ON ctu.tenant_id = a.tenant_id
+    WHERE ctu.user_id = ? AND a.acked_at IS NULL
+    ORDER BY a.created_at DESC LIMIT 20
+  `).all(userId)
 }

@@ -31,6 +31,36 @@ function presetRange(key) {
 }
 const PRESETS = [['7d', '7 dana'], ['30d', '30 dana'], ['month', 'Ovaj mesec'], ['prevMonth', 'Prošli mesec'], ['quarter', 'Kvartal'], ['year', 'Ova godina']]
 
+function AlertNotes({ alerts, onAck, compact }) {
+  if (!alerts?.length) return null
+  const worst = alerts.some(a => a.level === 'limit') ? 'limit' : 'warning'
+  const c = worst === 'limit' ? { border: 'var(--red)', bg: 'var(--redTint)', fg: 'var(--red)' } : { border: 'var(--amber)', bg: 'var(--amberTint)', fg: 'var(--amber)' }
+  return (
+    <div style={{ ...card, borderColor: c.border, background: c.bg }}>
+      <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: c.fg, marginBottom: 8 }}>
+        Obaveštenja o budžetu ({alerts.length})
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {alerts.map(a => (
+          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'var(--text)' }}>
+            <span style={{
+              fontFamily: "'DM Mono'", fontSize: 9, padding: '1px 7px', borderRadius: 4, flexShrink: 0,
+              background: a.level === 'limit' ? 'var(--red)' : 'var(--amber)', color: '#fff',
+            }}>{a.level === 'limit' ? 'LIMIT' : 'UPOZORENJE'}</span>
+            <span style={{ flex: 1 }}>
+              {!compact && <strong>{a.tenant_name}</strong>}{!compact && ' — '}
+              {fmtMoney(a.spent_eur, 'EUR')} od {fmtMoney(a.limit_eur, 'EUR')} ({Math.round(a.pct)}%) · {a.month}
+              {a.mail_sent ? '' : ' · mejl nije poslat'}
+            </span>
+            <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: 'var(--textMuted)' }}>{String(a.created_at).slice(0, 16)}</span>
+            {onAck && <button onClick={() => onAck(a.id)} title="Označi kao pročitano" style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.fg, fontSize: 15, lineHeight: 1, padding: '0 2px' }}>×</button>}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function Section({ title, hint, right, children }) {
   return (
     <div style={{ ...card, padding: 0, overflow: 'visible' }}>
@@ -97,6 +127,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
   const [notConfigured, setNotConfigured] = useState(false)
   const [d, setD] = useState({})
   const [budgets, setBudgets] = useState(null)
+  const [alertNotes, setAlertNotes] = useState([])
   const [expanded, setExpanded] = useState({})
 
   const q = `from=${range.from}&to=${range.to}`
@@ -112,6 +143,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
       ])
       setD(prev => ({ ...prev, byClient, bySource, byApp, byModel }))
       api.aiUsageBudgets().then(setBudgets).catch(() => {})
+      api.aiUsageAlerts().then(r => setAlertNotes(r.alerts || [])).catch(() => {})
     } catch (e) { console.error(e) } finally { setLoading(false) }
   }, [q])
   useEffect(() => { load() }, [load])
@@ -168,6 +200,8 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
               <div style={{ ...card, padding: '12px 16px' }}>
                 <FilterBar {...{ preset, setPreset, range, setRange, currency, setCurrency, exporting, loading }} onExport={exportXlsx} />
               </div>
+
+              <AlertNotes alerts={alertNotes} onAck={async id => { await api.aiUsageAckAlert(id); setAlertNotes(n => n.filter(x => x.id !== id)) }} />
 
               {alerts.length > 0 && (
                 <div style={{ ...card, borderColor: alerts.some(a => a.status.level === 'limit') ? 'var(--red)' : 'var(--amber)', background: alerts.some(a => a.status.level === 'limit') ? 'var(--redTint)' : 'var(--amberTint)' }}>
@@ -605,22 +639,34 @@ function MappingsCard() {
     await api.aiUsageSaveMapping(tenant.tenant_id, cur.includes(userId) ? cur.filter(i => i !== userId) : [...cur, userId])
     await reload()
   }
+  async function setTracked(tenantId, tracked) {
+    await api.aiUsageSetTracked(tenantId, tracked)
+    await reload()
+  }
 
   return (
     <Section
       title="Mapiranje tenant → klijent"
-      hint="jedan tenant može da vide više klijent-naloga"
+      hint={'„aktivan" = prikazuje se u izveštajima i budžetima · jedan tenant može da vide više klijent-naloga'}
       right={<button onClick={discover} disabled={busy} style={btnPrimary}>{busy ? 'Radim…' : 'Preuzmi tenante'}</button>}
     >
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
-          <th style={thStyle}>Tenant</th><th style={thStyle}>Kod</th><th style={thStyle}>Aktivan</th><th style={thStyle}>Klijent nalozi</th>
+          <th style={thStyle}>Tenant</th><th style={thStyle}>Kod</th><th style={thStyle}>Pratimo</th><th style={thStyle}>Klijent nalozi</th>
         </tr></thead>
         <tbody>{(data?.mappings || []).map(m => (
-          <tr key={m.tenant_id} style={{ opacity: m.is_active ? 1 : 0.45 }}>
+          <tr key={m.tenant_id} style={{ opacity: m.is_tracked ? 1 : 0.45 }}>
             <td style={tdStyle}>{m.tenant_name || m.tenant_id}</td>
             <td style={tdMono}>{m.tenant_code || '—'}</td>
-            <td style={tdMono}>{m.is_active ? 'da' : 'ne'}</td>
+            <td style={tdStyle}>
+              <button onClick={() => setTracked(m.tenant_id, !m.is_tracked)} title="Prikazuj ovog tenanta u izveštajima i budžetima"
+                style={{
+                  padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+                  border: `1px solid ${m.is_tracked ? 'var(--green)' : 'var(--border)'}`,
+                  background: m.is_tracked ? 'var(--greenTint)' : 'transparent',
+                  color: m.is_tracked ? 'var(--green)' : 'var(--textMuted)',
+                }}>{m.is_tracked ? 'aktivan' : 'neaktivan'}</button>
+            </td>
             <td style={tdStyle}><MultiUserPicker tenant={m} clients={data?.clients || []} onToggle={toggleUser} /></td>
           </tr>
         ))}</tbody>
@@ -754,6 +800,7 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
   const [currency, setCurrency] = useState('EUR')
   const [data, setData] = useState(null)
   const [budget, setBudget] = useState(null)
+  const [alertNotes, setAlertNotes] = useState([])
   const [loading, setLoading] = useState(false)
   const [exporting, setExporting] = useState(false)
 
@@ -762,6 +809,7 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
     try {
       setData(await api.aiUsageMy(`from=${range.from}&to=${range.to}&currency=${currency}`))
       api.aiUsageMyBudget().then(setBudget).catch(() => {})
+      api.aiUsageAlerts().then(r => setAlertNotes(r.alerts || [])).catch(() => {})
     } catch (e) { console.error(e) } finally { setLoading(false) }
   }, [range.from, range.to, currency])
   useEffect(() => { load() }, [load])
@@ -807,6 +855,8 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
                   Kurs za izabranu valutu trenutno nije dostupan — iznosi su u USD.
                 </div>
               )}
+
+              <AlertNotes alerts={alertNotes} compact />
 
               {budget?.has_budget && (
                 <div style={{ ...card, ...(budget.level === 'limit' ? { borderColor: 'var(--red)', background: 'var(--redTint)' } : budget.level === 'warning' ? { borderColor: 'var(--amber)', background: 'var(--amberTint)' } : {}) }}>

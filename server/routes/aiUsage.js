@@ -11,7 +11,7 @@ import {
 } from '../aiUsage/adminApi.js'
 import { getPricingConfig, makePriceResolver, groupCost, costModelGroups, syncAzurePrices } from '../aiUsage/pricing.js'
 import { fetchTodaysRates, usdConversion } from '../aiUsage/fx.js'
-import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey } from '../aiUsage/budgets.js'
+import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey, listAlerts } from '../aiUsage/budgets.js'
 import { mailConfigured } from '../aiUsage/mailer.js'
 import ExcelJS from 'exceljs'
 
@@ -203,8 +203,16 @@ router.get('/tenants', async (req, res) => {
   if (!requireView(req, res)) return
   try {
     const tenants = await getTenants()
+    // Only tenants we actually work with, unless ?all=1
+    const untracked = new Set(
+      db.prepare('SELECT tenant_id FROM client_tenant_mappings WHERE is_tracked = 0').all().map(r => String(r.tenant_id).toLowerCase())
+    )
+    const all = String(req.query.all || '') === '1'
     res.json({
+      tracked_filter: !all,
+      untracked_count: untracked.size,
       tenants: (tenants || [])
+        .filter(t => all || !untracked.has(String(t.tenantGuid || '').toLowerCase()))
         .map(t => ({ tenant_guid: t.tenantGuid, name: t.name, code: t.eProcurementTenantCode || null }))
         .sort((a, b) => String(a.name).localeCompare(String(b.name))),
     })
@@ -448,7 +456,7 @@ router.get('/admin/mappings', (req, res) => {
   `).all()
   const byTenant = {}
   for (const l of links) (byTenant[l.tenant_id] ||= []).push({ id: l.id, name: l.name, email: l.email })
-  const mappings = rows.map(m => ({ ...m, users: byTenant[m.tenant_id] || [] }))
+  const mappings = rows.map(m => ({ ...m, is_tracked: m.is_tracked == null ? true : !!m.is_tracked, users: byTenant[m.tenant_id] || [] }))
   const clients = db.prepare("SELECT id, name, email FROM users WHERE role = 'user' ORDER BY name ASC").all()
   res.json({ mappings, clients })
 })
@@ -484,15 +492,35 @@ router.post('/admin/mappings/discover', async (req, res) => {
 
 router.put('/admin/mappings/:tenantId', (req, res) => {
   if (!requireManage(req, res)) return
-  // Replace the tenant's user set (many-to-many)
-  const ids = Array.isArray(req.body?.client_user_ids) ? req.body.client_user_ids.map(Number).filter(Number.isFinite) : []
   const tenantId = req.params.tenantId
-  db.transaction(() => {
-    db.prepare('DELETE FROM client_tenant_users WHERE tenant_id = ?').run(tenantId)
-    const ins = db.prepare('INSERT OR IGNORE INTO client_tenant_users (tenant_id, user_id) VALUES (?, ?)')
-    for (const id of ids) ins.run(tenantId, id)
-    db.prepare('UPDATE client_tenant_mappings SET updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ?').run(tenantId)
-  })()
+  const { client_user_ids, is_tracked } = req.body || {}
+
+  // Tracked flag alone (manual "we work with this one" switch)
+  if (is_tracked !== undefined) {
+    db.prepare('UPDATE client_tenant_mappings SET is_tracked = ?, updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ?')
+      .run(is_tracked ? 1 : 0, tenantId)
+  }
+  // Replace the tenant's user set (many-to-many)
+  if (Array.isArray(client_user_ids)) {
+    const ids = client_user_ids.map(Number).filter(Number.isFinite)
+    db.transaction(() => {
+      db.prepare('DELETE FROM client_tenant_users WHERE tenant_id = ?').run(tenantId)
+      const ins = db.prepare('INSERT OR IGNORE INTO client_tenant_users (tenant_id, user_id) VALUES (?, ?)')
+      for (const id of ids) ins.run(tenantId, id)
+      db.prepare('UPDATE client_tenant_mappings SET updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ?').run(tenantId)
+    })()
+  }
+  res.json({ ok: true })
+})
+
+// ── In-app budget notes ───────────────────────────────────────────────────────
+router.get('/alerts', (req, res) => {
+  res.json({ alerts: listAlerts(req.userId, isAdmin(roleOf(req.userId))) })
+})
+
+router.post('/alerts/:id/ack', (req, res) => {
+  if (!requireView(req, res)) return
+  db.prepare('UPDATE ai_usage_alerts SET acked_at = CURRENT_TIMESTAMP WHERE id = ?').run(req.params.id)
   res.json({ ok: true })
 })
 
@@ -590,6 +618,7 @@ router.get('/budgets', async (req, res) => {
            b.warning_sent_month, b.limit_sent_month
     FROM client_tenant_mappings m
     LEFT JOIN tenant_budgets b ON b.tenant_id = m.tenant_id
+    WHERE COALESCE(m.is_tracked, 1) = 1
     ORDER BY m.tenant_name ASC
   `).all()
   let statuses = []

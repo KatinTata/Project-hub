@@ -375,4 +375,26 @@ db.exec(`
   )
 `)
 
+// Manual "we actually work with this one" flag — survives tenant discovery
+// (is_active mirrors the Agentic API's enabled flag and gets overwritten).
+try { db.exec(`ALTER TABLE client_tenant_mappings ADD COLUMN is_tracked INTEGER DEFAULT 1`) } catch {}
+
+// In-app budget notifications (email is optional / added later)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ai_usage_alerts (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id   TEXT NOT NULL,
+    tenant_name TEXT,
+    level       TEXT NOT NULL,           -- 'warning' | 'limit'
+    month       TEXT NOT NULL,           -- YYYY-MM
+    spent_eur   REAL,
+    limit_eur   REAL,
+    pct         REAL,
+    mail_sent   INTEGER DEFAULT 0,
+    acked_at    DATETIME,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (tenant_id, level, month)
+  )
+`)
+
 export default db
