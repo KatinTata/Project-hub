@@ -101,8 +101,6 @@ try { db.exec(`ALTER TABLE messages ADD COLUMN recipient_user_id INTEGER DEFAULT
 try { db.exec(`ALTER TABLE messages ADD COLUMN task_summary TEXT DEFAULT NULL`) } catch {}
 try { db.exec(`ALTER TABLE messages ADD COLUMN subject TEXT DEFAULT NULL`) } catch {}
 try { db.exec(`ALTER TABLE users ADD COLUMN anthropic_key TEXT`) } catch {}
-try { db.exec(`ALTER TABLE phases ADD COLUMN due_date TEXT DEFAULT NULL`) } catch {}
-try { db.exec(`ALTER TABLE phases ADD COLUMN start_date TEXT DEFAULT NULL`) } catch {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS phases (
@@ -111,9 +109,16 @@ db.exec(`
     name        TEXT NOT NULL,
     color       TEXT NOT NULL DEFAULT '#4F8EF7',
     position    INTEGER DEFAULT 0,
+    due_date    TEXT DEFAULT NULL,
+    start_date  TEXT DEFAULT NULL,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `)
+
+// Legacy DBs whose `phases` predates these columns. Runs AFTER the CREATE so a
+// fresh DB already has them (these then no-op); an old DB gets them added.
+try { db.exec(`ALTER TABLE phases ADD COLUMN due_date TEXT DEFAULT NULL`) } catch {}
+try { db.exec(`ALTER TABLE phases ADD COLUMN start_date TEXT DEFAULT NULL`) } catch {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS phase_tasks (
