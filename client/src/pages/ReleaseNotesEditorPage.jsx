@@ -631,7 +631,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       clause('"Client - Impact Scope"', qfOp.impact, qf.impact),
       clause('"Client Requested"', qfOp.requested, qf.requested),
     ].filter(Boolean)
-    if (!parts.length) { showToast('Izaberi bar jednu vrednost u brzim filterima'); return }
+    if (!parts.length) { showToast(t('rne.quickFilterEmpty')); return }
     setCustomJql(parts.join(' AND '))
   }
 
@@ -821,7 +821,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
   function handleImageUpload(taskId, files) {
     for (const file of Array.from(files)) {
-      if (file.size > 5 * 1024 * 1024) { showToast('Slika je prevelika (max 5MB)'); continue }
+      if (file.size > 5 * 1024 * 1024) { showToast(t('rne.imageTooLarge')); continue }
       const reader = new FileReader()
       reader.onload = e => {
         setTaskEdits(prev => ({
@@ -938,7 +938,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ title: name, clientName: config.clientName, version: config.version, date: previewDate || todayStr(), sections }),
     })
-    if (!res.ok) { const d = await res.json().catch(() => ({})); showToast('Excel greška: ' + (d.error || res.status)); return }
+    if (!res.ok) { const d = await res.json().catch(() => ({})); showToast(t('rne.excelError', { error: d.error || res.status })); return }
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -967,7 +967,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         }),
       })
       const ct = res.headers.get('content-type') || ''
-      if (!ct.includes('application/json')) { setPublishState({ error: `Server greška ${res.status}` }); return }
+      if (!ct.includes('application/json')) { setPublishState({ error: t('rne.serverError', { status: res.status }) }); return }
       const data = await res.json()
       if (data.token) {
         if (data.id && selectedClientIds.length > 0) {
@@ -976,7 +976,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         setPublishState(null)
         onGoToReleaseNotes()
       } else {
-        setPublishState({ error: data.error || 'Server nije vratio token.' })
+        setPublishState({ error: data.error || t('rne.noTokenReturned') })
       }
     } catch (err) {
       setPublishState({ error: err.message })
@@ -1028,7 +1028,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
       const pid = noteData.project_id || note.project_id
       const proj = pid ? projects.find(p => p.id === pid) : selectedProject
-      if (!proj) { showToast('Projekat nije pronađen'); return }
+      if (!proj) { showToast(t('rne.projectNotFound')); return }
 
       // Fetch only the copied tasks directly (bypass useEffect)
       setLoadingTasks(true)
@@ -1057,7 +1057,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       setCopyDropOpen(false)
       showToast(t('rne.copyLoaded') + `: ${loaded.length} / "${noteData.title || 'release notes'}"`)
     } catch (err) {
-      showToast('Greška: ' + (err.message || 'nepoznata greška'))
+      showToast(t('rne.errorLabel') + ': ' + (err.message || t('rne.unknownError')))
     } finally {
       setCopyLoading(false)
       setLoadingTasks(false)
@@ -1118,20 +1118,20 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 12 }}>
           <div>
-            <label style={labelStyle}>Projekat</label>
+            <label style={labelStyle}>{t('rne.project')}</label>
             <select value={selectedProject?.id || ''} onChange={e => setSelectedProject(projects.find(p => p.id == e.target.value) || null)}
               style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>
-              <option value="">Izaberi projekat...</option>
+              <option value="">{t('rne.selectProject')}</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.displayName || p.epicKey}</option>)}
             </select>
           </div>
           <div>
-            <label style={labelStyle}>Naziv klijenta</label>
+            <label style={labelStyle}>{t('rne.clientName')}</label>
             <input value={config.clientName} onChange={e => setConfigField('clientName', e.target.value)} placeholder={t('rne.clientPlaceholder')}
               style={inputStyle} />
           </div>
           <div>
-            <label style={labelStyle}>Verzija</label>
+            <label style={labelStyle}>{t('rne.version')}</label>
             <input value={config.version} onChange={e => setConfigField('version', e.target.value)} placeholder={t('rne.versionPlaceholder')}
               style={inputStyle} />
           </div>
@@ -1140,15 +1140,15 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           {/* JQL column */}
           <div style={{ flex: 1, width: isMobile ? '100%' : undefined }}>
             <div style={{ marginBottom: 10 }}>
-              <span style={labelStyle}>Brzi filteri → JQL <span style={{ textTransform: 'none', fontFamily: 'Hanken Grotesk', color: 'var(--textSubtle)' }}>(više vrednosti odvoji zarezom)</span></span>
+              <span style={labelStyle}>{t('rne.quickFilters')} <span style={{ textTransform: 'none', fontFamily: 'Hanken Grotesk', color: 'var(--textSubtle)' }}>{t('rne.quickFiltersHint')}</span></span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                <JqlFieldSelect label="Fix Version" fieldName="fixVersion" values={qf.version} onChange={v => setQf(p => ({ ...p, version: v }))} op={qfOp.version} onOpChange={o => setQfOp(p => ({ ...p, version: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. galijum" />
-                <JqlFieldSelect label="Client - Impact Scope" fieldName="Client - Impact Scope" values={qf.impact} onChange={v => setQf(p => ({ ...p, impact: v }))} op={qfOp.impact} onOpChange={o => setQfOp(p => ({ ...p, impact: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. General" />
-                <JqlFieldSelect label="Client Requested" fieldName="Client Requested" values={qf.requested} onChange={v => setQf(p => ({ ...p, requested: v }))} op={qfOp.requested} onOpChange={o => setQfOp(p => ({ ...p, requested: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder="npr. Intelisale" />
-                <button onClick={applyQuickFilters} style={{ ...smallBtnStyle, height: 34 }}>Sastavi JQL ↓</button>
+                <JqlFieldSelect label="Fix Version" fieldName="fixVersion" values={qf.version} onChange={v => setQf(p => ({ ...p, version: v }))} op={qfOp.version} onOpChange={o => setQfOp(p => ({ ...p, version: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder={t('rne.egVersion')} />
+                <JqlFieldSelect label="Client - Impact Scope" fieldName="Client - Impact Scope" values={qf.impact} onChange={v => setQf(p => ({ ...p, impact: v }))} op={qfOp.impact} onOpChange={o => setQfOp(p => ({ ...p, impact: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder={t('rne.egImpact')} />
+                <JqlFieldSelect label="Client Requested" fieldName="Client Requested" values={qf.requested} onChange={v => setQf(p => ({ ...p, requested: v }))} op={qfOp.requested} onOpChange={o => setQfOp(p => ({ ...p, requested: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder={t('rne.egRequested')} />
+                <button onClick={applyQuickFilters} style={{ ...smallBtnStyle, height: 34 }}>{t('rne.buildJql')}</button>
               </div>
             </div>
-            <label style={labelStyle}>Prilagođeni JQL (opciono)</label>
+            <label style={labelStyle}>{t('rne.customJql')}</label>
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
               <div style={{ flex: 1 }}>
                 <JqlEditor
@@ -1164,7 +1164,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                 return (
                   <button
                     disabled={applyDisabled}
-                    title={applyDisabled ? 'Izaberi projekat ili unesi JQL' : ''}
+                    title={applyDisabled ? t('rne.selectProjectOrJql') : ''}
                     onClick={() => {
                       if (copiedEdits && tasks.length > 0) handleAddByJql()
                       else setFetchTrigger(n => n + 1)
@@ -1181,14 +1181,14 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             </div>
             {!selectedProject && (
               <div style={{ marginTop: 6, fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>
-                Bez izabranog projekta, JQL povlači taskove preko tvojih Jira kredencijala (npr. <code>fixVersion = "EP 3.6"</code>).
+                {t('rne.noProjectJqlHintPre')}<code>fixVersion = "EP 3.6"</code>{t('rne.noProjectJqlHintPost')}
               </div>
             )}
           </div>
 
           {/* Copy from existing column */}
           <div style={{ width: isMobile ? '100%' : 190, flexShrink: 0 }}>
-            <label style={labelStyle}>Kopiraj iz postojećeg</label>
+            <label style={labelStyle}>{t('rne.copyFromExisting')}</label>
             <div style={{ position: 'relative' }} data-copy-dropdown>
               <button
                 onClick={() => {
@@ -1253,7 +1253,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginRight: 4 }}>
-              Izaberi taskove
+              {t('rne.selectTasks')}
               {tasks.length > 0 && (
                 <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', fontWeight: 400, marginLeft: 8 }}>
                   {selectedIds.size}/{tasks.length}
@@ -1262,24 +1262,24 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             </span>
             {tasks.length > 0 && (
               <>
-                <button onClick={() => setSelectedIds(new Set(tasks.map(t => t.id)))} style={pillBtnStyle}>Izaberi sve</button>
-                <button onClick={() => setSelectedIds(new Set())} style={pillBtnStyle}>Poništi sve</button>
-                <button onClick={() => setSelectedIds(new Set(tasks.filter(t => statusCat(t) === 'resolved').map(t => t.id)))} style={pillBtnStyle}>Samo Resolved</button>
+                <button onClick={() => setSelectedIds(new Set(tasks.map(t => t.id)))} style={pillBtnStyle}>{t('rne.selectAll')}</button>
+                <button onClick={() => setSelectedIds(new Set())} style={pillBtnStyle}>{t('rne.clearAll')}</button>
+                <button onClick={() => setSelectedIds(new Set(tasks.filter(t => statusCat(t) === 'resolved').map(t => t.id)))} style={pillBtnStyle}>{t('rne.onlyResolved')}</button>
               </>
             )}
             <button onClick={goToStep2} disabled={selectedIds.size === 0}
               style={{ marginLeft: 'auto', padding: '7px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: 'none', transition: 'all 0.2s ease', cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer', background: selectedIds.size === 0 ? 'var(--surfaceAlt)' : 'var(--accent)', color: selectedIds.size === 0 ? 'var(--textMuted)' : '#fff', whiteSpace: 'nowrap' }}>
-              Nastavi → {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
+              {t('rne.continue')} {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
             </button>
           </div>
 
-          <input placeholder="Pretraži po imenu ili ključu..." value={search} onChange={e => setSearch(e.target.value)}
+          <input placeholder={t('rne.searchPlaceholder')} value={search} onChange={e => setSearch(e.target.value)}
             style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 13, marginBottom: 10, boxSizing: 'border-box' }} />
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: 2 }}>Filter:</span>
+            <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: 2 }}>{t('rne.filterLabel')}</span>
             {[
-              { key: 'all', label: `Svi (${countByStatus.all})` },
+              { key: 'all', label: t('rne.filterAll', { count: countByStatus.all }) },
               { key: 'resolved', label: `Resolved (${countByStatus.resolved})` },
               { key: 'inprog', label: `In Progress (${countByStatus.inprog})` },
               { key: 'testing', label: `For Testing (${countByStatus.testing})` },
@@ -1302,7 +1302,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
             <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>{t('rne.loading')}</div>
           ) : taskError ? (
             <div style={{ padding: 24, margin: 16, borderRadius: 8, background: 'var(--redTint)', border: '1px solid var(--red)', color: 'var(--red)', fontFamily: 'Hanken Grotesk', fontSize: 13 }}>
-              <strong>Greška:</strong> {taskError}
+              <strong>{t('rne.errorLabel')}:</strong> {taskError}
             </div>
           ) : (!selectedProject && !customJql.trim()) ? (
             <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
@@ -1396,7 +1396,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
                     {/* A: Name */}
                     <div>
-                      <label style={labelStyle}>Naziv</label>
+                      <label style={labelStyle}>{t('rne.name')}</label>
                       <input value={edit.name || ''} onChange={e => updateEdit(task.id, 'name', e.target.value)}
                         style={inputStyle} />
                     </div>
@@ -1404,7 +1404,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                     {/* B: Description */}
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <label style={{ ...labelStyle, margin: 0 }}>Opis</label>
+                        <label style={{ ...labelStyle, margin: 0 }}>{t('rne.description')}</label>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button
                             onClick={() => !isAiLoading && !isAiCooldown && !bulkProgress && generateTaskDesc(task.id)}
@@ -1461,7 +1461,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                     {/* HELP links — auto from Jira */}
                     {helpLinks.length > 0 && (
                       <div>
-                        <label style={labelStyle}>Help desk linkovi (automatski iz Jira)</label>
+                        <label style={labelStyle}>{t('rne.helpDeskLinks')}</label>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {helpLinks.map(link => (
                             <div key={link.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6 }}>
@@ -1622,27 +1622,27 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={generateAllDescriptions} disabled={!!bulkProgress || !hasAiKey}
               style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
-              {bulkProgress?.action === 'generate' ? `Generišem ${bulkProgress.current}/${bulkProgress.total}…` : 'Generiši sve'}
+              {bulkProgress?.action === 'generate' ? t('rne.generatingProgress', { current: bulkProgress.current, total: bulkProgress.total }) : t('rne.generateAll')}
             </button>
             <button onClick={translateAll} disabled={!!bulkProgress || !hasAiKey}
               style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
-              {bulkProgress?.action === 'translate' ? `Prevodim ${bulkProgress.current}/${bulkProgress.total}…` : 'Prevedi sve'}
+              {bulkProgress?.action === 'translate' ? t('rne.translatingProgress', { current: bulkProgress.current, total: bulkProgress.total }) : t('rne.translateAll')}
             </button>
             {Object.keys(aiBackup).length > 0 && (
-              <button onClick={revertAllAi} title="Vrati sve AI izmene na original"
+              <button onClick={revertAllAi} title={t('rne.revertAllTitle')}
                 style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)' }}>
-                Vrati sve ({Object.keys(aiBackup).length})
+                {t('rne.revertAllCount', { count: Object.keys(aiBackup).length })}
               </button>
             )}
             <div style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 2px' }} />
             <button onClick={goToStep3}
               style={{ padding: '9px 24px', borderRadius: 8, fontSize: 14, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff' }}>
-              Dalje: Pregled →
+              {t('rne.nextPreview')}
             </button>
           </div>
         </div>
         <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', marginBottom: 16 }}>
-          Po kartici: dugme za AI opis i prevod, pa stilizuj tekst i ubaci slike · klikni naziv sekcije da je preimenuješ · redosled taskova se menja na koraku „Pregled".
+          {t('rne.step3Hint')}
         </div>
 
         {/* Document */}
@@ -1688,7 +1688,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                     ) : (
                       <span
                         onClick={() => { setEditingSection(prefix); setEditingSectionValue(getSectionLabel(prefix)) }}
-                        title="Klikni da preimenješ sekciju"
+                        title={t('rne.renameSectionTitle')}
                         style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 18, color: cfg.color, cursor: 'pointer', borderBottom: '2px dashed transparent', transition: 'border-color 0.15s' }}
                         onMouseEnter={e => e.currentTarget.style.borderBottomColor = `${cfg.color}60`}
                         onMouseLeave={e => e.currentTarget.style.borderBottomColor = 'transparent'}
@@ -1696,7 +1696,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                     )}
                     <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '2px 9px', borderRadius: 20, background: `${cfg.color}18`, color: cfg.color, border: `1px solid ${cfg.color}33` }}>{groups[prefix].length}</span>
                     {isDropTarget && dragFromPrefix.current !== prefix && (
-                      <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: cfg.color, marginLeft: 'auto', opacity: 0.8 }}>⟵ Pusti ovde</span>
+                      <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: cfg.color, marginLeft: 'auto', opacity: 0.8 }}>{t('rne.dropHere')}</span>
                     )}
                   </div>
 
@@ -1728,25 +1728,25 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                                 disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
                                 title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
                                 style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
-                                {aiLoadingIds.has(task.id) ? 'Generišem…' : 'Generiši tekst'}
+                                {aiLoadingIds.has(task.id) ? t('rne.generating') : t('rne.generateText')}
                               </button>
                               <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && translateTask(task.id)}
                                 disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
                                 title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
                                 style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
-                                Prevedi
+                                {t('rne.translate')}
                               </button>
                               {aiBackup[task.id] && (
-                                <button onClick={() => revertAi(task.id)} title="Vrati tekst pre AI izmene"
+                                <button onClick={() => revertAi(task.id)} title={t('rne.revertTitle')}
                                   style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', cursor: 'pointer' }}>
-                                  Vrati original
+                                  {t('rne.revertOriginal')}
                                 </button>
                               )}
                             </div>
                             <RichBodyEditor
                               value={migrateBodyHtml(edit)}
                               onChange={html => updateBody(task.id, html)}
-                              placeholder="Dodaj opis, stil i slike…"
+                              placeholder={t('rne.bodyPlaceholder')}
                               onError={showToast}
                             />
                             {helpLinks.map(link => (
@@ -1757,7 +1757,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                                 {buildHelpUrl(link.key, user?.jiraUrl) && (
                                   <a href={buildHelpUrl(link.key, user?.jiraUrl)} target="_blank" rel="noopener noreferrer"
                                     style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none', padding: '3px 8px', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 6 }}>
-                                    ↗ Otvori
+                                    {t('rne.open')}
                                   </a>
                                 )}
                               </div>
@@ -1790,7 +1790,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
     return (
       <div style={{ marginBottom: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
         <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
-          Redosled <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 400, fontSize: 12, color: 'var(--textMuted)' }}>— prevuci <span style={{ letterSpacing: 2 }}>⠿</span> da promeniš redosled; pregled i PDF se odmah ažuriraju</span>
+          {t('rne.order')} <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 400, fontSize: 12, color: 'var(--textMuted)' }}>{t('rne.orderHintPre')}<span style={{ letterSpacing: 2 }}>⠿</span>{t('rne.orderHintPost')}</span>
         </div>
         <div style={{ padding: 8 }}>
           {groupOrder.map(prefix => {
@@ -1814,7 +1814,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
                         <span draggable={true}
                           onDragStart={e => { dragTaskId.current = task.id; dragFromPrefix.current = prefix; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', task.id) }}
                           onDragEnd={() => { setDragOverPrefix(null); setDragOverTaskId(null) }}
-                          title="Prevuci da promeniš redosled"
+                          title={t('rne.dragReorderTitle')}
                           style={{ cursor: 'grab', color: 'var(--textSubtle)', letterSpacing: 2, userSelect: 'none', flexShrink: 0 }}>⠿</span>
                         <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{task.key}</span>
                         <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{edit.name || task.fields?.summary || ''}</span>
@@ -1837,7 +1837,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <button onClick={() => setWizardStep(2)} style={{ ...smallBtnStyle }}>{t('rn.back')}</button>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button onClick={openHtmlPreview} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer' }}>Pregled HTML ↗</button>
+            <button onClick={openHtmlPreview} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.previewHtml')}</button>
             <button onClick={exportHtml} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#EA580C', color: '#fff', border: 'none', cursor: 'pointer' }}>Export HTML</button>
             <button onClick={exportExcelRn} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#0D9488', color: '#fff', border: 'none', cursor: 'pointer' }}>Export Excel</button>
             <button onClick={exportPdf} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: '#7C3AED', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('rne.exportPdf')}</button>
@@ -1865,7 +1865,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
 
         {renderReorderList()}
 
-        <iframe id="rn-preview-frame" title="Pregled release notes" srcDoc={html}
+        <iframe id="rn-preview-frame" title={t('rne.previewIframeTitle')} srcDoc={html}
           style={{ width: '100%', height: '78vh', border: '1px solid var(--border)', borderRadius: 12, background: '#fff' }} />
       </div>
     )
@@ -1941,6 +1941,7 @@ const labelStyle = {
 // ── JqlFieldSelect: type-ahead multi-select for a Jira field ─────────────────────
 
 function JqlFieldSelect({ label, fieldName, values, onChange, op, onOpChange, fetchSuggestions, placeholder }) {
+  const t = useT()
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [opts, setOpts] = useState([])     // accumulated suggestions (merged across fetches)
@@ -1967,7 +1968,7 @@ function JqlFieldSelect({ label, fieldName, values, onChange, op, onOpChange, fe
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 3 }}>
         <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)' }}>{label}</span>
         {onOpChange && (
-          <select value={op} onChange={e => onOpChange(e.target.value)} title="Uključi ili isključi ove vrednosti"
+          <select value={op} onChange={e => onOpChange(e.target.value)} title={t('rne.inExcludeTitle')}
             style={{ fontFamily: 'Hanken Grotesk', fontSize: 10, padding: '1px 4px', borderRadius: 5, border: `1px solid ${op === 'not in' ? 'var(--red)' : 'var(--border)'}`, background: 'var(--bg)', color: op === 'not in' ? 'var(--red)' : 'var(--textMuted)', cursor: 'pointer' }}>
             <option value="in">in</option>
             <option value="not in">not in</option>
@@ -1987,7 +1988,7 @@ function JqlFieldSelect({ label, fieldName, values, onChange, op, onOpChange, fe
       </div>
       {open && (loading || free.length > 0) && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.18)', maxHeight: 220, overflowY: 'auto' }}>
-          {loading && <div style={{ padding: '8px 10px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>Učitavam…</div>}
+          {loading && <div style={{ padding: '8px 10px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>{t('rne.loading')}</div>}
           {!loading && free.map(o => (
             <button key={o.value} onMouseDown={e => { e.preventDefault(); add(o.value) }}
               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--text)' }}>
@@ -1995,7 +1996,7 @@ function JqlFieldSelect({ label, fieldName, values, onChange, op, onOpChange, fe
             </button>
           ))}
           {!loading && free.length === 0 && (
-            <div style={{ padding: '8px 10px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>Nema predloga — Enter da dodaš ručno</div>
+            <div style={{ padding: '8px 10px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>{t('rne.noSuggestions')}</div>
           )}
         </div>
       )}
@@ -2045,10 +2046,11 @@ function Step1Row({ task, selected, onToggle }) {
 // ── Stepper ────────────────────────────────────────────────────────────────────
 
 function Stepper({ step, maxStep, onStepClick }) {
+  const t = useT()
   const steps = [
-    { n: 1, label: 'Selekcija' },
-    { n: 2, label: 'Sadržaj i stil' },
-    { n: 3, label: 'Pregled' },
+    { n: 1, label: t('rne.stepSelection') },
+    { n: 2, label: t('rne.stepContent') },
+    { n: 3, label: t('rne.stepPreview') },
   ]
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 20px' }}>
@@ -2125,7 +2127,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
   }
 
   const isNew = selectedSection?.id === 'new'
-  const sectionLabel = !selectedSection ? 'Bez sekcije' : isNew ? (newSectionName || 'Nova sekcija...') : selectedSection.name
+  const sectionLabel = !selectedSection ? t('rne.noSection') : isNew ? (newSectionName || t('rne.newSectionEllipsis')) : selectedSection.name
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -2138,7 +2140,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
 
           {/* Section picker — dropdown */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Sekcija</div>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{t('rne.section')}</div>
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setSectionDropOpen(o => !o)}
@@ -2160,7 +2162,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
                       style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '8px 10px', background: !selectedSection ? 'rgba(79,142,247,0.08)' : 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s', color: !selectedSection ? 'var(--accent)' : 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 13 }}
                       onMouseEnter={e => { if (selectedSection) e.currentTarget.style.background = 'var(--surfaceAlt)' }}
                       onMouseLeave={e => { if (selectedSection) e.currentTarget.style.background = 'transparent' }}
-                    >Bez sekcije</button>
+                    >{t('rne.noSection')}</button>
                     {/* Existing sections */}
                     {sections.map(s => (
                       <button key={s.id}
@@ -2178,7 +2180,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
                       onMouseEnter={e => { if (!isNew) e.currentTarget.style.background = 'var(--surfaceAlt)' }}
                       onMouseLeave={e => { if (!isNew) e.currentTarget.style.background = 'transparent' }}
                     >
-                      <span style={{ fontWeight: 700, fontSize: 15, lineHeight: 1 }}>+</span> Nova sekcija
+                      <span style={{ fontWeight: 700, fontSize: 15, lineHeight: 1 }}>+</span> {t('rne.newSection')}
                     </button>
                   </div>
                 </div>
@@ -2189,7 +2191,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
                 autoFocus
                 value={newSectionName}
                 onChange={e => setNewSectionName(e.target.value)}
-                placeholder="Naziv sekcije..."
+                placeholder={t('rne.sectionNamePlaceholder')}
                 style={{ marginTop: 8, width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' }}
               />
             )}
