@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fmtHours, getStatusCategory } from '../utils.js'
+import { fmtHours, getStatusCategory, taskAttribution } from '../utils.js'
 import { useT } from '../lang.jsx'
 
 const STATUS_COLORS = {
@@ -24,15 +24,19 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
 
   const maxSpent = Math.max(...data.map(d => d.totalSpent)) || 1
 
+  // Tasks this person touched, each with the seconds THEY logged on it —
+  // same attribution as the bars, so the drill-down sums to the row total.
   function getTasksFor(name) {
-    return tasks.filter(task => {
-      // worklog authors (real hour owners) match first
-      if ((task.worklogs || []).some(w => (w.author || task.assignee || 'Neraspoređeno') === name)) return true
-      if ((task.subtasks || []).some(sub => (sub.worklogs || []).some(w => (w.author || sub.assignee || task.assignee || 'Neraspoređeno') === name))) return true
-      // fallback: assignee-based (tasks without any logged hours)
-      if ((task.assignee || 'Neraspoređeno') === name) return true
-      return (task.subtasks || []).some(sub => (sub.assignee || task.assignee || 'Neraspoređeno') === name)
-    })
+    const rows = []
+    for (const task of tasks) {
+      const mySeconds = taskAttribution(task)[name] || 0
+      if (mySeconds > 0) { rows.push({ task, seconds: mySeconds }); continue }
+      // tasks with no logged hours still show under their assignee
+      const byAssignee = (task.assignee || 'Neraspoređeno') === name
+        || (task.subtasks || []).some(sub => (sub.assignee || task.assignee || 'Neraspoređeno') === name)
+      if (byAssignee && !(task.spent > 0)) rows.push({ task, seconds: 0 })
+    }
+    return rows.sort((a, b) => b.seconds - a.seconds)
   }
 
   function toggleExpand(name) {
@@ -101,9 +105,10 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
                     Nema taskova
                   </div>
                 ) : (
-                  rowTasks.map(task => {
+                  rowTasks.map(({ task, seconds }) => {
                     const cat = getStatusCategory(task.status)
                     const sc  = STATUS_COLORS[cat] || STATUS_COLORS.todo
+                    const sharePct = d.totalSpent > 0 && seconds > 0 ? Math.round((seconds / d.totalSpent) * 100) : 0
                     return (
                       <div key={task.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '1px solid var(--border)' }}>
                         {jiraUrl ? (
@@ -119,6 +124,9 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
                         )}
                         <span style={{ flex: 1, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {task.summary}
+                        </span>
+                        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, fontWeight: 600, color: seconds > 0 ? 'var(--text)' : 'var(--textSubtle)', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                          {seconds > 0 ? `${fmtHours(seconds)}${sharePct > 0 ? ` · ${sharePct}%` : ''}` : '—'}
                         </span>
                         <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, padding: '2px 7px', borderRadius: 4, background: sc.bg, color: sc.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
                           {task.status}

@@ -196,6 +196,27 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
   return { tasks, totalEst, totalSpent, done, inprog, testing, todo, total, overTasks }
 }
 
+// {name → seconds} for one task: hours go to the worklog author; the assignee
+// field is only the fallback for issues without worklog data. Sums exactly to
+// task.spent (remainder from deleted authors/partial data goes to fallback).
+export function taskAttribution(task) {
+  const out = {}
+  const add = (name, sec) => { if (sec > 0) { const k = name || 'Neraspoređeno'; out[k] = (out[k] || 0) + sec } }
+  const attr = (spent, worklogs, fallback) => {
+    if (!spent) return
+    const logged = (worklogs || []).reduce((s, w) => s + (w.seconds || 0), 0)
+    if (logged > 0) {
+      for (const w of (worklogs || [])) add(w.author || fallback, w.seconds || 0)
+      if (spent - logged > 0) add(fallback, spent - logged)
+    } else add(fallback, spent)
+  }
+  const subs = task.subtasks || []
+  const subTotal = subs.reduce((s, sub) => s + sub.timespent, 0)
+  attr(Math.max(0, (task.spent || 0) - subTotal), task.worklogs, task.assignee)
+  for (const sub of subs) attr(sub.timespent, sub.worklogs, sub.assignee || task.assignee)
+  return out
+}
+
 // Hours are attributed to the person who ACTUALLY logged them (worklog author).
 // Fallback to the assignee field only for issues whose worklogs are missing
 // (e.g. cached data fetched before worklogs existed) — so nothing is lost.
@@ -306,25 +327,6 @@ export function buildModuleData(tasks) {
     return map[name]
   }
 
-  // {name → seconds} for one task: worklog authors first, assignee as fallback
-  function attribution(task) {
-    const out = {}
-    const add = (name, sec) => { if (sec > 0) { const k = name || 'Neraspoređeno'; out[k] = (out[k] || 0) + sec } }
-    const attr = (spent, worklogs, fallback) => {
-      if (!spent) return
-      const logged = (worklogs || []).reduce((s, w) => s + (w.seconds || 0), 0)
-      if (logged > 0) {
-        for (const w of (worklogs || [])) add(w.author || fallback, w.seconds || 0)
-        if (spent - logged > 0) add(fallback, spent - logged)
-      } else add(fallback, spent)
-    }
-    const subs = task.subtasks || []
-    const subTotal = subs.reduce((s, sub) => s + sub.timespent, 0)
-    attr(Math.max(0, (task.spent || 0) - subTotal), task.worklogs, task.assignee)
-    for (const sub of subs) attr(sub.timespent, sub.worklogs, sub.assignee || task.assignee)
-    return out
-  }
-
   for (const task of tasks) {
     const modules = task.modules || []
     const spent = task.spent || 0
@@ -337,7 +339,7 @@ export function buildModuleData(tasks) {
       continue
     }
     const share = 1 / targets.length
-    const people = attribution(task)
+    const people = taskAttribution(task)
     for (const name of targets) {
       const m = mod(name)
       m.totalSpent += spent * share
