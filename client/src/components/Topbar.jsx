@@ -385,8 +385,8 @@ export default function Topbar({
             <ModuleCard
               icon={<IconAi />}
               iconBg="rgba(14,165,233,0.14)" iconColor="#0EA5E9"
-              label="AI Tokeni"
-              subtitle="Potrošnja i trošak"
+              label={t('nav2.aiUsage')}
+              subtitle={t('nav2.aiUsageSub')}
               active={currentPage === 'aiUsage'}
               onClick={onGoToAiUsage}
               hideSubtitle={isMobile}

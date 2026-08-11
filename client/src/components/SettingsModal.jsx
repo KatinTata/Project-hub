@@ -49,7 +49,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
     setTestStatus(null)
     try {
       const res = await api.testJiraConnection({ jiraUrl, jiraEmail, jiraToken })
-      setTestStatus({ ok: true, msg: `✅ Uspešno — ${res.displayName}` })
+      setTestStatus({ ok: true, msg: t('set2.jira.testSuccess', { name: res.displayName }) })
     } catch (err) {
       setTestStatus({ ok: false, msg: `❌ ${err.message}` })
     } finally {
@@ -130,7 +130,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
         { key: 'jira',       label: t('settings.tab.jira'),       icon: <IconLink /> },
         { key: 'appearance', label: t('settings.tab.appearance'), icon: <IconPalette /> },
         { key: 'ai',         label: t('settings.tab.ai'),         icon: <IconSparkle /> },
-        { key: 'refresh',    label: 'Osvežavanje',                icon: <IconClock /> },
+        { key: 'refresh',    label: t('set2.tab.refresh'),        icon: <IconClock /> },
       ]
     : isUser
     ? [
@@ -140,7 +140,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
     : [
         { key: 'profile',    label: t('settings.tab.profile'),    icon: <IconUser /> },
         { key: 'appearance', label: t('settings.tab.appearance'), icon: <IconPalette /> },
-        { key: 'refresh',    label: 'Osvežavanje',                icon: <IconClock /> },
+        { key: 'refresh',    label: t('set2.tab.refresh'),        icon: <IconClock /> },
       ]
 
   return (
@@ -172,7 +172,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
           alignItems: 'center',
           flexShrink: 0,
         }}>
-          <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)' }}>Podešavanja</h2>
+          <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)' }}>{t('settings.title')}</h2>
           <button onClick={onClose} style={{ fontSize: 18, color: 'var(--textMuted)', padding: 8, minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
 
@@ -293,20 +293,8 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
 }
 
 const REFRESH_TIMES = [
-  { value: '',    label: 'Isključeno' },
-  { value: '00:00', label: '00:00' },
-  { value: '02:00', label: '02:00' },
-  { value: '04:00', label: '04:00' },
-  { value: '06:00', label: '06:00' },
-  { value: '08:00', label: '08:00' },
-  { value: '09:00', label: '09:00' },
-  { value: '10:00', label: '10:00' },
-  { value: '12:00', label: '12:00' },
-  { value: '14:00', label: '14:00' },
-  { value: '16:00', label: '16:00' },
-  { value: '18:00', label: '18:00' },
-  { value: '20:00', label: '20:00' },
-  { value: '22:00', label: '22:00' },
+  '', '00:00', '02:00', '04:00', '06:00', '08:00', '09:00',
+  '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00',
 ]
 
 function SettingsContent({
@@ -390,7 +378,7 @@ function SettingsContent({
         <label style={fieldLabel}>{t('settings.jira.token')}</label>
         <input type="password" value={jiraToken} onChange={e => setJiraToken(e.target.value)} placeholder={t('settings.jira.tokenPlaceholder')} style={inputStyle} />
         <div style={{ fontSize: 11, color: 'var(--textMuted)', marginTop: 4, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-          Token se čuva enkriptovan. Ostavite prazno da ne menjate.
+          {t('set2.jira.tokenHint')}
         </div>
       </div>
       {testStatus && (
@@ -517,12 +505,11 @@ function SettingsContent({
     <div>
       <h3 style={sectionTitle}>{t('settings.tab.ai')}</h3>
       <div style={{ fontSize: 13, color: 'var(--textMuted)', marginBottom: 16, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", lineHeight: 1.6 }}>
-        API ključ se koristi za AI funkcije u Release Notes (sumiraj, simplifikuj, prevedi).
-        Ključ se čuva enkriptovan, kao i Jira token.
+        {t('set2.ai.desc')}
       </div>
       {hasAnthropicKey && (
         <div style={{ ...msgStyle, color: 'var(--green)', background: 'var(--greenTint)', marginBottom: 16 }}>
-          ✅ API ključ je podešen
+          {t('set2.ai.keySet')}
         </div>
       )}
       <div style={{ marginBottom: 16 }}>
@@ -531,11 +518,11 @@ function SettingsContent({
           type="password"
           value={anthropicKey}
           onChange={e => setAnthropicKey(e.target.value)}
-          placeholder={hasAnthropicKey ? '••••••••••••  (ostavite prazno da ne menjate)' : 'sk-ant-api03-...'}
+          placeholder={hasAnthropicKey ? t('set2.ai.keyPlaceholderSet') : 'sk-ant-api03-...'}
           style={inputStyle}
         />
         <div style={{ fontSize: 11, color: 'var(--textMuted)', marginTop: 4, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-          Ključ možete kreirati na console.anthropic.com
+          {t('set2.ai.keyCreateHint')}
         </div>
       </div>
       {aiSaveMsg && (
@@ -551,12 +538,12 @@ function SettingsContent({
 
   if (tab === 'refresh') return (
     <div>
-      <h3 style={sectionTitle}>Automatsko osvežavanje</h3>
+      <h3 style={sectionTitle}>{t('set2.refresh.title')}</h3>
       <div style={{ fontSize: 13, color: 'var(--textMuted)', marginBottom: 20, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", lineHeight: 1.6 }}>
-        Jednom dnevno, u izabrano vreme, svi projekti će se automatski osvežiti iz Jire.
+        {t('set2.refresh.desc')}
       </div>
 
-      <label style={fieldLabel}>VREME OSVEŽAVANJA</label>
+      <label style={fieldLabel}>{t('set2.refresh.timeLabel')}</label>
       <select
         value={autoRefreshTime}
         onChange={e => onAutoRefreshChange(e.target.value)}
@@ -576,8 +563,8 @@ function SettingsContent({
           appearance: 'auto',
         }}
       >
-        {REFRESH_TIMES.map(opt => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        {REFRESH_TIMES.map(v => (
+          <option key={v} value={v}>{v === '' ? t('set2.refresh.off') : v}</option>
         ))}
       </select>
 
@@ -592,8 +579,8 @@ function SettingsContent({
         lineHeight: 1.5,
       }}>
         {autoRefreshTime
-          ? `Aktivno — svi projekti se osvežavaju svaki dan u ${autoRefreshTime}.`
-          : 'Automatsko osvežavanje je isključeno. Podaci se osvežavaju samo ručno.'}
+          ? t('set2.refresh.active', { time: autoRefreshTime })
+          : t('set2.refresh.inactive')}
       </div>
     </div>
   )

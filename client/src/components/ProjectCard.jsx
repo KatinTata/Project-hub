@@ -201,7 +201,9 @@ function ChangesFeed({ data, previousData, previousTime, jiraUrl, projectId }) {
             </svg>
           )}
           <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
-            {changes.length === 0 ? 'Nema novih promena' : `${changes.length} ${changes.length === 1 ? 'promena' : changes.length < 5 ? 'promene' : 'promena'} od poslednjeg osvežavanja`}
+            {changes.length === 0
+              ? t('pc.noNewChanges')
+              : t(changes.length === 1 ? 'pc.changes.one' : changes.length < 5 ? 'pc.changes.few' : 'pc.changes.many', { n: changes.length })}
           </span>
         </div>
         {time && (
@@ -247,10 +249,10 @@ function ChangesFeed({ data, previousData, previousTime, jiraUrl, projectId }) {
                 </span>
               )}
               <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: 600, color, flexShrink: 0 }}>
-                {c.type === 'new'    && 'Novi task'}
+                {c.type === 'new'    && t('pc.newTask')}
                 {c.type === 'status' && <>{c.from} <span style={{ color: 'var(--textSubtle)' }}>→</span> {c.to}</>}
                 {c.type === 'est'    && <>{fmtHours(c.from)} <span style={{ color: 'var(--textSubtle)' }}>→</span> {fmtHours(c.to)}</>}
-                {c.type === 'spent'  && `+${fmtHours(c.diff)} utrošeno`}
+                {c.type === 'spent'  && t('pc.spentAdded', { h: fmtHours(c.diff) })}
               </span>
             </div>
           )
@@ -285,7 +287,7 @@ export default function ProjectCard({
   }, [project?.id])
   async function addTeamMember(name, stack) {
     try { const { member } = await api.addTeamMember(project.id, name, stack); setTeam(t => [...t, member]) }
-    catch (e) { alert(e.message || 'Greška pri dodavanju') }
+    catch (e) { alert(e.message || t('pc.err.addMember')) }
   }
   async function removeTeamMember(id) {
     setTeam(t => t.filter(m => m.id !== id))
@@ -301,7 +303,7 @@ export default function ProjectCard({
   if (loading) {
     return (
       <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-        Učitavam podatke iz Jire...
+        {t('pc.loadingData')}
       </div>
     )
   }
@@ -312,7 +314,7 @@ export default function ProjectCard({
         <div style={{ fontSize: 32, marginBottom: 16 }}>❌</div>
         <div style={{ color: 'var(--red)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", marginBottom: 8 }}>{error}</div>
         <button onClick={onArchive} style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
-          Ukloni projekat
+          {t('tabs.removeProject')}
         </button>
       </div>
     )
@@ -321,7 +323,7 @@ export default function ProjectCard({
   if (!data) {
     return (
       <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-        Nema podataka
+        {t('pc.noData')}
       </div>
     )
   }
@@ -355,7 +357,7 @@ export default function ProjectCard({
 
   const donutSegments = [
     { value: done,    color: 'var(--green)',      label: t('donut.label.done')   },
-    { value: testing, color: 'var(--amber)',      label: 'Testing'               },
+    { value: testing, color: 'var(--amber)',      label: t('metrics.testing')    },
     { value: inprog,  color: 'var(--accent)',     label: t('donut.label.inprog') },
     { value: todo,    color: 'var(--textSubtle)', label: t('donut.label.todo')   },
   ]
@@ -387,7 +389,7 @@ export default function ProjectCard({
         hasBillableField: !!data.hasBillableField,
       })
     } catch (err) {
-      alert(err.message || 'Greška pri exportu Excel izveštaja')
+      alert(err.message || t('pc.err.exportExcel'))
     } finally {
       setExporting(false)
     }
@@ -428,17 +430,17 @@ export default function ProjectCard({
               {onEditProject && (
                 <button
                   onClick={onEditProject}
-                  title="Izmeni kriterijume projekta"
+                  title={t('pc.editCriteria')}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, border: '1px solid var(--border)', background: 'transparent', color: 'var(--accent)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease' }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'rgba(79,142,247,0.08)' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent' }}
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                  Izmeni
+                  {t('pc.edit')}
                 </button>
               )}
               <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>
-                {total} taskova
+                {t('pc.tasksCount', { n: total })}
               </span>
             </div>
           </div>
@@ -448,15 +450,15 @@ export default function ProjectCard({
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                 <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--green)' }}>{Math.round(donePct * 100)}%</span>
-                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>završeno</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{t('donut.done')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                 <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--amber)' }}>{Math.round(testingPct * 100)}%</span>
-                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>testing</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{t('pc.pctTesting')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                 <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--accent)' }}>{Math.round(inprogPct * 100)}%</span>
-                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>in progress</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{t('pc.pctInprog')}</span>
               </div>
             </div>
 
@@ -470,10 +472,10 @@ export default function ProjectCard({
             {/* Legend */}
             <div style={{ display: 'flex', gap: 12, marginTop: 7, flexWrap: 'wrap' }}>
               {[
-                { color: 'var(--green)',      label: 'Završeno',    count: done    },
-                { color: 'var(--amber)',      label: 'Testing',     count: testing },
-                { color: 'var(--accent)',     label: 'In Progress', count: inprog  },
-                { color: 'var(--textSubtle)', label: 'To Do',       count: todo    },
+                { color: 'var(--green)',      label: t('donut.label.done'), count: done    },
+                { color: 'var(--amber)',      label: t('metrics.testing'),  count: testing },
+                { color: 'var(--accent)',     label: t('metrics.inprog'),   count: inprog  },
+                { color: 'var(--textSubtle)', label: t('metrics.todo'),     count: todo    },
               ].map(s => (
                 <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
@@ -520,13 +522,13 @@ export default function ProjectCard({
                 <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
                 <path d="M21 3v5h-5"/>
               </svg>
-              Osveži
+              {t('pc.refresh')}
             </button>
 
             <button
               onClick={handleExportExcel}
               disabled={exporting}
-              title="Izvezi profesionalni Excel izveštaj"
+              title={t('pc.exportExcelTitle')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -550,12 +552,12 @@ export default function ProjectCard({
                   ? <><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></>
                   : <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></>}
               </svg>
-              {exporting ? 'Generišem...' : 'Export Excel'}
+              {exporting ? t('pc.generating') : t('pc.exportExcel')}
             </button>
 
             {lastRefresh && (
               <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textSubtle)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-                {refreshing || loading ? 'Osvežavam...' : `${fmtLastRefresh(lastRefresh, t)}`}
+                {refreshing || loading ? t('pc.refreshing') : `${fmtLastRefresh(lastRefresh, t)}`}
                 {!refreshing && !loading && autoRefreshTime && (
                   <span style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 6px', fontSize: 11, color: 'var(--textMuted)' }}>
                     auto {autoRefreshTime}
@@ -598,7 +600,7 @@ export default function ProjectCard({
           padding: isMobile ? '16px' : '20px 24px',
         }}>
           <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
-            Distribucija taskova
+            {t('pc.distribution')}
           </h3>
           <DonutChart segments={donutSegments} size={isMobile ? 160 : 200} innerRadius={isMobile ? 56 : 70} horizontal={isClient && !isMobile} />
         </div>
@@ -613,7 +615,7 @@ export default function ProjectCard({
             overflow: 'hidden',
           }}>
             <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
-              Estimacija vs Utrošeno (top taskovi)
+              {t('pc.estVsSpent')}
             </h3>
             <div style={{ overflowX: isMobile ? 'auto' : 'hidden' }}>
               <BarChart data={barData} width={isMobile ? 340 : 600} height={isMobile ? 200 : 260} />
@@ -629,11 +631,11 @@ export default function ProjectCard({
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px 24px' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Moduli</div>
-                  <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>Distribucija logovanog vremena po modulu</div>
+                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('topbar.modules')}</div>
+                  <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>{t('pc.modulesDesc')}</div>
                 </div>
                 <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
-                  {moduleData.filter(d => d.name !== 'Bez modula').length} modula
+                  {t('pc.modulesCount', { n: moduleData.filter(d => d.name !== 'Bez modula').length })}
                 </span>
               </div>
               <ModuleChart moduleData={moduleData} noModuleTasks={noModuleTasks} jiraUrl={jiraUrl} />
@@ -642,7 +644,7 @@ export default function ProjectCard({
 
           {data.hasBillableField && (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px 24px', ...(moduleData.length === 0 ? { maxWidth: 300 } : {}) }}>
-              <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 700, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>Billable sati</h3>
+              <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 700, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>{t('pc.billableHours')}</h3>
               <DonutChart segments={billableSegments} size={180} innerRadius={62} centerText={`${billablePct}%`} centerSubtext="billable" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -676,14 +678,14 @@ export default function ProjectCard({
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
                 <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Opterećenje po članu tima
+                  {t('pc.workloadTitle')}
                 </div>
                 <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
-                  Logovano vreme i distribucija taskova
+                  {t('pc.workloadDesc')}
                 </div>
               </div>
               <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
-                {assigneeData.filter(d => d.name !== 'Neraspoređeno').length} članova
+                {t('pc.membersCount', { n: assigneeData.filter(d => d.name !== 'Neraspoređeno').length })}
               </span>
             </div>
             <AssigneeWorkload data={assigneeData} tasks={tasks} jiraUrl={jiraUrl} />
@@ -698,11 +700,11 @@ export default function ProjectCard({
                     Component Breakdown
                   </div>
                   <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
-                    Distribucija logovanog vremena po komponenti
+                    {t('pc.componentsDesc')}
                   </div>
                 </div>
                 <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
-                  {componentData.length} komponenti
+                  {t('pc.componentsCount', { n: componentData.length })}
                 </span>
               </div>
               <ComponentBreakdown data={componentData} />
@@ -715,11 +717,11 @@ export default function ProjectCard({
                     Overrun Heatmap
                   </div>
                   <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
-                    Prekoračenje estimacije po tasku
+                    {t('pc.overrunDesc')}
                   </div>
                 </div>
                 <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
-                  {tasks.filter(task => task.est > 0).length} sa estimacijom
+                  {t('pc.withEstimateCount', { n: tasks.filter(task => task.est > 0).length })}
                 </span>
               </div>
               <OverrunHeatmap tasks={tasks} />
@@ -733,9 +735,9 @@ export default function ProjectCard({
       <div>
         <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
           {[
-            { id: 'tasks', label: 'Taskovi' },
-            { id: 'phases', label: 'Faze' },
-            ...(!isClient ? [{ id: 'stacks', label: 'Stekovi' }, { id: 'trend', label: 'Trend' }] : []),
+            { id: 'tasks', label: t('pc.tab.tasks') },
+            { id: 'phases', label: t('pc.tab.phases') },
+            ...(!isClient ? [{ id: 'stacks', label: t('pc.tab.stacks') }, { id: 'trend', label: t('pc.tab.trend') }] : []),
           ].map(tab => (
             <button
               key={tab.id}
@@ -777,6 +779,7 @@ export default function ProjectCard({
 
 function FilterBadge({ project }) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const t = useT()
   const ft = project.filterType || 'epic'
 
   if (ft === 'epic') {
@@ -787,7 +790,7 @@ function FilterBadge({ project }) {
     )
   }
 
-  const label = ft === 'jql' ? 'Custom JQL' : 'Kombinovani filteri'
+  const label = ft === 'jql' ? 'Custom JQL' : t('pc.combinedFilters')
   const tooltip = project.filterJql || ''
 
   return (

@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { api } from '../api.js'
 import { useT } from '../lang.jsx'
 
-const ROLE_LABELS = {
-  super_admin: 'Super Admin',
-  admin: 'Admin',
-  user: 'Korisnik',
+function roleLabel(t, role) {
+  if (role === 'super_admin') return t('um.roleSuperAdmin')
+  if (role === 'admin') return t('um.roleAdmin')
+  if (role === 'user') return t('um.roleUser')
+  return role
 }
 
 const ROLE_COLORS = {
@@ -70,7 +71,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
   }
 
   async function handleDeleteOrg(orgId) {
-    if (!confirm('Obrisati organizaciju? Korisnici koji joj pripadaju neće biti obrisani, samo će biti bez organizacije.')) return
+    if (!confirm(t('um.deleteOrgConfirm'))) return
     try {
       await api.deleteOrganization(orgId)
       setOrganizations(prev => prev.filter(o => o.id !== orgId))
@@ -173,7 +174,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
     const reader = new FileReader()
     reader.onload = ev => {
       const rows = parseCSV(ev.target.result)
-      if (rows.length === 0) { setImportError('Fajl je prazan ili format nije ispravan'); return }
+      if (rows.length === 0) { setImportError(t('um.importEmptyFile')); return }
       setImportRows(rows)
     }
     reader.readAsText(file, 'UTF-8')
@@ -246,13 +247,13 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)' }}>
-                  Organizacije
+                  {t('um.organizations')}
                 </div>
                 {!creatingOrg && (
                   <button onClick={() => setCreatingOrg(true)} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, padding: '3px 10px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.2s ease' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
-                  >+ Dodaj organizaciju</button>
+                  >{t('um.addOrganization')}</button>
                 )}
               </div>
 
@@ -261,7 +262,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                   <input
                     value={newOrgName}
                     onChange={e => setNewOrgName(e.target.value)}
-                    placeholder="Naziv organizacije"
+                    placeholder={t('um.orgNamePlaceholder')}
                     required
                     autoFocus
                     style={inputStyle}
@@ -269,10 +270,10 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                     onBlur={e => e.target.style.borderColor = 'var(--border)'}
                   />
                   <button type="submit" disabled={newOrgLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    {newOrgLoading ? 'Kreiranje...' : 'Kreiraj'}
+                    {newOrgLoading ? t('um.creating') : t('um.create')}
                   </button>
                   <button type="button" onClick={() => { setCreatingOrg(false); setNewOrgError('') }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '8px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Otkaži
+                    {t('tabs.cancel')}
                   </button>
                 </form>
               )}
@@ -280,7 +281,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {organizations.length === 0 ? (
-                  <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>Nema organizacija</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>{t('um.noOrganizations')}</span>
                 ) : organizations.map(o => (
                   <span key={o.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 20, padding: '3px 12px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)' }}>
                     {o.name}
@@ -301,12 +302,12 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
               <button onClick={() => setCreating(true)} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--accentHover)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'var(--accent)'}
-              >+ Dodaj korisnika</button>
+              >{t('um.addUser')}</button>
               <button onClick={() => { setImporting(true); setImportRows([]); setImportResults(null); setImportError('') }}
                 style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 18px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
-              >↑ Import CSV</button>
+              >{t('um.importCsv')}</button>
             </div>
           )}
 
@@ -314,22 +315,22 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
           {importing && !importResults && (
             <div style={{ marginBottom: 20, padding: '20px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Import korisnika iz CSV-a</div>
+                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{t('um.importTitle')}</div>
                 <button onClick={() => { setImporting(false); setImportRows([]) }} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 18 }}>×</button>
               </div>
 
               <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', marginBottom: 14, lineHeight: 1.6 }}>
-                CSV kolone: <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>name, email, organization, role</code><br />
-                Kolona <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>role</code> je opciona (default: user). Organizacija se kreira automatski ako ne postoji.
+                {t('um.csvColumnsLabel')} <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>name, email, organization, role</code><br />
+                {t('um.csvColumnWord')} <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>role</code> {t('um.csvRoleNote')}
               </div>
 
               <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
                 <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--accent)', color: '#fff', borderRadius: 7, padding: '7px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
-                  Odaberi CSV fajl
+                  {t('um.chooseCsvFile')}
                   <input type="file" accept=".csv,text/csv" onChange={handleFileUpload} style={{ display: 'none' }} />
                 </label>
                 <button onClick={downloadTemplate} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
-                  ↓ Preuzmi template
+                  {t('um.downloadTemplate')}
                 </button>
               </div>
 
@@ -338,13 +339,13 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
               {importRows.length > 0 && (
                 <>
                   <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)', marginBottom: 8 }}>
-                    Preview — {importRows.length} {importRows.length === 1 ? 'red' : 'redova'}
+                    {t('um.preview')} — {importRows.length} {importRows.length === 1 ? t('um.rowSingular') : t('um.rowPlural')}
                   </div>
                   <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 14 }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
                       <thead>
                         <tr style={{ background: 'var(--bg)' }}>
-                          {['Ime', 'Email', 'Organizacija', 'Uloga'].map(h => (
+                          {[t('um.colName'), 'Email', t('um.colOrganization'), t('um.colRole')].map(h => (
                             <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
                           ))}
                         </tr>
@@ -357,7 +358,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                             <td style={{ padding: '6px 10px', color: 'var(--textMuted)' }}>{r.organization || '—'}</td>
                             <td style={{ padding: '6px 10px' }}>
                               <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, padding: '2px 7px', borderRadius: 20, background: (ROLE_COLORS[r.role] || ROLE_COLORS.user).bg, color: (ROLE_COLORS[r.role] || ROLE_COLORS.user).text }}>
-                                {ROLE_LABELS[r.role] || r.role || 'user'}
+                                {roleLabel(t, r.role || 'user')}
                               </span>
                             </td>
                           </tr>
@@ -367,10 +368,10 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={handleImport} disabled={importLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 18px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: importLoading ? 'not-allowed' : 'pointer', opacity: importLoading ? 0.7 : 1 }}>
-                      {importLoading ? 'Importujem...' : `Importuj ${importRows.length} korisnika`}
+                      {importLoading ? t('um.importing') : t('um.importButton', { count: importRows.length })}
                     </button>
                     <button onClick={() => setImportRows([])} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 14px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
-                      Otkaži
+                      {t('tabs.cancel')}
                     </button>
                   </div>
                 </>
@@ -382,14 +383,14 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
           {importResults && (
             <div style={{ marginBottom: 20, padding: '20px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Rezultati importa</div>
+                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{t('um.importResults')}</div>
                 <button onClick={() => { setImporting(false); setImportResults(null); setImportRows([]) }} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 18 }}>×</button>
               </div>
               <div style={{ display: 'flex', gap: 16, marginBottom: 14 }}>
                 {[
-                  { label: 'Kreirano', count: importResults.filter(r => r.status === 'created').length, color: 'var(--green)' },
-                  { label: 'Preskočeno', count: importResults.filter(r => r.status === 'skipped').length, color: 'var(--amber)' },
-                  { label: 'Greška', count: importResults.filter(r => r.status === 'error').length, color: 'var(--red)' },
+                  { label: t('um.statusCreated'), count: importResults.filter(r => r.status === 'created').length, color: 'var(--green)' },
+                  { label: t('um.statusSkipped'), count: importResults.filter(r => r.status === 'skipped').length, color: 'var(--amber)' },
+                  { label: t('um.statusError'), count: importResults.filter(r => r.status === 'error').length, color: 'var(--red)' },
                 ].map(s => (
                   <div key={s.label} style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>
                     <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: s.color }}>{s.count}</span>
@@ -401,7 +402,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
                   <thead>
                     <tr style={{ background: 'var(--bg)' }}>
-                      {['Status', 'Ime', 'Email', 'Org', 'Privremena lozinka'].map(h => (
+                      {['Status', t('um.colName'), 'Email', t('um.colOrg'), t('um.colTempPassword')].map(h => (
                         <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
                       ))}
                     </tr>
@@ -411,7 +412,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                       <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: r.status === 'error' ? 'var(--redTint)' : r.status === 'skipped' ? 'var(--amberTint)' : 'transparent' }}>
                         <td style={{ padding: '6px 10px' }}>
                           <span style={{ color: r.status === 'created' ? 'var(--green)' : r.status === 'skipped' ? 'var(--amber)' : 'var(--red)', fontFamily: "'Hanken Grotesk'", fontSize: 10 }}>
-                            {r.status === 'created' ? '✓ OK' : r.status === 'skipped' ? '— skip' : '✕ err'}
+                            {r.status === 'created' ? t('um.resultOk') : r.status === 'skipped' ? t('um.resultSkip') : t('um.resultErr')}
                           </span>
                         </td>
                         <td style={{ padding: '6px 10px', color: 'var(--text)' }}>{r.name}</td>
@@ -429,7 +430,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                 </table>
               </div>
               <div style={{ marginTop: 10, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
-                Sačuvaj privremene lozinke pre nego što zatvoriš ovaj prozor.
+                {t('um.saveTempPasswords')}
               </div>
             </div>
           )}
@@ -438,35 +439,35 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
           {creating && (
             <form onSubmit={handleCreateUser} style={{ marginBottom: 20, padding: '16px 20px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12 }}>
               <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 14 }}>
-                Novi korisnik
+                {t('um.newUser')}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 130px', gap: 10, marginBottom: 10 }}>
                 <div>
-                  <label style={labelStyle}>IME</label>
-                  <input value={newForm.name} onChange={e => setNewForm(f => ({ ...f, name: e.target.value }))} placeholder="Ime i prezime" required style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                  <label style={labelStyle}>{t('register.name')}</label>
+                  <input value={newForm.name} onChange={e => setNewForm(f => ({ ...f, name: e.target.value }))} placeholder={t('um.fullNamePlaceholder')} required style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
                 </div>
                 <div>
-                  <label style={labelStyle}>EMAIL</label>
-                  <input type="email" value={newForm.email} onChange={e => setNewForm(f => ({ ...f, email: e.target.value }))} placeholder="email@domen.com" required style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                  <label style={labelStyle}>{t('login.email')}</label>
+                  <input type="email" value={newForm.email} onChange={e => setNewForm(f => ({ ...f, email: e.target.value }))} placeholder={t('register.emailPlaceholder')} required style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
                 </div>
                 <div>
-                  <label style={labelStyle}>LOZINKA</label>
+                  <label style={labelStyle}>{t('login.password')}</label>
                   <input type="password" value={newForm.password} onChange={e => setNewForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" required style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
                 </div>
                 <div>
-                  <label style={labelStyle}>ULOGA</label>
+                  <label style={labelStyle}>{t('um.roleLabel')}</label>
                   <select value={newForm.role} onChange={e => setNewForm(f => ({ ...f, role: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
-                    <option value="user">Korisnik</option>
-                    <option value="admin">Admin</option>
-                    {isSuperAdmin && <option value="super_admin">Super Admin</option>}
+                    <option value="user">{t('um.roleUser')}</option>
+                    <option value="admin">{t('um.roleAdmin')}</option>
+                    {isSuperAdmin && <option value="super_admin">{t('um.roleSuperAdmin')}</option>}
                   </select>
                 </div>
               </div>
               {newForm.role === 'user' && organizations.length > 0 && (
                 <div style={{ marginBottom: 10 }}>
-                  <label style={labelStyle}>ORGANIZACIJA</label>
+                  <label style={labelStyle}>{t('um.orgLabel')}</label>
                   <select value={newForm.organizationId} onChange={e => setNewForm(f => ({ ...f, organizationId: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer', maxWidth: 280 }}>
-                    <option value="">Bez organizacije</option>
+                    <option value="">{t('um.noOrganization')}</option>
                     {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                   </select>
                 </div>
@@ -474,10 +475,10 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
               {newError && <div style={{ marginBottom: 12, padding: '8px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 6, color: 'var(--red)', fontSize: 12 }}>{newError}</div>}
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="submit" disabled={newLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 16px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: newLoading ? 'not-allowed' : 'pointer', opacity: newLoading ? 0.7 : 1 }}>
-                  {newLoading ? 'Kreiranje...' : 'Kreiraj'}
+                  {newLoading ? t('um.creating') : t('um.create')}
                 </button>
                 <button type="button" onClick={() => { setCreating(false); setNewError('') }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '7px 16px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, cursor: 'pointer' }}>
-                  Otkaži
+                  {t('tabs.cancel')}
                 </button>
               </div>
             </form>
@@ -486,11 +487,11 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
           {/* Users list */}
           {loading ? (
             <div style={{ textAlign: 'center', padding: 32, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-              Učitavam korisnike...
+              {t('um.loadingUsers')}
             </div>
           ) : users.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 32, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-              Nema korisnika. Dodajte prvog klikom na dugme iznad.
+              {t('um.noUsers')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -516,6 +517,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
 }
 
 function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, onEdit, onAssign, onUnassign }) {
+  const t = useT()
   const [selectedProject, setSelectedProject] = useState('')
   const [editMode, setEditMode] = useState(false)
   const [editForm, setEditForm] = useState({ name: user.name, email: user.email, role: user.role, password: '', organizationId: user.organizationId || '' })
@@ -561,7 +563,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{user.name}</span>
               <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '2px 7px', borderRadius: 20, background: roleColors.bg, color: roleColors.text, border: `1px solid ${roleColors.border}` }}>
-                {ROLE_LABELS[user.role] || user.role}
+                {roleLabel(t, user.role)}
               </span>
               {user.organizationName && (
                 <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 20, padding: '1px 8px' }}>
@@ -578,14 +580,14 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
           >
-            {editMode ? 'Otkaži' : 'Izmeni'}
+            {editMode ? t('tabs.cancel') : t('um.edit')}
           </button>
           <button onClick={onDelete}
             style={{ background: 'transparent', color: 'var(--red)', border: '1px solid #EF444430', borderRadius: 6, padding: '4px 10px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer', transition: 'all 0.2s ease' }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--redTint)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            Obriši
+            {t('rn.delete')}
           </button>
         </div>
       </div>
@@ -595,38 +597,38 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
         <form onSubmit={handleSaveEdit} style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginBottom: 10 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 130px 1fr', gap: 10, marginBottom: 10 }}>
             <div>
-              <label style={labelStyle}>IME</label>
+              <label style={labelStyle}>{t('register.name')}</label>
               <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} required style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
             </div>
             <div>
-              <label style={labelStyle}>EMAIL</label>
+              <label style={labelStyle}>{t('login.email')}</label>
               <input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} required style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
             </div>
             <div>
-              <label style={labelStyle}>ULOGA</label>
+              <label style={labelStyle}>{t('um.roleLabel')}</label>
               <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
-                <option value="user">Korisnik</option>
-                <option value="admin">Admin</option>
-                {isSuperAdmin && <option value="super_admin">Super Admin</option>}
+                <option value="user">{t('um.roleUser')}</option>
+                <option value="admin">{t('um.roleAdmin')}</option>
+                {isSuperAdmin && <option value="super_admin">{t('um.roleSuperAdmin')}</option>}
               </select>
             </div>
             <div>
-              <label style={labelStyle}>NOVA LOZINKA</label>
-              <input type="password" value={editForm.password} onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))} placeholder="(ne menjati)" style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+              <label style={labelStyle}>{t('settings.profile.newPassword')}</label>
+              <input type="password" value={editForm.password} onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))} placeholder={t('um.passwordKeepPlaceholder')} style={inputStyle} onFocus={e => e.target.style.borderColor = 'var(--accent)'} onBlur={e => e.target.style.borderColor = 'var(--border)'} />
             </div>
           </div>
           {editForm.role === 'user' && (
             <div style={{ marginBottom: 10 }}>
-              <label style={labelStyle}>ORGANIZACIJA</label>
+              <label style={labelStyle}>{t('um.orgLabel')}</label>
               <select value={editForm.organizationId} onChange={e => setEditForm(f => ({ ...f, organizationId: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer', maxWidth: 280 }}>
-                <option value="">Bez organizacije</option>
+                <option value="">{t('um.noOrganization')}</option>
                 {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
               </select>
             </div>
           )}
           {editError && <div style={{ marginBottom: 10, padding: '7px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 6, color: 'var(--red)', fontSize: 12 }}>{editError}</div>}
           <button type="submit" disabled={editLoading} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 7, padding: '7px 18px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13, cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.7 : 1 }}>
-            {editLoading ? 'Čuvam...' : 'Sačuvaj izmene'}
+            {editLoading ? t('settings.profile.saving') : t('um.saveChanges')}
           </button>
         </form>
       )}
@@ -636,11 +638,11 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
         <>
           <div style={{ marginBottom: 10 }}>
             <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 6 }}>
-              Projekti
+              {t('um.projects')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {(user.projects || []).length === 0 ? (
-                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>Nema dodeljenih projekata</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>{t('dash.noProjects')}</span>
               ) : (
                 (user.projects || []).map(p => (
                   <span key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 20, padding: '3px 10px', fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)' }}>
@@ -657,13 +659,13 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
           {availableProjects.length > 0 && (
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <select value={selectedProject} onChange={e => setSelectedProject(e.target.value)} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 10px', color: 'var(--text)', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", cursor: 'pointer' }}>
-                <option value="">Dodeli projekat...</option>
+                <option value="">{t('um.assignProjectPlaceholder')}</option>
                 {availableProjects.map(p => <option key={p.id} value={p.id}>{p.displayName || p.epicKey}</option>)}
               </select>
               <button onClick={() => { if (selectedProject) { onAssign(selectedProject); setSelectedProject('') } }} disabled={!selectedProject}
                 style={{ background: selectedProject ? 'var(--accent)' : 'var(--border)', color: selectedProject ? '#fff' : 'var(--textMuted)', border: 'none', borderRadius: 6, padding: '5px 12px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: selectedProject ? 'pointer' : 'not-allowed', transition: 'all 0.2s ease' }}
               >
-                Dodeli
+                {t('um.assign')}
               </button>
             </div>
           )}

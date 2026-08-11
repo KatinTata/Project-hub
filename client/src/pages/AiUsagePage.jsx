@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '../api.js'
+import { useT } from '../lang.jsx'
 import Topbar from '../components/Topbar.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney, colorAt } from '../components/aiCharts.jsx'
@@ -29,16 +30,17 @@ function presetRange(key) {
   if (key === 'year') return { from: iso(new Date(now.getFullYear(), 0, 1)), to: today }
   return { from: iso(new Date(now.getTime() - 30 * 86400000)), to: today }
 }
-const PRESETS = [['7d', '7 dana'], ['30d', '30 dana'], ['month', 'Ovaj mesec'], ['prevMonth', 'Prošli mesec'], ['quarter', 'Kvartal'], ['year', 'Ova godina']]
+const PRESETS = [['7d', 'ai2.preset.7d'], ['30d', 'ai2.preset.30d'], ['month', 'ai2.preset.month'], ['prevMonth', 'ai2.preset.prevMonth'], ['quarter', 'ai2.preset.quarter'], ['year', 'ai2.preset.year']]
 
 function AlertNotes({ alerts, onAck, compact }) {
+  const t = useT()
   if (!alerts?.length) return null
   const worst = alerts.some(a => a.level === 'limit') ? 'limit' : 'warning'
   const c = worst === 'limit' ? { border: 'var(--red)', bg: 'var(--redTint)', fg: 'var(--red)' } : { border: 'var(--amber)', bg: 'var(--amberTint)', fg: 'var(--amber)' }
   return (
     <div style={{ ...card, borderColor: c.border, background: c.bg }}>
       <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: c.fg, marginBottom: 8 }}>
-        Obaveštenja o budžetu ({alerts.length})
+        {t('ai2.alerts.title', { n: alerts.length })}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {alerts.map(a => (
@@ -46,14 +48,14 @@ function AlertNotes({ alerts, onAck, compact }) {
             <span style={{
               fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 7px', borderRadius: 4, flexShrink: 0,
               background: a.level === 'limit' ? 'var(--red)' : 'var(--amber)', color: '#fff',
-            }}>{a.level === 'limit' ? 'LIMIT' : 'UPOZORENJE'}</span>
+            }}>{a.level === 'limit' ? t('ai2.alerts.limit') : t('ai2.alerts.warning')}</span>
             <span style={{ flex: 1 }}>
               {!compact && <strong>{a.tenant_name}</strong>}{!compact && ' — '}
-              {fmtMoney(a.spent_eur, 'EUR')} od {fmtMoney(a.limit_eur, 'EUR')} ({Math.round(a.pct)}%) · {a.month}
-              {a.mail_sent ? '' : ' · mejl nije poslat'}
+              {fmtMoney(a.spent_eur, 'EUR')} {t('ai2.of')} {fmtMoney(a.limit_eur, 'EUR')} ({Math.round(a.pct)}%) · {a.month}
+              {a.mail_sent ? '' : ' · ' + t('ai2.alerts.mailNotSent')}
             </span>
             <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)' }}>{String(a.created_at).slice(0, 16)}</span>
-            {onAck && <button onClick={() => onAck(a.id)} title="Označi kao pročitano" style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.fg, fontSize: 15, lineHeight: 1, padding: '0 2px' }}>×</button>}
+            {onAck && <button onClick={() => onAck(a.id)} title={t('ai2.alerts.markRead')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.fg, fontSize: 15, lineHeight: 1, padding: '0 2px' }}>×</button>}
           </div>
         ))}
       </div>
@@ -86,20 +88,21 @@ function Kpi({ title, value, subtitle, color }) {
 
 // Opens the server-rendered report (same charts as the Excel) in a new tab,
 // where the built-in button triggers the browser's print-to-PDF.
-async function openReportPdf(q, setBusy) {
+async function openReportPdf(q, setBusy, t) {
   const w = window.open('', '_blank')
-  if (w) w.document.write('<p style="font-family:sans-serif;padding:24px;color:#5A6480">Pravim izveštaj…</p>')
+  if (w) w.document.write(`<p style="font-family:sans-serif;padding:24px;color:#5A6480">${t('ai2.report.generating')}</p>`)
   setBusy?.(true)
   try {
     const html = await api.aiUsageReportHtml(q)
     if (w) { w.document.open(); w.document.write(html); w.document.close() }
   } catch (e) {
     w?.close()
-    alert('PDF greška: ' + e.message)
+    alert(t('ai2.report.pdfError', { msg: e.message }))
   } finally { setBusy?.(false) }
 }
 
 function FilterBar({ preset, setPreset, range, setRange, onExport, onExportPdf, currency, setCurrency, exporting, loading }) {
+  const t = useT()
   return (
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
       {PRESETS.map(([k, l]) => (
@@ -107,24 +110,24 @@ function FilterBar({ preset, setPreset, range, setRange, onExport, onExportPdf, 
           padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", cursor: 'pointer',
           border: preset === k ? '1px solid var(--accent)' : '1px solid var(--border)',
           background: preset === k ? 'var(--accent)' : 'var(--surfaceAlt)', color: preset === k ? '#fff' : 'var(--text)',
-        }}>{l}</button>
+        }}>{t(l)}</button>
       ))}
       <input type="date" value={range.from} onChange={e => { setPreset(null); setRange(r => ({ ...r, from: e.target.value })) }} style={{ ...inputS, width: 138 }} />
       <input type="date" value={range.to} onChange={e => { setPreset(null); setRange(r => ({ ...r, to: e.target.value })) }} style={{ ...inputS, width: 138 }} />
       {setCurrency && (
-        <select value={currency} onChange={e => setCurrency(e.target.value)} title="Valuta za Excel izveštaj" style={{ ...inputS, width: 82 }}>
+        <select value={currency} onChange={e => setCurrency(e.target.value)} title={t('ai2.filter.currencyTitle')} style={{ ...inputS, width: 82 }}>
           {['USD', 'EUR', 'RSD'].map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       )}
       <button onClick={onExport} disabled={exporting} style={{ ...btnS, background: '#0D9488', color: '#fff', border: 'none' }}>
-        {exporting ? 'Pravim…' : 'Excel izveštaj'}
+        {exporting ? t('ai2.filter.exporting') : t('ai2.filter.excelReport')}
       </button>
       {onExportPdf && (
         <button onClick={onExportPdf} disabled={exporting} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>
-          PDF izveštaj
+          {t('ai2.filter.pdfReport')}
         </button>
       )}
-      {loading && <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>učitavam…</span>}
+      {loading && <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{t('ai2.filter.loadingInline')}</span>}
     </div>
   )
 }
@@ -137,6 +140,7 @@ export default function AiUsagePage(props) {
 // ── ADMIN ─────────────────────────────────────────────────────────────────────
 
 function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }) {
+  const t = useT()
   const isSuperAdmin = user?.role === 'super_admin'
   const [view, setView] = useState('dashboard')
   const [preset, setPreset] = useState('30d')
@@ -171,13 +175,13 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
   async function exportXlsx() {
     setExporting(true)
     try { await api.aiUsageExportXlsx(`${q}&currency=${currency}`) }
-    catch (e) { alert('Excel greška: ' + e.message) }
+    catch (e) { alert(t('ai2.excelError', { msg: e.message })) }
     finally { setExporting(false) }
   }
-  const exportPdf = () => openReportPdf(`${q}&currency=${currency}`, setExporting)
+  const exportPdf = () => openReportPdf(`${q}&currency=${currency}`, setExporting, t)
 
   const navProps = { user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }
-  const t = d.dash?.totals
+  const tot = d.dash?.totals
   const clients = d.byClient?.clients || []
   const sources = d.bySource?.sources || []
   const apps = d.byApp?.apps || []
@@ -194,13 +198,13 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
             <div>
-              <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>AI Tokeni</h1>
+              <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>{t('ai2.admin.title')}</h1>
               <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
-                Potrošnja i trošak po našoj ceni — uživo iz Agentic platforme · trošak na ekranu je u USD
+                {t('ai2.admin.subtitle')}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
-              {[['dashboard', 'Dashboard'], ['report', 'Izveštaj po kupcu'], ...(isSuperAdmin ? [['settings', 'Podešavanja']] : [])].map(([k, l]) => (
+              {[['dashboard', t('ai2.view.dashboard')], ['report', t('ai2.view.reportByClient')], ...(isSuperAdmin ? [['settings', t('settings.title')]] : [])].map(([k, l]) => (
                 <button key={k} onClick={() => setView(k)} style={{
                   padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", cursor: 'pointer',
                   background: view === k ? 'var(--accent)' : 'transparent', color: view === k ? '#fff' : 'var(--textMuted)',
@@ -212,7 +216,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
 
           {notConfigured && (
             <div style={{ ...card, borderColor: 'var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, marginBottom: 14 }}>
-              Agentic Admin API nije konfigurisan. {isSuperAdmin ? 'Unesi URL i master ključ u Podešavanjima.' : 'Zamoli super admina da unese pristupni ključ.'}
+              {t('ai2.notConfigured')} {isSuperAdmin ? t('ai2.notConfigured.super') : t('ai2.notConfigured.nonSuper')}
             </div>
           )}
 
@@ -227,64 +231,64 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
               {alerts.length > 0 && (
                 <div style={{ ...card, borderColor: alerts.some(a => a.status.level === 'limit') ? 'var(--red)' : 'var(--amber)', background: alerts.some(a => a.status.level === 'limit') ? 'var(--redTint)' : 'var(--amberTint)' }}>
                   <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: alerts.some(a => a.status.level === 'limit') ? 'var(--red)' : 'var(--amber)', marginBottom: 6 }}>
-                    Budžet — {alerts.length} {alerts.length === 1 ? 'tenant zahteva pažnju' : 'tenanata zahteva pažnju'} ({budgets?.month})
+                    {alerts.length === 1 ? t('ai2.budget.attentionTitle.singular', { n: alerts.length, month: budgets?.month }) : t('ai2.budget.attentionTitle.plural', { n: alerts.length, month: budgets?.month })}
                   </div>
                   {alerts.map(a => (
                     <div key={a.tenant_id} style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)', padding: '2px 0' }}>
-                      <strong>{a.tenant_name}</strong> — {fmtMoney(a.status.spent_eur, 'EUR')} od {fmtMoney(a.status.limit_eur, 'EUR')} ({Math.round(a.status.pct)}%)
-                      {a.status.level === 'limit' ? ' — limit prekoračen' : ' — približava se limitu'}
+                      <strong>{a.tenant_name}</strong> — {fmtMoney(a.status.spent_eur, 'EUR')} {t('ai2.of')} {fmtMoney(a.status.limit_eur, 'EUR')} ({Math.round(a.status.pct)}%)
+                      {a.status.level === 'limit' ? ' — ' + t('ai2.budget.limitExceeded') : ' — ' + t('ai2.budget.nearLimit')}
                     </div>
                   ))}
                 </div>
               )}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-                <Kpi title="Zahtevi" value={t ? fmtNum(t.requests) : '—'} subtitle={d.dash?.today ? `danas: ${fmtNum(d.dash.today.requests)}` : ''} />
-                <Kpi title="Trošak (naša cena)" value={t ? fmtMoney(t.total_cost_usd) : '—'} color="var(--accent)" subtitle={t?.avg_cost_per_req != null ? `${fmtMoney(t.avg_cost_per_req)} / zahtev` : ''} />
-                <Kpi title="Tokeni" value={t ? fmtTok(t.total_tokens) : '—'} subtitle={t ? `in ${fmtTok(t.prompt_tokens)} · out ${fmtTok(t.completion_tokens)}` : ''} />
-                <Kpi title="Aktivni klijenti" value={d.dash ? d.dash.active_clients : '—'} subtitle={`${clients.length} u periodu`} />
-                <Kpi title="Greške" value={t ? fmtNum(t.error_count) : '—'} color={t?.error_count > 0 ? 'var(--red)' : 'var(--green)'} subtitle={t ? `uspešnih ${fmtNum(t.success_count)}` : ''} />
-                <Kpi title="Prosečno trajanje" value={t ? `${Math.round(t.avg_duration_ms)} ms` : '—'} subtitle="po zahtevu" />
+                <Kpi title={t('ai2.requests')} value={tot ? fmtNum(tot.requests) : '—'} subtitle={d.dash?.today ? t('ai2.kpi.today', { n: fmtNum(d.dash.today.requests) }) : ''} />
+                <Kpi title={t('ai2.kpi.costOurPrice')} value={tot ? fmtMoney(tot.total_cost_usd) : '—'} color="var(--accent)" subtitle={tot?.avg_cost_per_req != null ? t('ai2.kpi.perRequest', { v: fmtMoney(tot.avg_cost_per_req) }) : ''} />
+                <Kpi title={t('ai2.tokens')} value={tot ? fmtTok(tot.total_tokens) : '—'} subtitle={tot ? t('ai2.kpi.tokensInOut', { in: fmtTok(tot.prompt_tokens), out: fmtTok(tot.completion_tokens) }) : ''} />
+                <Kpi title={t('ai2.kpi.activeClients')} value={d.dash ? d.dash.active_clients : '—'} subtitle={t('ai2.kpi.inPeriod', { n: clients.length })} />
+                <Kpi title={t('ai2.kpi.errors')} value={tot ? fmtNum(tot.error_count) : '—'} color={tot?.error_count > 0 ? 'var(--red)' : 'var(--green)'} subtitle={tot ? t('ai2.kpi.successCount', { n: fmtNum(tot.success_count) }) : ''} />
+                <Kpi title={t('ai2.kpi.avgDuration')} value={tot ? `${Math.round(tot.avg_duration_ms)} ms` : '—'} subtitle={t('ai2.kpi.perRequestSub')} />
               </div>
 
               {d.dash?.unpriced_models?.length > 0 && (
                 <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
-                  Modeli bez cene (trošak im se računa kao 0): {d.dash.unpriced_models.join(', ')} — dodaj cene u Podešavanjima → Cenovnik.
+                  {t('ai2.unpricedModels', { list: d.dash.unpriced_models.join(', ') })}
                 </div>
               )}
 
-              <Section title="Dnevni trend" hint="trošak (linija) i zahtevi (stubići)">
+              <Section title={t('ai2.section.dailyTrend')} hint={t('ai2.section.dailyTrendHint')}>
                 <TrendChart days={(d.trends?.days || []).map(x => ({ date: x.date, requests: x.requests, cost: x.cost_usd }))} currency="USD" height={230} />
               </Section>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(430px, 1fr))', gap: 14 }}>
-                <Section title="Trošak po klijentu" hint="udeo u ukupnom trošku">
-                  <PieChart data={clients.map(c => ({ label: c.name, value: c.cost_usd }))} valueFmt={v => fmtMoney(v)} centerValue={fmtMoney(t?.total_cost_usd)} centerLabel="ukupno" />
+                <Section title={t('ai2.section.costByClient')} hint={t('ai2.section.costByClientHint')}>
+                  <PieChart data={clients.map(c => ({ label: c.name, value: c.cost_usd }))} valueFmt={v => fmtMoney(v)} centerValue={fmtMoney(tot?.total_cost_usd)} centerLabel={t('ai2.center.total')} />
                 </Section>
-                <Section title="Trošak po izvoru" hint="SalesLeader vs eProcurement">
-                  <PieChart data={sources.map((s, i) => ({ label: s.source, value: s.cost_usd, color: colorAt(i + 2) }))} valueFmt={v => fmtMoney(v)} centerValue={`${sources.length}`} centerLabel="izvora" />
+                <Section title={t('ai2.section.costBySource')} hint={t('ai2.section.costBySourceHint')}>
+                  <PieChart data={sources.map((s, i) => ({ label: s.source, value: s.cost_usd, color: colorAt(i + 2) }))} valueFmt={v => fmtMoney(v)} centerValue={`${sources.length}`} centerLabel={t('ai2.center.sources')} />
                 </Section>
-                <Section title="Trošak po modelu">
-                  <PieChart data={models.map(m => ({ label: m.model, value: m.cost_usd }))} valueFmt={v => fmtMoney(v)} centerValue={`${models.length}`} centerLabel="modela" />
+                <Section title={t('ai2.section.costByModel')}>
+                  <PieChart data={models.map(m => ({ label: m.model, value: m.cost_usd }))} valueFmt={v => fmtMoney(v)} centerValue={`${models.length}`} centerLabel={t('ai2.center.models')} />
                 </Section>
-                <Section title="Tokeni: input vs output">
+                <Section title={t('ai2.section.tokensInOut')}>
                   <PieChart
                     data={[
-                      { label: 'Prompt (input)', value: t?.prompt_tokens || 0, color: '#2563EB' },
-                      { label: 'Completion (output)', value: t?.completion_tokens || 0, color: '#7C3AED' },
+                      { label: t('ai2.label.promptInput'), value: tot?.prompt_tokens || 0, color: '#2563EB' },
+                      { label: t('ai2.label.completionOutput'), value: tot?.completion_tokens || 0, color: '#7C3AED' },
                     ]}
-                    valueFmt={fmtTok} centerValue={fmtTok(t?.total_tokens)} centerLabel="tokena" />
+                    valueFmt={fmtTok} centerValue={fmtTok(tot?.total_tokens)} centerLabel={t('ai2.center.tokens')} />
                 </Section>
-                <Section title="Zahtevi po klijentu" hint="top 10">
+                <Section title={t('ai2.section.requestsByClient')} hint={t('ai2.top10')}>
                   <HBars data={clients.map(c => ({ label: c.name, value: c.requests }))} valueFmt={fmtNum} />
                 </Section>
-                <Section title="Trošak po aplikaciji" hint={d.byApp?.truncated ? 'prikazano prvih 40 akcija' : 'top 10'}>
+                <Section title={t('ai2.section.costByApp')} hint={d.byApp?.truncated ? t('ai2.hint.first40') : t('ai2.top10')}>
                   <HBars data={apps.map(a => ({ label: a.app, value: a.cost_usd }))} valueFmt={v => fmtMoney(v)} color="#0D9488" />
                 </Section>
               </div>
 
               {gauges.length > 0 && (
-                <Section title="Budžeti — tekući mesec" hint={`${budgets?.month} · potrošeno vs mesečni limit`}>
+                <Section title={t('ai2.section.budgetsCurrentMonth')} hint={t('ai2.hint.spentVsLimit', { month: budgets?.month })}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
                     {gauges.map(b => (
                       <BudgetGauge key={b.tenant_id} name={b.package_name ? `${b.tenant_name} · ${b.package_name}` : b.tenant_name} spent={b.status.spent_eur} limit={b.status.limit_eur} pct={b.status.pct} level={b.status.level} />
@@ -293,9 +297,9 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
                 </Section>
               )}
 
-              <PivotTable title="Detalji po klijentima" rows={clients} childKey="sources" childName={r => r.source} nameKey="name" idKey="key" expanded={expanded} setExpanded={setExpanded} />
-              <PivotTable title="Detalji po izvoru" rows={sources} childKey="clients" childName={r => r.name} nameKey="source" idKey="source" expanded={expanded} setExpanded={setExpanded} />
-              <SimpleTable title="Detalji po aplikacijama" rows={apps} nameKey="app" costKey="cost_usd" />
+              <PivotTable title={t('ai2.pivot.byClients')} rows={clients} childKey="sources" childName={r => r.source} nameKey="name" idKey="key" expanded={expanded} setExpanded={setExpanded} />
+              <PivotTable title={t('ai2.pivot.bySource')} rows={sources} childKey="clients" childName={r => r.name} nameKey="source" idKey="source" expanded={expanded} setExpanded={setExpanded} />
+              <SimpleTable title={t('ai2.table.byApps')} rows={apps} nameKey="app" costKey="cost_usd" />
               <ModelsTable rows={models} />
             </div>
           )}
@@ -311,19 +315,20 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
 // ── tables ────────────────────────────────────────────────────────────────────
 
 function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded, setExpanded }) {
+  const t = useT()
   if (!rows?.length) return null
   const total = rows.reduce((s, r) => s + r.cost_usd, 0)
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>ukupno {fmtMoney(total)}</span>
+        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.total', { v: fmtMoney(total) })}</span>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
-          <th style={thStyle}>Naziv</th><th style={{ ...thStyle, textAlign: 'right' }}>Zahtevi</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>Tokeni</th><th style={{ ...thStyle, textAlign: 'right' }}>Trošak</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>Udeo</th>
+          <th style={thStyle}>{t('ai2.name')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.requests')}</th>
+          <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.tokens')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.cost')}</th>
+          <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.share')}</th>
         </tr></thead>
         <tbody>
           {rows.map(r => {
@@ -356,19 +361,20 @@ function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded
 }
 
 function SimpleTable({ title, rows, nameKey, costKey = 'cost', cur = 'USD' }) {
+  const t = useT()
   if (!rows?.length) return null
   const total = rows.reduce((s, r) => s + (r[costKey] || 0), 0)
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>ukupno {fmtMoney(total, cur)}</span>
+        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.total', { v: fmtMoney(total, cur) })}</span>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
-          <th style={thStyle}>Naziv</th><th style={{ ...thStyle, textAlign: 'right' }}>Zahtevi</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>Tokeni</th><th style={{ ...thStyle, textAlign: 'right' }}>Trošak</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>Udeo</th>
+          <th style={thStyle}>{t('ai2.name')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.requests')}</th>
+          <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.tokens')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.cost')}</th>
+          <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.share')}</th>
         </tr></thead>
         <tbody>{rows.map((r, i) => (
           <tr key={i}>
@@ -385,21 +391,22 @@ function SimpleTable({ title, rows, nameKey, costKey = 'cost', cur = 'USD' }) {
 }
 
 function ModelsTable({ rows }) {
+  const t = useT()
   if (!rows?.length) return null
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-      <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Detalji po modelu</div>
+      <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{t('ai2.table.byModel')}</div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
-          <th style={thStyle}>Model</th><th style={{ ...thStyle, textAlign: 'right' }}>Zahtevi</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>Input</th><th style={{ ...thStyle, textAlign: 'right' }}>Output</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>Trošak</th>
+          <th style={thStyle}>{t('ai2.model')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.requests')}</th>
+          <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.input')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.output')}</th>
+          <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.cost')}</th>
         </tr></thead>
         <tbody>{rows.map(r => (
           <tr key={r.model}>
             <td style={tdStyle}>
               {r.model}
-              {!r.priced && <span title="Model nema cenu — trošak se računa kao 0" style={{ marginLeft: 8, fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'var(--amberTint)', color: 'var(--amber)', border: '1px solid var(--amber)' }}>bez cene</span>}
+              {!r.priced && <span title={t('ai2.model.noPriceTitle')} style={{ marginLeft: 8, fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'var(--amberTint)', color: 'var(--amber)', border: '1px solid var(--amber)' }}>{t('ai2.model.noPrice')}</span>}
             </td>
             <td style={{ ...tdMono, textAlign: 'right' }}>{fmtNum(r.requests)}</td>
             <td style={{ ...tdMono, textAlign: 'right' }}>{fmtTok(r.prompt_tokens)}</td>
@@ -415,6 +422,7 @@ function ModelsTable({ rows }) {
 // ── Izveštaj po kupcu (PDF) ───────────────────────────────────────────────────
 
 function ReportView({ range, preset, setPreset, setRange }) {
+  const t = useT()
   const [tenants, setTenants] = useState(null)
   const [tenantGuid, setTenantGuid] = useState('')
   const [currency, setCurrency] = useState('EUR')
@@ -427,7 +435,7 @@ function ReportView({ range, preset, setPreset, setRange }) {
     if (!tenantGuid) return
     setBusy(true)
     try { setReport(await api.aiUsageTenantReport(`tenantGuid=${encodeURIComponent(tenantGuid)}&from=${range.from}&to=${range.to}&currency=${currency}`)) }
-    catch (e) { alert('Greška: ' + e.message) }
+    catch (e) { alert(t('ai2.error', { msg: e.message })) }
     finally { setBusy(false) }
   }
 
@@ -443,24 +451,24 @@ function ReportView({ range, preset, setPreset, setRange }) {
         <thead><tr>${head.map(h => `<th style="text-align:${h.right ? 'right' : 'left'};padding:6px 10px;background:#F0F2F8;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:#5A6480">${h.t}</th>`).join('')}</tr></thead>
         <tbody>${body}</tbody></table>` : ''
     const cols = [{ v: r => r.name }, { v: r => fmtNum(r.requests), right: 1 }, { v: r => fmtTok(r.tokens), right: 1 }, { v: r => money(r.cost), right: 1 }]
-    const head = [{ t: 'Naziv' }, { t: 'Zahtevi', right: 1 }, { t: 'Tokeni', right: 1 }, { t: 'Trošak', right: 1 }]
-    const html = `<!DOCTYPE html><html lang="sr"><head><meta charset="UTF-8"><title>AI potrošnja — ${esc(report.customer?.name)}</title>
+    const head = [{ t: t('ai2.name') }, { t: t('ai2.requests'), right: 1 }, { t: t('ai2.tokens'), right: 1 }, { t: t('ai2.cost'), right: 1 }]
+    const html = `<!DOCTYPE html><html lang="sr"><head><meta charset="UTF-8"><title>${esc(t('ai2.pdf.docTitle', { name: report.customer?.name }))}</title>
       <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet">
       <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'Hanken Grotesk','Segoe UI',Arial,sans-serif;color:#0F1523;max-width:820px;margin:0 auto;padding:28px}@page{size:A4;margin:0}@media print{.noprint{display:none}body{padding:12mm 14mm}}</style></head><body>
-      <div class="noprint" style="text-align:right;margin-bottom:12px"><button onclick="window.print()" style="background:#7C3AED;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-weight:600;cursor:pointer">Sačuvaj kao PDF</button></div>
+      <div class="noprint" style="text-align:right;margin-bottom:12px"><button onclick="window.print()" style="background:#7C3AED;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-weight:600;cursor:pointer">${esc(t('ai2.pdf.savePdf'))}</button></div>
       <div style="background:linear-gradient(135deg,#0b1a2f,#0f2746 55%,#163e6b);border-radius:16px;padding:24px 28px;color:#fff;margin-bottom:8px">
-        <div style="font-size:11px;letter-spacing:0.16em;color:#38BDF8;margin-bottom:8px">INTELISALE — IZVEŠTAJ O AI POTROŠNJI</div>
+        <div style="font-size:11px;letter-spacing:0.16em;color:#38BDF8;margin-bottom:8px">${esc(t('ai2.pdf.headerLabel'))}</div>
         <div style="font-size:24px;font-weight:800">${esc(report.customer?.name)}</div>
-        <div style="font-size:12px;color:#9FB2C9;margin-top:8px">Period: ${String(report.period?.from).slice(0, 10)} — ${String(report.period?.to).slice(0, 10)} · Valuta: ${cur}${report.rate_available === false ? ' (kurs nedostupan — prikaz u USD)' : ''}</div>
+        <div style="font-size:12px;color:#9FB2C9;margin-top:8px">${esc(t('ai2.pdf.period', { from: String(report.period?.from).slice(0, 10), to: String(report.period?.to).slice(0, 10), cur }))}${report.rate_available === false ? esc(t('ai2.pdf.rateUnavailableSuffix')) : ''}</div>
         <div style="display:flex;gap:36px;margin-top:16px">
-          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">ZAHTEVI</div><div style="font-size:18px;font-weight:700">${fmtNum(report.totals?.requests)}</div></div>
-          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">TOKENI</div><div style="font-size:18px;font-weight:700">${fmtTok(report.totals?.tokens)}</div></div>
-          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">UKUPAN TROŠAK</div><div style="font-size:18px;font-weight:700">${money(report.totals?.cost)}</div></div>
+          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">${esc(t('ai2.requests').toUpperCase())}</div><div style="font-size:18px;font-weight:700">${fmtNum(report.totals?.requests)}</div></div>
+          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">${esc(t('ai2.tokens').toUpperCase())}</div><div style="font-size:18px;font-weight:700">${fmtTok(report.totals?.tokens)}</div></div>
+          <div><div style="font-size:10px;color:#7DD3FC;letter-spacing:0.1em">${esc(t('ai2.pdf.totalCost'))}</div><div style="font-size:18px;font-weight:700">${money(report.totals?.cost)}</div></div>
         </div>
       </div>
-      ${table('Po modelu', head, rowsHtml((report.models || []).map(r => ({ ...r, name: r.model })), cols))}
-      ${table('Po izvoru', head, rowsHtml((report.bySource || []).map(r => ({ ...r, name: r.source })), cols))}
-      ${table('Po aplikaciji', head, rowsHtml((report.byApp || []).map(r => ({ ...r, name: r.app })), cols))}
+      ${table(t('ai2.section.byModel'), head, rowsHtml((report.models || []).map(r => ({ ...r, name: r.model })), cols))}
+      ${table(t('ai2.section.bySource'), head, rowsHtml((report.bySource || []).map(r => ({ ...r, name: r.source })), cols))}
+      ${table(t('ai2.section.byApp'), head, rowsHtml((report.byApp || []).map(r => ({ ...r, name: r.app })), cols))}
       <div style="margin-top:32px;padding-top:14px;border-top:1px solid #E2E6F0;font-size:10px;color:#A0AABF;text-align:center;letter-spacing:0.1em">INTELISALE · EMPOWERING SALES EXCELLENCE</div>
     </body></html>`
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
@@ -473,7 +481,7 @@ function ReportView({ range, preset, setPreset, setRange }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ ...card, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <select value={tenantGuid} onChange={e => setTenantGuid(e.target.value)} style={{ ...inputS, minWidth: 250 }}>
-          <option value="">— izaberi kupca —</option>
+          <option value="">{t('ai2.selectCustomer')}</option>
           {(tenants || []).map(x => <option key={x.tenant_guid} value={x.tenant_guid}>{x.name}{x.code ? ` (${x.code})` : ''}</option>)}
         </select>
         <select value={currency} onChange={e => setCurrency(e.target.value)} style={{ ...inputS, width: 88 }}>
@@ -484,10 +492,10 @@ function ReportView({ range, preset, setPreset, setRange }) {
             padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", cursor: 'pointer',
             border: preset === k ? '1px solid var(--accent)' : '1px solid var(--border)',
             background: preset === k ? 'var(--accent)' : 'var(--surfaceAlt)', color: preset === k ? '#fff' : 'var(--text)',
-          }}>{l}</button>
+          }}>{t(l)}</button>
         ))}
-        <button onClick={load} disabled={!tenantGuid || busy} style={btnPrimary}>{busy ? 'Učitavam…' : 'Učitaj'}</button>
-        {report && <button onClick={exportPdf} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>Export PDF</button>}
+        <button onClick={load} disabled={!tenantGuid || busy} style={btnPrimary}>{busy ? t('ai2.loading') : t('ai2.load')}</button>
+        {report && <button onClick={exportPdf} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>{t('ai2.exportPdf')}</button>}
         <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{range.from} — {range.to}</span>
       </div>
 
@@ -495,22 +503,22 @@ function ReportView({ range, preset, setPreset, setRange }) {
         <>
           {report.rate_available === false && (
             <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
-              Kurs za izabranu valutu nije dostupan — iznosi su u USD (Podešavanja → Dohvati kurseve).
+              {t('ai2.report.rateUnavailable')}
             </div>
           )}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
-            <Kpi title="Kupac" value={<span style={{ fontSize: 17 }}>{report.customer?.name}</span>} />
-            <Kpi title="Zahtevi" value={fmtNum(report.totals?.requests)} />
-            <Kpi title="Tokeni" value={fmtTok(report.totals?.tokens)} />
-            <Kpi title={`Trošak (${cur})`} value={fmtMoney(report.totals?.cost, cur)} color="var(--accent)" />
+            <Kpi title={t('ai2.kpi.customer')} value={<span style={{ fontSize: 17 }}>{report.customer?.name}</span>} />
+            <Kpi title={t('ai2.requests')} value={fmtNum(report.totals?.requests)} />
+            <Kpi title={t('ai2.tokens')} value={fmtTok(report.totals?.tokens)} />
+            <Kpi title={t('ai2.costCur', { cur })} value={fmtMoney(report.totals?.cost, cur)} color="var(--accent)" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(430px, 1fr))', gap: 14 }}>
-            <Section title="Po modelu"><PieChart data={(report.models || []).map(m => ({ label: m.model, value: m.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={fmtMoney(report.totals?.cost, cur)} centerLabel="ukupno" /></Section>
-            <Section title="Po aplikaciji"><PieChart data={(report.byApp || []).map(a => ({ label: a.app, value: a.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${(report.byApp || []).length}`} centerLabel="aplikacija" /></Section>
+            <Section title={t('ai2.section.byModel')}><PieChart data={(report.models || []).map(m => ({ label: m.model, value: m.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={fmtMoney(report.totals?.cost, cur)} centerLabel={t('ai2.center.total')} /></Section>
+            <Section title={t('ai2.section.byApp')}><PieChart data={(report.byApp || []).map(a => ({ label: a.app, value: a.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${(report.byApp || []).length}`} centerLabel={t('ai2.center.apps')} /></Section>
           </div>
-          <SimpleTable title="Po modelu" rows={(report.models || []).map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
-          <SimpleTable title="Po izvoru" rows={(report.bySource || []).map(s => ({ ...s, name: s.source }))} nameKey="name" cur={cur} />
-          <SimpleTable title="Po aplikaciji" rows={(report.byApp || []).map(a => ({ ...a, name: a.app }))} nameKey="name" cur={cur} />
+          <SimpleTable title={t('ai2.section.byModel')} rows={(report.models || []).map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
+          <SimpleTable title={t('ai2.section.bySource')} rows={(report.bySource || []).map(s => ({ ...s, name: s.source }))} nameKey="name" cur={cur} />
+          <SimpleTable title={t('ai2.section.byApp')} rows={(report.byApp || []).map(a => ({ ...a, name: a.app }))} nameKey="name" cur={cur} />
         </>
       )}
     </div>
@@ -520,6 +528,7 @@ function ReportView({ range, preset, setPreset, setRange }) {
 // ── Podešavanja (super_admin): API, cenovnik, mapiranje, budžeti ──────────────
 
 function SettingsView() {
+  const t = useT()
   const [cfg, setCfg] = useState(null)
   const [models, setModels] = useState(null)
   const [baseUrl, setBaseUrl] = useState('')
@@ -539,7 +548,7 @@ function SettingsView() {
   }, [])
   useEffect(() => { reload() }, [reload])
 
-  const wrap = fn => async (...a) => { setBusy(true); try { await fn(...a); await reload() } catch (e) { alert('Greška: ' + e.message) } finally { setBusy(false) } }
+  const wrap = fn => async (...a) => { setBusy(true); try { await fn(...a); await reload() } catch (e) { alert(t('ai2.error', { msg: e.message })) } finally { setBusy(false) } }
   const saveConfig = wrap(async () => { await api.aiUsageSaveConfig({ base_url: baseUrl.trim(), is_active: true, service_password: keyInput || undefined }); setKeyInput('') })
   const saveMarkup = wrap(() => api.aiUsageSavePricingConfig({ global_markup_pct: Number(globalMarkup) }))
   const runSync = wrap(() => api.aiUsageSync())
@@ -557,16 +566,16 @@ function SettingsView() {
     setHistOpen(o => !o)
   }
 
-  if (!cfg) return <div style={{ padding: 20, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Učitavam…</div>
+  if (!cfg) return <div style={{ padding: 20, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>{t('ai2.loading')}</div>
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Section title="Agentic Admin API">
+      <Section title={t('ai2.settings.apiSection')}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <input value={baseUrl} onChange={e => setBaseUrl(e.target.value)} placeholder="https://intelisale-agentic.azurewebsites.net" style={{ ...inputS, flex: '1 1 320px' }} />
-          <input value={keyInput} onChange={e => setKeyInput(e.target.value)} type="password" placeholder={cfg.has_password ? 'Master ključ: ••••• (prazno = zadrži)' : 'Master ključ (X-Admin-Key)'} style={{ ...inputS, flex: '1 1 250px' }} />
-          <button onClick={test} disabled={busy} style={btnS}>Test konekcije</button>
-          <button onClick={saveConfig} disabled={busy} style={btnPrimary}>Sačuvaj</button>
+          <input value={keyInput} onChange={e => setKeyInput(e.target.value)} type="password" placeholder={cfg.has_password ? t('ai2.settings.masterKeyPlaceholderSet') : t('ai2.settings.masterKeyPlaceholder')} style={{ ...inputS, flex: '1 1 250px' }} />
+          <button onClick={test} disabled={busy} style={btnS}>{t('settings.jira.test')}</button>
+          <button onClick={saveConfig} disabled={busy} style={btnPrimary}>{t('settings.jira.save')}</button>
         </div>
         {(testMsg || cfg.last_test_message) && (
           <div style={{ marginTop: 8, fontFamily: "'Hanken Grotesk'", fontSize: 12, color: (testMsg ? testMsg.ok : cfg.last_test_ok) ? 'var(--green)' : 'var(--red)' }}>
@@ -576,26 +585,26 @@ function SettingsView() {
       </Section>
 
       <Section
-        title="Cenovnik modela"
-        hint={cfg.pricing?.last_sync_message ? `poslednji sync: ${cfg.pricing.last_sync_message}` : 'bazne Azure cene + marže'}
+        title={t('ai2.settings.pricing')}
+        hint={cfg.pricing?.last_sync_message ? t('ai2.settings.lastSync', { msg: cfg.pricing.last_sync_message }) : t('ai2.settings.basePricesHint')}
         right={
           <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
             <label style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              Globalna marža %
+              {t('ai2.settings.globalMarkup')}
               <input value={globalMarkup} onChange={e => setGlobalMarkup(e.target.value)} type="number" step="0.5" style={{ ...inputS, width: 74 }} />
             </label>
-            <button onClick={saveMarkup} disabled={busy} style={btnS}>Sačuvaj maržu</button>
-            <button onClick={fetchFx} disabled={busy} style={btnS}>Dohvati kurseve</button>
-            <button onClick={runSync} disabled={busy} style={btnPrimary}>{busy ? 'Radim…' : 'Sync Azure cena'}</button>
+            <button onClick={saveMarkup} disabled={busy} style={btnS}>{t('ai2.settings.saveMarkup')}</button>
+            <button onClick={fetchFx} disabled={busy} style={btnS}>{t('ai2.settings.fetchRates')}</button>
+            <button onClick={runSync} disabled={busy} style={btnPrimary}>{busy ? t('ai2.settings.working') : t('ai2.settings.syncAzure')}</button>
           </span>
         }
       >
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
             <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
-              <th style={thStyle}>Model</th><th style={{ ...thStyle, textAlign: 'right' }}>Bazna in</th><th style={{ ...thStyle, textAlign: 'right' }}>Bazna out</th>
-              <th style={{ ...thStyle, textAlign: 'right' }}>Marža %</th><th style={{ ...thStyle, textAlign: 'right' }}>Finalna in</th>
-              <th style={{ ...thStyle, textAlign: 'right' }}>Finalna out</th><th style={thStyle}>Izvor</th><th style={thStyle} />
+              <th style={thStyle}>{t('ai2.model')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.settings.col.baseIn')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.settings.col.baseOut')}</th>
+              <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.settings.col.markup')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.settings.col.finalIn')}</th>
+              <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.settings.col.finalOut')}</th><th style={thStyle}>{t('ai2.settings.col.source')}</th><th style={thStyle} />
             </tr></thead>
             <tbody>{(models?.models || []).map(m => {
               const e = edit[m.model_name]
@@ -612,28 +621,28 @@ function SettingsView() {
                   <td style={{ ...tdMono, textAlign: 'right', color: 'var(--accent)' }}>{m.final_input_per_1m.toFixed(4)}</td>
                   <td style={{ ...tdMono, textAlign: 'right', color: 'var(--accent)' }}>{m.final_output_per_1m.toFixed(4)}</td>
                   <td style={{ ...tdMono, color: m.source === 'manual' ? 'var(--amber)' : 'var(--textMuted)' }}>{m.source}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right' }}>{e && <button onClick={() => saveModel(m.model_name)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>Sačuvaj</button>}</td>
+                  <td style={{ ...tdStyle, textAlign: 'right' }}>{e && <button onClick={() => saveModel(m.model_name)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>{t('settings.jira.save')}</button>}</td>
                 </tr>
               )
             })}</tbody>
           </table>
         </div>
-        {(models?.models || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Nema modela — pokreni „Sync Azure cena".</div>}
+        {(models?.models || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>{t('ai2.settings.noModels')}</div>}
         <button onClick={toggleHistory} style={{ marginTop: 10, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', padding: 0 }}>
-          <span style={{ display: 'inline-block', transform: histOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', marginRight: 8 }}>▸</span>Istorija promena cena
+          <span style={{ display: 'inline-block', transform: histOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', marginRight: 8 }}>▸</span>{t('ai2.settings.priceHistory')}
         </button>
         {histOpen && (
           <div style={{ marginTop: 8, maxHeight: 240, overflowY: 'auto' }}>
             {(history || []).map(h => (
               <div key={h.id} style={{ display: 'flex', gap: 10, padding: '4px 0', borderTop: '1px solid var(--border)', fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', flexWrap: 'wrap' }}>
                 <span style={{ color: 'var(--text)', minWidth: 110 }}>{h.model_name}</span>
-                <span>in {h.old_input_per_1m ?? '—'} → {h.new_input_per_1m}</span>
-                <span>out {h.old_output_per_1m ?? '—'} → {h.new_output_per_1m}</span>
+                <span>{t('ai2.in')} {h.old_input_per_1m ?? '—'} → {h.new_input_per_1m}</span>
+                <span>{t('ai2.out')} {h.old_output_per_1m ?? '—'} → {h.new_output_per_1m}</span>
                 <span>{h.source} · {h.changed_by}</span>
                 <span style={{ marginLeft: 'auto' }}>{String(h.changed_at).slice(0, 16)}</span>
               </div>
             ))}
-            {(history || []).length === 0 && <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema promena.</div>}
+            {(history || []).length === 0 && <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.settings.noChanges')}</div>}
           </div>
         )}
       </Section>
@@ -647,6 +656,7 @@ function SettingsView() {
 
 // ── AI paketi (tieri): fiksni pristup + uključena potrošnja ──────────────────
 function PackagesCard() {
+  const t = useT()
   const [packages, setPackages] = useState([])
   const [edit, setEdit] = useState({})
   const [draft, setDraft] = useState(null)
@@ -670,19 +680,19 @@ function PackagesCard() {
       })
       setEdit(prev => { const n = { ...prev }; delete n[id]; return n })
       await reload()
-    } catch (err) { alert('Greška: ' + err.message) } finally { setBusy(false) }
+    } catch (err) { alert(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
   const createPkg = async () => {
-    if (!draft?.name?.trim()) { alert('Unesi naziv paketa'); return }
+    if (!draft?.name?.trim()) { alert(t('ai2.packages.enterName')); return }
     setBusy(true)
     try { await api.aiUsageCreatePackage(draft); setDraft(null); await reload() }
-    catch (err) { alert('Greška: ' + err.message) } finally { setBusy(false) }
+    catch (err) { alert(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
   const removePkg = async (id, name) => {
-    if (!confirm(`Obrisati paket „${name}"? Tenanti na ovom paketu ostaju bez paketa.`)) return
+    if (!confirm(t('ai2.packages.deleteConfirm', { name }))) return
     setBusy(true)
     try { await api.aiUsageDeletePackage(id); await reload() }
-    catch (err) { alert('Greška: ' + err.message) } finally { setBusy(false) }
+    catch (err) { alert(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
 
   const numIn = (v, onCh, w = 90) => (
@@ -691,18 +701,18 @@ function PackagesCard() {
 
   return (
     <Section
-      title="AI paketi"
-      hint={'fiksni pristup + uključena potrošnja tokena · paket se vezuje za tenanta u sekciji Budžeti ispod'}
-      right={!draft && <button onClick={() => setDraft({ name: '', monthly_fee_eur: 0, included_eur: 0 })} style={btnPrimary}>Novi paket</button>}
+      title={t('ai2.packages.title')}
+      hint={t('ai2.packages.hint')}
+      right={!draft && <button onClick={() => setDraft({ name: '', monthly_fee_eur: 0, included_eur: 0 })} style={btnPrimary}>{t('ai2.packages.new')}</button>}
     >
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
           <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
-            <th style={thStyle}>Naziv</th>
-            <th style={{ ...thStyle, textAlign: 'right' }}>Pristup (EUR/mes)</th>
-            <th style={{ ...thStyle, textAlign: 'right' }}>Uklj. potrošnja (EUR/mes)</th>
-            <th style={{ ...thStyle, textAlign: 'right' }}>Ukupno / mes</th>
-            <th style={thStyle}>Aktivan</th>
+            <th style={thStyle}>{t('ai2.name')}</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.packages.access')}</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.packages.includedUsage')}</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.packages.totalPerMonth')}</th>
+            <th style={thStyle}>{t('ai2.active')}</th>
             <th style={thStyle} />
           </tr></thead>
           <tbody>
@@ -723,8 +733,8 @@ function PackagesCard() {
                     <input type="checkbox" checked={!!val('is_active', p.is_active)} onChange={ev => set('is_active', ev.target.checked)} />
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    {Object.keys(e).length > 0 && <button onClick={() => savePkg(p.id)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>Sačuvaj</button>}
-                    <button onClick={() => removePkg(p.id, p.name)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11, color: 'var(--red)', marginLeft: 6 }}>Obriši</button>
+                    {Object.keys(e).length > 0 && <button onClick={() => savePkg(p.id)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>{t('settings.jira.save')}</button>}
+                    <button onClick={() => removePkg(p.id, p.name)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11, color: 'var(--red)', marginLeft: 6 }}>{t('rn.delete')}</button>
                   </td>
                 </tr>
               )
@@ -732,15 +742,15 @@ function PackagesCard() {
             {draft && (
               <tr style={{ background: 'var(--surfaceAlt)' }}>
                 <td style={tdStyle}>
-                  <input autoFocus value={draft.name} placeholder="npr. Basic" onChange={ev => setDraft(d => ({ ...d, name: ev.target.value }))} style={{ ...inputS, width: 120, padding: '3px 8px', fontWeight: 600 }} />
+                  <input autoFocus value={draft.name} placeholder={t('ai2.packages.namePlaceholder')} onChange={ev => setDraft(d => ({ ...d, name: ev.target.value }))} style={{ ...inputS, width: 120, padding: '3px 8px', fontWeight: 600 }} />
                 </td>
                 <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(draft.monthly_fee_eur, ev => setDraft(d => ({ ...d, monthly_fee_eur: ev.target.value })))}</td>
                 <td style={{ ...tdMono, textAlign: 'right' }}>{numIn(draft.included_eur, ev => setDraft(d => ({ ...d, included_eur: ev.target.value })))}</td>
                 <td style={{ ...tdMono, textAlign: 'right', fontWeight: 700 }}>{fmtMoney((Number(draft.monthly_fee_eur) || 0) + (Number(draft.included_eur) || 0), 'EUR')}</td>
                 <td style={tdStyle} />
                 <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                  <button onClick={createPkg} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11, background: 'var(--accent)', color: '#fff', border: 'none' }}>Dodaj</button>
-                  <button onClick={() => setDraft(null)} style={{ ...btnS, padding: '3px 10px', fontSize: 11, marginLeft: 6 }}>Otkaži</button>
+                  <button onClick={createPkg} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11, background: 'var(--accent)', color: '#fff', border: 'none' }}>{t('ai2.addBtn')}</button>
+                  <button onClick={() => setDraft(null)} style={{ ...btnS, padding: '3px 10px', fontSize: 11, marginLeft: 6 }}>{t('tabs.cancel')}</button>
                 </td>
               </tr>
             )}
@@ -749,7 +759,7 @@ function PackagesCard() {
       </div>
       {packages.length === 0 && !draft && (
         <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>
-          Nema paketa — klikni „Novi paket" (npr. Basic 200 € + 90 €, Standard 300 € + 190 €, Pro 400 € + 390 €).
+          {t('ai2.packages.empty')}
         </div>
       )}
     </Section>
@@ -757,6 +767,7 @@ function PackagesCard() {
 }
 
 function MappingsCard() {
+  const t = useT()
   const [data, setData] = useState(null)
   const [busy, setBusy] = useState(false)
   const reload = useCallback(async () => setData(await api.aiUsageMappings()), [])
@@ -765,7 +776,7 @@ function MappingsCard() {
   async function discover() {
     setBusy(true)
     try { await api.aiUsageDiscover(); await reload() }
-    catch (e) { alert('Greška: ' + e.message) }
+    catch (e) { alert(t('ai2.error', { msg: e.message })) }
     finally { setBusy(false) }
   }
   async function toggleUser(tenant, userId) {
@@ -780,37 +791,38 @@ function MappingsCard() {
 
   return (
     <Section
-      title="Mapiranje tenant → klijent"
-      hint={'„aktivan" = prikazuje se u izveštajima i budžetima · jedan tenant može da vide više klijent-naloga'}
-      right={<button onClick={discover} disabled={busy} style={btnPrimary}>{busy ? 'Radim…' : 'Preuzmi tenante'}</button>}
+      title={t('ai2.mappings.title')}
+      hint={t('ai2.mappings.hint')}
+      right={<button onClick={discover} disabled={busy} style={btnPrimary}>{busy ? t('ai2.settings.working') : t('ai2.mappings.fetchTenants')}</button>}
     >
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
-          <th style={thStyle}>Tenant</th><th style={thStyle}>Kod</th><th style={thStyle}>Pratimo</th><th style={thStyle}>Klijent nalozi</th>
+          <th style={thStyle}>{t('ai2.tenant')}</th><th style={thStyle}>{t('ai2.code')}</th><th style={thStyle}>{t('ai2.mappings.tracked')}</th><th style={thStyle}>{t('ai2.mappings.clientAccounts')}</th>
         </tr></thead>
         <tbody>{(data?.mappings || []).map(m => (
           <tr key={m.tenant_id} style={{ opacity: m.is_tracked ? 1 : 0.45 }}>
             <td style={tdStyle}>{m.tenant_name || m.tenant_id}</td>
             <td style={tdMono}>{m.tenant_code || '—'}</td>
             <td style={tdStyle}>
-              <button onClick={() => setTracked(m.tenant_id, !m.is_tracked)} title="Prikazuj ovog tenanta u izveštajima i budžetima"
+              <button onClick={() => setTracked(m.tenant_id, !m.is_tracked)} title={t('ai2.mappings.trackTitle')}
                 style={{
                   padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", cursor: 'pointer',
                   border: `1px solid ${m.is_tracked ? 'var(--green)' : 'var(--border)'}`,
                   background: m.is_tracked ? 'var(--greenTint)' : 'transparent',
                   color: m.is_tracked ? 'var(--green)' : 'var(--textMuted)',
-                }}>{m.is_tracked ? 'aktivan' : 'neaktivan'}</button>
+                }}>{m.is_tracked ? t('ai2.mappings.active') : t('ai2.mappings.inactive')}</button>
             </td>
             <td style={tdStyle}><MultiUserPicker tenant={m} clients={data?.clients || []} onToggle={toggleUser} /></td>
           </tr>
         ))}</tbody>
       </table>
-      {(data?.mappings || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Nema tenanata — klikni „Preuzmi tenante".</div>}
+      {(data?.mappings || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>{t('ai2.mappings.noTenants')}</div>}
     </Section>
   )
 }
 
 function MultiUserPicker({ tenant, clients, onToggle }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const assigned = new Set((tenant.users || []).map(u => u.id))
   return (
@@ -819,11 +831,11 @@ function MultiUserPicker({ tenant, clients, onToggle }) {
         {(tenant.users || []).map(u => (
           <span key={u.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 7px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>
             {u.name}
-            <button onClick={() => onToggle(tenant, u.id)} title="Ukloni" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textMuted)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+            <button onClick={() => onToggle(tenant, u.id)} title={t('ai2.remove')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textMuted)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
           </span>
         ))}
         <button onClick={() => setOpen(o => !o)} style={{ background: 'transparent', border: '1px dashed var(--border)', borderRadius: 6, padding: '2px 10px', cursor: 'pointer', fontSize: 12, color: 'var(--accent)', fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600 }}>
-          {open ? 'Zatvori' : '+ Dodaj'}
+          {open ? t('settings.close') : t('ai2.add')}
         </button>
       </div>
       {open && (
@@ -835,7 +847,7 @@ function MultiUserPicker({ tenant, clients, onToggle }) {
               <span style={{ color: 'var(--textMuted)', marginLeft: 'auto', fontSize: 11 }}>{c.email}</span>
             </label>
           ))}
-          {clients.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema klijent naloga</div>}
+          {clients.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.mappings.noClientAccounts')}</div>}
         </div>
       )}
     </div>
@@ -843,6 +855,7 @@ function MultiUserPicker({ tenant, clients, onToggle }) {
 }
 
 function BudgetsCard() {
+  const t = useT()
   const [data, setData] = useState(null)
   const [packages, setPackages] = useState([])
   const [busy, setBusy] = useState(false)
@@ -868,35 +881,35 @@ function BudgetsCard() {
       })
       setEdit(p => { const n = { ...p }; delete n[b.tenant_id]; return n })
       await reload()
-    } catch (err) { alert('Greška: ' + err.message) } finally { setBusy(false) }
+    } catch (err) { alert(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
   const runCheck = async () => {
     setBusy(true)
     try {
       const r = await api.aiUsageCheckBudgets()
       alert(r.mail_configured
-        ? `Provera završena. Poslato obaveštenja: ${r.results.filter(x => x.mail?.ok).length}`
-        : 'SMTP nije podešen — obaveštenja se ne šalju (postavi SMTP_HOST/USER/PASS na serveru).')
+        ? t('ai2.budgets.checkResult', { n: r.results.filter(x => x.mail?.ok).length })
+        : t('ai2.budgets.smtpNotConfigured'))
       await reload()
-    } catch (e) { alert('Greška: ' + e.message) } finally { setBusy(false) }
+    } catch (e) { alert(t('ai2.error', { msg: e.message })) } finally { setBusy(false) }
   }
 
   return (
     <Section
-      title="Budžeti i obaveštenja"
-      hint={data ? `mesec ${data.month} · ${data.mail_configured ? 'SMTP podešen' : 'SMTP NIJE podešen — mejlovi se ne šalju'}` : ''}
-      right={<button onClick={runCheck} disabled={busy} style={btnS}>Proveri i pošalji sada</button>}
+      title={t('ai2.budgets.title')}
+      hint={data ? t('ai2.budgets.hint', { month: data.month, smtp: data.mail_configured ? t('ai2.budgets.smtpOn') : t('ai2.budgets.smtpOff') }) : ''}
+      right={<button onClick={runCheck} disabled={busy} style={btnS}>{t('ai2.budgets.checkNow')}</button>}
     >
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1050 }}>
           <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
-            <th style={thStyle}>Tenant</th>
-            <th style={thStyle}>Paket</th>
-            <th style={{ ...thStyle, textAlign: 'right' }}>Mesečni limit (EUR)</th>
-            <th style={{ ...thStyle, textAlign: 'right' }}>Warning %</th>
-            <th style={thStyle}>Mejl</th>
-            <th style={thStyle}>Dodatni primaoci</th>
-            <th style={{ ...thStyle, textAlign: 'right' }}>Potrošeno</th>
+            <th style={thStyle}>{t('ai2.tenant')}</th>
+            <th style={thStyle}>{t('ai2.package')}</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.budgets.monthlyLimit')}</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.budgets.warningPct')}</th>
+            <th style={thStyle}>{t('ai2.budgets.mail')}</th>
+            <th style={thStyle}>{t('ai2.budgets.extraRecipients')}</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.spent')}</th>
             <th style={thStyle} />
           </tr></thead>
           <tbody>{(data?.budgets || []).map(b => {
@@ -912,7 +925,7 @@ function BudgetsCard() {
                 <td style={tdStyle}>{b.tenant_name || b.tenant_id}</td>
                 <td style={tdStyle}>
                   <select value={pkgId ?? ''} onChange={ev => set('package_id', ev.target.value)} style={{ ...inputS, width: 130, padding: '3px 6px', fontSize: 12 }}>
-                    <option value="">— bez paketa —</option>
+                    <option value="">{t('ai2.budgets.noPackage')}</option>
                     {packages.filter(p => p.is_active || String(p.id) === String(pkgId)).map(p => (
                       <option key={p.id} value={p.id}>{p.name} ({fmtMoney((p.monthly_fee_eur || 0) + (p.included_eur || 0), 'EUR')})</option>
                     ))}
@@ -920,7 +933,7 @@ function BudgetsCard() {
                 </td>
                 <td style={{ ...tdMono, textAlign: 'right' }}>
                   {pkg ? (
-                    <span title="Limit dolazi iz paketa (uključena potrošnja)" style={{ color: 'var(--textMuted)' }}>{fmtMoney(pkg.included_eur, 'EUR')}</span>
+                    <span title={t('ai2.budgets.limitFromPackage')} style={{ color: 'var(--textMuted)' }}>{fmtMoney(pkg.included_eur, 'EUR')}</span>
                   ) : (
                     <input type="number" step="10" min="0" placeholder="—" value={val('monthly_limit_eur', b.monthly_limit_eur ?? '')}
                       onChange={ev => set('monthly_limit_eur', ev.target.value)} style={{ ...inputS, width: 96, textAlign: 'right', padding: '3px 6px' }} />
@@ -934,21 +947,21 @@ function BudgetsCard() {
                   <input type="checkbox" checked={!!val('notify_enabled', b.notify_enabled)} onChange={ev => set('notify_enabled', ev.target.checked)} />
                 </td>
                 <td style={tdStyle}>
-                  <input placeholder="mejl1@x.com, mejl2@y.com" value={val('extra_emails', b.extra_emails || '')}
+                  <input placeholder={t('ai2.budgets.extraEmailsPlaceholder')} value={val('extra_emails', b.extra_emails || '')}
                     onChange={ev => set('extra_emails', ev.target.value)} style={{ ...inputS, width: 200, padding: '3px 8px', fontSize: 12 }} />
                 </td>
                 <td style={{ ...tdMono, textAlign: 'right', color: stColor }}>
                   {st ? `${fmtMoney(st.spent_eur, 'EUR')}${st.pct != null ? ` · ${Math.round(st.pct)}%` : ''}` : '—'}
                 </td>
                 <td style={{ ...tdStyle, textAlign: 'right' }}>
-                  {Object.keys(e).length > 0 && <button onClick={() => save(b)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>Sačuvaj</button>}
+                  {Object.keys(e).length > 0 && <button onClick={() => save(b)} disabled={busy} style={{ ...btnS, padding: '3px 10px', fontSize: 11 }}>{t('settings.jira.save')}</button>}
                 </td>
               </tr>
             )
           })}</tbody>
         </table>
       </div>
-      {(data?.budgets || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>Nema tenanata — prvo „Preuzmi tenante" u sekciji iznad.</div>}
+      {(data?.budgets || []).length === 0 && <div style={{ padding: 18, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13 }}>{t('ai2.budgets.noTenants')}</div>}
     </Section>
   )
 }
@@ -956,6 +969,7 @@ function BudgetsCard() {
 // ── KLIJENT ───────────────────────────────────────────────────────────────────
 
 function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }) {
+  const t = useT()
   const [preset, setPreset] = useState('month')
   const [range, setRange] = useState(presetRange('month'))
   const [currency, setCurrency] = useState('EUR')
@@ -978,10 +992,10 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
   async function exportXlsx() {
     setExporting(true)
     try { await api.aiUsageExportXlsx(`from=${range.from}&to=${range.to}&currency=${currency}`) }
-    catch (e) { alert('Excel greška: ' + e.message) }
+    catch (e) { alert(t('ai2.excelError', { msg: e.message })) }
     finally { setExporting(false) }
   }
-  const exportPdf = () => openReportPdf(`from=${range.from}&to=${range.to}&currency=${currency}`, setExporting)
+  const exportPdf = () => openReportPdf(`from=${range.from}&to=${range.to}&currency=${currency}`, setExporting, t)
 
   const navProps ={ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage }
   const cur = data?.currency || currency
@@ -996,15 +1010,15 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
         <Topbar {...navProps} currentPage="aiUsage" onOpenChat={onGoToMessages} />
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '22px 22px 60px' }}>
           <div style={{ marginBottom: 14 }}>
-            <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>AI potrošnja</h1>
+            <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>{t('ai2.client.title')}</h1>
             <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
-              {data?.customer?.name ? `${data.customer.name} — potrošnja AI servisa po aplikacijama i modelima` : 'Potrošnja AI servisa vaše organizacije'}
+              {data?.customer?.name ? t('ai2.client.subtitle', { name: data.customer.name }) : t('ai2.client.subtitleGeneric')}
             </div>
           </div>
 
           {data?.not_mapped ? (
             <div style={{ ...card, textAlign: 'center', padding: 40, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>
-              Vaš nalog još nije povezan sa AI potrošnjom. Kontaktirajte Intelisale tim da aktivira prikaz.
+              {t('ai2.client.notMapped')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1014,7 +1028,7 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
 
               {data?.rate_available === false && (
                 <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
-                  Kurs za izabranu valutu trenutno nije dostupan — iznosi su u USD.
+                  {t('ai2.client.rateUnavailable')}
                 </div>
               )}
 
@@ -1026,32 +1040,32 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
                     <>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
                         <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                          Vaš paket
+                          {t('ai2.client.yourPackage')}
                           <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, fontWeight: 600, background: 'var(--accent)', color: '#fff', borderRadius: 6, padding: '2px 10px' }}>
                             {budget.package.name}
                           </span>
                         </div>
                         <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
-                          {fmtMoney(budget.package.fee_eur + budget.package.included_eur, 'EUR')} / mes
+                          {t('ai2.client.perMonth', { v: fmtMoney(budget.package.fee_eur + budget.package.included_eur, 'EUR') })}
                           <span style={{ fontSize: 11, color: 'var(--textMuted)', marginLeft: 8 }}>
-                            pristup {fmtMoney(budget.package.fee_eur, 'EUR')} + potrošnja {fmtMoney(budget.package.included_eur, 'EUR')}
+                            {t('ai2.client.accessPlusUsage', { fee: fmtMoney(budget.package.fee_eur, 'EUR'), included: fmtMoney(budget.package.included_eur, 'EUR') })}
                           </span>
                         </div>
                       </div>
-                      <BudgetGauge name={`Uključena potrošnja — ${budget.month}`} spent={budget.spent_eur} limit={budget.limit_eur} pct={budget.pct} level={budget.level} />
+                      <BudgetGauge name={t('ai2.client.includedUsageMonth', { month: budget.month })} spent={budget.spent_eur} limit={budget.limit_eur} pct={budget.pct} level={budget.level} />
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
                         <span>
                           {budget.overage_eur > 0
-                            ? <span style={{ color: 'var(--red)', fontWeight: 600 }}>Prekoračenje uključene potrošnje: {fmtMoney(budget.overage_eur, 'EUR')}</span>
-                            : `Preostalo ${fmtMoney(Math.max(0, (budget.limit_eur || 0) - budget.spent_eur), 'EUR')} uključene potrošnje`}
+                            ? <span style={{ color: 'var(--red)', fontWeight: 600 }}>{t('ai2.client.overage', { v: fmtMoney(budget.overage_eur, 'EUR') })}</span>
+                            : t('ai2.client.remaining', { v: fmtMoney(Math.max(0, (budget.limit_eur || 0) - budget.spent_eur), 'EUR') })}
                         </span>
-                        <span>resetuje se 1. u mesecu</span>
+                        <span>{t('ai2.client.resetsMonthly')}</span>
                       </div>
                     </>
                   ) : (
                     <>
                       <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 8 }}>
-                        Mesečni budžet — {budget.month}
+                        {t('ai2.client.monthlyBudget', { month: budget.month })}
                       </div>
                       <BudgetGauge name={budget.tenant_name} spent={budget.spent_eur} limit={budget.limit_eur} pct={budget.pct} level={budget.level} />
                     </>
@@ -1060,33 +1074,33 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
               )}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
-                <Kpi title="Zahtevi" value={fmtNum(tot?.requests)} />
-                <Kpi title="Tokeni" value={fmtTok(tot?.tokens)} />
-                <Kpi title={`Trošak (${cur})`} value={fmtMoney(tot?.cost, cur)} color="var(--accent)" />
-                <Kpi title="Aplikacije" value={apps.length} subtitle={`${models.length} modela`} />
+                <Kpi title={t('ai2.requests')} value={fmtNum(tot?.requests)} />
+                <Kpi title={t('ai2.tokens')} value={fmtTok(tot?.tokens)} />
+                <Kpi title={t('ai2.costCur', { cur })} value={fmtMoney(tot?.cost, cur)} color="var(--accent)" />
+                <Kpi title={t('ai2.kpi.apps')} value={apps.length} subtitle={t('ai2.kpi.modelsCount', { n: models.length })} />
               </div>
 
-              <Section title="Dnevni trend" hint="trošak (linija) i zahtevi (stubići)">
+              <Section title={t('ai2.section.dailyTrend')} hint={t('ai2.section.dailyTrendHint')}>
                 <TrendChart days={(data?.days || []).map(x => ({ date: x.date, requests: x.requests, cost: x.cost }))} currency={cur} height={230} />
               </Section>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(430px, 1fr))', gap: 14 }}>
-                <Section title="Trošak po aplikaciji">
-                  <PieChart data={apps.map(a => ({ label: a.app, value: a.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={fmtMoney(tot?.cost, cur)} centerLabel="ukupno" />
+                <Section title={t('ai2.section.costByApp')}>
+                  <PieChart data={apps.map(a => ({ label: a.app, value: a.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={fmtMoney(tot?.cost, cur)} centerLabel={t('ai2.center.total')} />
                 </Section>
-                <Section title="Trošak po modelu">
-                  <PieChart data={models.map(m => ({ label: m.model, value: m.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${models.length}`} centerLabel="modela" />
+                <Section title={t('ai2.section.costByModel')}>
+                  <PieChart data={models.map(m => ({ label: m.model, value: m.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${models.length}`} centerLabel={t('ai2.center.models')} />
                 </Section>
-                <Section title="Zahtevi po aplikaciji" hint="top 10">
+                <Section title={t('ai2.section.requestsByApp')} hint={t('ai2.top10')}>
                   <HBars data={apps.map(a => ({ label: a.app, value: a.requests }))} valueFmt={fmtNum} color="#0D9488" />
                 </Section>
-                <Section title="Tokeni po modelu" hint="top 10">
+                <Section title={t('ai2.section.tokensByModel')} hint={t('ai2.top10')}>
                   <HBars data={models.map(m => ({ label: m.model, value: m.tokens }))} valueFmt={fmtTok} />
                 </Section>
               </div>
 
-              <SimpleTable title="Detalji po aplikaciji" rows={apps.map(a => ({ ...a, name: a.app }))} nameKey="name" cur={cur} />
-              <SimpleTable title="Detalji po modelu" rows={models.map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
+              <SimpleTable title={t('ai2.table.byApp')} rows={apps.map(a => ({ ...a, name: a.app }))} nameKey="name" cur={cur} />
+              <SimpleTable title={t('ai2.table.byModel')} rows={models.map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
             </div>
           )}
         </div>

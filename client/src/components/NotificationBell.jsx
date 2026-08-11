@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useT } from '../lang.jsx'
 
-function fmtTime(dateStr) {
+function fmtTime(dateStr, t) {
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000)
-  if (diff < 60) return 'upravo'
-  if (diff < 3600) return `pre ${Math.floor(diff / 60)} min`
-  if (diff < 86400) return `pre ${Math.floor(diff / 3600)}h`
-  return `pre ${Math.floor(diff / 86400)}d`
+  if (diff < 60) return t('time.justNow')
+  if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) })
+  if (diff < 86400) return t('time.hoursAgo', { n: Math.floor(diff / 3600) })
+  return t('time.daysAgo', { n: Math.floor(diff / 86400) })
 }
 
 export default function NotificationBell({ unreadCount = 0, notifications = [], onMarkAllRead, onNotificationClick }) {
@@ -26,7 +26,7 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
     <div ref={ref} style={{ position: 'relative' }}>
       <button
         onClick={() => setOpen(o => !o)}
-        title="Notifikacije"
+        title={t('notif.title')}
         style={{
           position: 'relative',
           width: 34, height: 34, borderRadius: 8,
@@ -102,7 +102,7 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
                     {n.project_name || n.epic_key}
                   </span>
                   <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>
-                    {fmtTime(n.created_at)}
+                    {fmtTime(n.created_at, t)}
                   </span>
                 </div>
                 {n.task_key && (
