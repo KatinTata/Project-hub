@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { api } from '../api.js'
+import { useT } from '../lang.jsx'
 import { buildStackMatrix } from '../utils/stacks.js'
 import { buildPhaseForecast } from '../utils/forecast.js'
 import { buildCapacity } from '../utils/capacity.js'
@@ -19,9 +20,10 @@ const CAP_STATUS = {
   nostaff: { bg: 'var(--redTint)', fg: 'var(--red)' },
 }
 const capChip = st => ({ fontFamily: "'Hanken Grotesk'", fontSize: 11, padding: '2px 8px', borderRadius: 6, background: (CAP_STATUS[st] || {}).bg || 'var(--surfaceAlt)', color: (CAP_STATUS[st] || {}).fg || 'var(--textMuted)', border: '1px solid var(--border)' })
-const capLabel = c => c.status === 'nostaff' ? 'nema ljudi' : (c.load != null ? Math.round(c.load * 100) + '%' : '–')
+const capLabel = (c, t) => c.status === 'nostaff' ? t('pf.noStaff') : (c.load != null ? Math.round(c.load * 100) + '%' : '–')
 
 export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStackMap, canEditConfig }) {
+  const t = useT()
   const [settings, setSettings] = useState(null)
   const [basis, setBasis] = useState('remaining')
   const [editing, setEditing] = useState(false)

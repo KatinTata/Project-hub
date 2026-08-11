@@ -98,7 +98,7 @@ export default function AddProjectPage({ onAdd, onCancel, editProject = null }) 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 560, background: 'var(--surface)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 16px 48px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '28px 32px 0' }}>
-          <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 22, color: 'var(--text)', marginBottom: 4 }}>{editProject ? 'Izmeni projekat' : t('addProject.title')}</h1>
+          <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 22, color: 'var(--text)', marginBottom: 4 }}>{editProject ? t('ap.editTitle') : t('addProject.title')}</h1>
           <p style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, marginBottom: 20 }}>
             {t('addProject.subtitle')}
           </p>
@@ -135,7 +135,7 @@ export default function AddProjectPage({ onAdd, onCancel, editProject = null }) 
             disabled={loading}
             style={{ width: '100%', background: 'var(--accent)', color: '#fff', borderRadius: 8, padding: '11px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', border: 'none', opacity: loading ? 0.7 : 1, transition: 'all 0.2s ease' }}
           >
-            {loading ? t('addProject.submitting') : (editProject ? 'Sačuvaj izmene' : t('addProject.submit'))}
+            {loading ? t('addProject.submitting') : (editProject ? t('ap.saveChanges') : t('addProject.submit'))}
           </button>
         </form>
       </div>
@@ -166,7 +166,7 @@ function JqlTab({ t, jql, setJql, name, setName, onTest, testLoading, testResult
         <JqlEditor
           value={jql}
           onChange={setJql}
-          placeholder={"npr. cf[11529] = 'Knjaz Miloš Srbija' AND created >= -60d"}
+          placeholder={t('ap.jql.examplePlaceholder')}
           rows={4}
         />
         <div style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
@@ -194,8 +194,8 @@ function CombinedTab({ t, epicKey, setEpicKey, project, setProject, status, setS
     <>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
         <div>
-          <label style={labelStyle}>Projekat</label>
-          <FieldSelect fieldName="project" values={project} onChange={setProject} placeholder="npr. Pricing project" />
+          <label style={labelStyle}>{t('ap.field.project')}</label>
+          <FieldSelect fieldName="project" values={project} onChange={setProject} placeholder={t('ap.ph.project')} />
         </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.epicKey')}</label>
@@ -203,19 +203,19 @@ function CombinedTab({ t, epicKey, setEpicKey, project, setProject, status, setS
         </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.fixVersion')}</label>
-          <FieldSelect fieldName="fixVersion" values={fixVersion} onChange={setFixVersion} placeholder="npr. 6.6 Gallium" />
+          <FieldSelect fieldName="fixVersion" values={fixVersion} onChange={setFixVersion} placeholder={t('ap.ph.fixVersion')} />
         </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.clientScope')}</label>
-          <FieldSelect fieldName="Client - Impact Scope" values={clientScope} onChange={setClientScope} placeholder="npr. General" />
+          <FieldSelect fieldName="Client - Impact Scope" values={clientScope} onChange={setClientScope} placeholder={t('ap.ph.clientScope')} />
         </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.clientRequested')}</label>
-          <FieldSelect fieldName="Client Requested" values={clientRequested} onChange={setClientRequested} placeholder="npr. Wurth" />
+          <FieldSelect fieldName="Client Requested" values={clientRequested} onChange={setClientRequested} placeholder={t('ap.ph.clientRequested')} />
         </div>
         <div>
-          <label style={labelStyle}>Status</label>
-          <FieldSelect fieldName="status" values={status} onChange={setStatus} placeholder="npr. Resolved, Closed" />
+          <label style={labelStyle}>{t('ap.field.status')}</label>
+          <FieldSelect fieldName="status" values={status} onChange={setStatus} placeholder={t('ap.ph.status')} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div>
@@ -231,8 +231,8 @@ function CombinedTab({ t, epicKey, setEpicKey, project, setProject, status, setS
 
       {/* Sprint — picked by name, JQL uses the id (so you never type sprint ids) */}
       <div style={{ marginBottom: 12 }}>
-        <label style={labelStyle}>Sprint</label>
-        <FieldSelect fieldName="Sprint" values={sprints} onChange={setSprints} placeholder="npr. grooming" />
+        <label style={labelStyle}>{t('ap.field.sprint')}</label>
+        <FieldSelect fieldName="Sprint" values={sprints} onChange={setSprints} placeholder={t('ap.ph.sprint')} />
       </div>
 
       {/* JQL editor */}
@@ -276,7 +276,7 @@ const WRONG_FIELDS_MAP = {
   assigneeEmail:  'assignee',
 }
 
-function enrichJiraError(error, jql) {
+function enrichJiraError(error, jql, t) {
   const msg = error || ''
   const suggestions = []
 
@@ -285,7 +285,7 @@ function enrichJiraError(error, jql) {
     const inJql = jql && new RegExp(`\\b${wrong}\\b`, 'i').test(jql)
     const inMsg = new RegExp(wrong, 'i').test(msg)
     if (inJql || inMsg) {
-      suggestions.push(`"${wrong}" nije validan JQL field — zameni sa "${correct}"`)
+      suggestions.push(t('ap.err.invalidField', { wrong, correct }))
     }
   }
 
@@ -297,8 +297,8 @@ function enrichJiraError(error, jql) {
     if (!suggestions.some(s => s.includes(f))) {
       const fix = WRONG_FIELDS_MAP[f]
       suggestions.push(fix
-        ? `Field "${f}" ne postoji — koristi "${fix}"`
-        : `Field "${f}" ne postoji ili nemaš pristup`)
+        ? t('ap.err.fieldNotExistUse', { f, fix })
+        : t('ap.err.fieldNotExist', { f }))
     }
   }
 
@@ -307,15 +307,16 @@ function enrichJiraError(error, jql) {
   const dateInError = /date|pars/i.test(msg)
   if (badDate) {
     const [, dd, mm, yyyy] = badDate
-    suggestions.push(`Format datuma "${badDate[0]}" nije validan — Jira zahteva "YYYY-MM-DD", npr. "${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}"`)
+    const example = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`
+    suggestions.push(t('ap.err.badDateFormat', { date: badDate[0], example }))
   } else if (dateInError && !badDate) {
-    suggestions.push('Datumi moraju biti u formatu "YYYY-MM-DD", npr. "2026-01-02"')
+    suggestions.push(t('ap.err.dateFormatHint'))
   }
 
   // Operator not supported
   const opMatch = msg.match(/operator\s+['"']?([^'"]+)['"']?\s+is not supported/i)
   if (opMatch && !suggestions.length) {
-    suggestions.push(`Operator ${opMatch[1]} nije podržan za ovaj field`)
+    suggestions.push(t('ap.err.operatorNotSupported', { op: opMatch[1] }))
   }
 
   return suggestions
@@ -323,7 +324,7 @@ function enrichJiraError(error, jql) {
 
 function TestResult({ t, result, error, jql }) {
   if (error) {
-    const hints = enrichJiraError(error, jql)
+    const hints = enrichJiraError(error, jql, t)
     return (
       <div style={{ marginTop: 8, borderRadius: 6, overflow: 'hidden' }}>
         <div style={{ padding: '8px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', color: 'var(--red)', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
@@ -362,6 +363,7 @@ function TestResult({ t, result, error, jql }) {
 // Generic Jira field picker: type a value, we resolve it via JQL autocomplete.
 // Stores [{ value, label }] — value goes into JQL, label is shown as a chip.
 function FieldSelect({ fieldName, values, onChange, placeholder }) {
+  const t = useT()
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [opts, setOpts] = useState([])
@@ -395,19 +397,19 @@ function FieldSelect({ fieldName, values, onChange, placeholder }) {
         ))}
         <input value={q} onChange={e => setQ(e.target.value)} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 160)}
           onKeyDown={e => { if (e.key === 'Enter' && q.trim()) { e.preventDefault(); addManual() } }}
-          placeholder={values.length ? '' : (placeholder || 'Kucaj za pretragu…')}
+          placeholder={values.length ? '' : (placeholder || t('ap.fs.searchPlaceholder'))}
           style={{ flex: '1 1 120px', minWidth: 100, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, padding: '2px' }} />
       </div>
       {open && (loading || free.length > 0) && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, marginTop: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.18)', maxHeight: 240, overflowY: 'auto' }}>
-          {loading && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Učitavam…</div>}
+          {loading && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{t('ap.fs.loading')}</div>}
           {!loading && free.map(o => (
             <button key={o.value} type="button" onMouseDown={e => { e.preventDefault(); add(o) }}
               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '7px 10px', cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)' }}>
               {o.label}
             </button>
           ))}
-          {!loading && free.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>Nema predloga — Enter da dodaš ručno</div>}
+          {!loading && free.length === 0 && <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{t('ap.fs.noSuggestions')}</div>}
         </div>
       )}
     </div>

@@ -212,7 +212,7 @@ export default function MessagesPage({
 
               {/* Projects section */}
               <div style={{ paddingTop: 20 }}>
-                <div style={sideLabel}>{t('msg.projects') || 'Projekti'}</div>
+                <div style={sideLabel}>{t('msg2.projects')}</div>
                 {loadingProjects ? (
                   <div style={{ padding: '8px 16px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--textSubtle)' }}>{t('app.loading')}</div>
                 ) : projects.map(p => (
@@ -233,7 +233,7 @@ export default function MessagesPage({
                     </div>
                     {p.id === activeId && (
                       <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)', marginTop: 2 }}>
-                        {messages.length} {t('msg.messagesCount') || 'poruka'}
+                        {t('msg2.messagesCount', { n: messages.length })}
                       </div>
                     )}
                   </button>
@@ -326,7 +326,7 @@ export default function MessagesPage({
                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
                   >
-                    ⬇ {threadFilter !== 'all' ? `Export: ${threadFilter}` : t('msg.exportCsv')}
+                    ⬇ {threadFilter !== 'all' ? t('msg2.exportThread', { key: threadFilter }) : t('msg.exportCsv')}
                   </button>
                 )}
               </div>

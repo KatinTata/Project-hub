@@ -192,7 +192,7 @@ function DocCard({ doc, isAdmin, onDelete }) {
             <button
               onClick={handleDownload}
               disabled={downloading}
-              title="Preuzmi"
+              title={t('rne.download')}
               style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
@@ -202,7 +202,7 @@ function DocCard({ doc, isAdmin, onDelete }) {
             {isAdmin && (
               <button
                 onClick={e => { e.stopPropagation(); onDelete(doc.id) }}
-                title="Obriši"
+                title={t('rne.delete')}
                 style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(239,68,68,0.25)', border: '1px solid rgba(239,68,68,0.5)', color: '#fca5a5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.4)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.25)'}
@@ -252,8 +252,8 @@ function UploadModal({ sections, onClose, onUploaded }) {
 
   function handleFile(f) {
     if (!f) return
-    if (f.type !== 'application/pdf') { setError('Samo PDF fajlovi su podržani'); return }
-    if (f.size > 20 * 1024 * 1024) { setError('Fajl ne sme biti veći od 20MB'); return }
+    if (f.type !== 'application/pdf') { setError(t('doc2.errOnlyPdf')); return }
+    if (f.size > 20 * 1024 * 1024) { setError(t('doc2.errTooLarge')); return }
     setFile(f)
     setDocName(f.name.replace(/\.pdf$/i, ''))
     setError(null)
@@ -289,7 +289,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
   }
 
   async function handleUpload() {
-    if (!file || !docName.trim() || !sectionId) { setError('Popunite sva obavezna polja'); return }
+    if (!file || !docName.trim() || !sectionId) { setError(t('doc2.errRequiredFields')); return }
     setUploading(true)
     setProgress(0)
     setError(null)
@@ -310,7 +310,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
           if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText))
           else { try { reject(new Error(JSON.parse(xhr.responseText).error)) } catch { reject(new Error(t('docs.uploadFailed'))) } }
         }
-        xhr.onerror = () => reject(new Error('Mrežna greška'))
+        xhr.onerror = () => reject(new Error(t('doc2.errNetwork')))
         xhr.open('POST', '/api/documents')
         xhr.setRequestHeader('Authorization', `Bearer ${token}`)
         xhr.send(fd)
@@ -336,7 +336,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
 
         {/* Step indicator */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          {['Fajl', 'Detalji'].map((label, i) => (
+          {[t('doc2.stepFile'), t('doc2.stepDetails')].map((label, i) => (
             <div key={i} style={{ flex: 1, padding: '10px 0', textAlign: 'center', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, fontWeight: step === i + 1 ? 600 : 400, color: step === i + 1 ? 'var(--accent)' : 'var(--textMuted)', borderBottom: step === i + 1 ? '2px solid var(--accent)' : '2px solid transparent', transition: 'all 0.2s' }}>
               {i + 1}. {label}
             </div>
@@ -366,8 +366,8 @@ function UploadModal({ sections, onClose, onUploaded }) {
               style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: '48px 24px', textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
             >
               <div style={{ color: 'var(--textSubtle)' }}><IconPdf /></div>
-              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>Prevuci PDF ili klikni za odabir</div>
-              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)' }}>PDF · max 20 MB</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{t('doc2.dropzone')}</div>
+              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)' }}>{t('doc2.dropzoneHint')}</div>
             </div>
           )}
 
@@ -386,21 +386,21 @@ function UploadModal({ sections, onClose, onUploaded }) {
 
               {/* Name */}
               <div>
-                <label style={labelStyle}>NAZIV DOKUMENTA</label>
-                <input value={docName} onChange={e => setDocName(e.target.value)} style={inputStyle} placeholder="Naziv koji će videti klijenti..." />
+                <label style={labelStyle}>{t('doc2.nameLabel')}</label>
+                <input value={docName} onChange={e => setDocName(e.target.value)} style={inputStyle} placeholder={t('rne.clientNamePlaceholder')} />
               </div>
 
               {/* Section */}
               <div>
-                <label style={labelStyle}>SEKCIJA</label>
+                <label style={labelStyle}>{t('doc2.sectionLabel')}</label>
                 <select
                   value={sectionId}
                   onChange={e => { if (e.target.value === '__new__') { setShowNewSection(true); setSectionId('') } else { setSectionId(e.target.value); setShowNewSection(false) } }}
                   style={{ ...inputStyle, cursor: 'pointer' }}
                 >
-                  <option value="">Odaberi sekciju...</option>
+                  <option value="">{t('doc2.selectSection')}</option>
                   {localSections.map(s => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
-                  <option value="__new__">+ Kreiraj novu sekciju</option>
+                  <option value="__new__">{t('doc2.createNewSection')}</option>
                 </select>
 
                 {showNewSection && (
@@ -409,12 +409,12 @@ function UploadModal({ sections, onClose, onUploaded }) {
                       value={newSectionName}
                       onChange={e => setNewSectionName(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleCreateSection()}
-                      placeholder="Naziv nove sekcije..."
+                      placeholder={t('rne.sectionNamePlaceholder')}
                       style={{ ...inputStyle, flex: 1 }}
                       autoFocus
                     />
                     <button onClick={handleCreateSection} style={{ padding: '8px 14px', borderRadius: 8, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13 }}>
-                      Kreiraj
+                      {t('um.create')}
                     </button>
                   </div>
                 )}
@@ -423,7 +423,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
               {/* Visibility */}
               {clients.length > 0 && (
                 <div>
-                  <label style={labelStyle}>VIDLJIVO KLIJENTIMA</label>
+                  <label style={labelStyle}>{t('doc2.visibleToClients')}</label>
                   <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                     {/* All toggle */}
                     <div onClick={toggleAll} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--border)', background: 'var(--surfaceAlt)' }}
@@ -431,7 +431,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
                       onMouseLeave={e => e.currentTarget.style.background = 'var(--surfaceAlt)'}
                     >
                       <Checkbox checked={allSelected()} />
-                      <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Svi klijenti</span>
+                      <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('msg.allClients')}</span>
                     </div>
                     {/* Individual */}
                     <div style={{ maxHeight: 160, overflowY: 'auto' }}>
@@ -474,7 +474,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
         {step === 2 && (
           <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
             <button onClick={() => setStep(1)} disabled={uploading} style={{ padding: '9px 20px', borderRadius: 8, fontSize: 13, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer' }}>
-              Nazad
+              {t('doc2.back')}
             </button>
             <button onClick={handleUpload} disabled={uploading || !docName.trim() || !sectionId} style={{ padding: '9px 24px', borderRadius: 8, fontSize: 13, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: uploading ? 'wait' : 'pointer', opacity: (!docName.trim() || !sectionId) ? 0.5 : 1 }}>
               {uploading ? t('docs.uploading') : t('docs.upload')}
@@ -620,13 +620,13 @@ export default function DocumentsPage({
         ) : documents.length === 0 && sections.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
             <div style={{ color: 'var(--textSubtle)' }}><IconPdf /></div>
-            <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>Nema dokumenata</div>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>{t('doc2.emptyTitle')}</div>
             {isAdmin ? (
               <button onClick={() => setUploadOpen(true)} style={{ padding: '9px 20px', borderRadius: 9, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 14 }}>
-                Dodaj prvi dokument
+                {t('doc2.addFirst')}
               </button>
             ) : (
-              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--textMuted)' }}>Nema dostupnih dokumenata</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--textMuted)' }}>{t('doc2.noneAvailable')}</div>
             )}
           </div>
         ) : (
@@ -649,8 +649,8 @@ export default function DocumentsPage({
                           autoFocus
                           style={{ ...inputStyle, flex: 1, fontSize: 15 }}
                         />
-                        <button type="submit" style={{ padding: '6px 14px', borderRadius: 7, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13 }}>Sačuvaj</button>
-                        <button type="button" onClick={() => setRenameId(null)} style={{ padding: '6px 12px', borderRadius: 7, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>Otkaži</button>
+                        <button type="submit" style={{ padding: '6px 14px', borderRadius: 7, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 13 }}>{t('rn.save')}</button>
+                        <button type="button" onClick={() => setRenameId(null)} style={{ padding: '6px 12px', borderRadius: 7, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13 }}>{t('tabs.cancel')}</button>
                       </form>
                     ) : (
                       <>
@@ -660,19 +660,19 @@ export default function DocumentsPage({
                         </span>
                         {isAdmin && !isConfirmingDelete && (
                           <>
-                            <button onClick={() => { setRenameId(section.id); setRenameName(section.name) }} title="Preimenuj sekciju" style={{ width: 28, height: 28, borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--borderHover)'; e.currentTarget.style.color = 'var(--text)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}>
+                            <button onClick={() => { setRenameId(section.id); setRenameName(section.name) }} title={t('rne.rename')} style={{ width: 28, height: 28, borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--borderHover)'; e.currentTarget.style.color = 'var(--text)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}>
                               <IconPencil />
                             </button>
-                            <button onClick={() => setConfirmDeleteSection(section.id)} title="Obriši sekciju" style={{ width: 28, height: 28, borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; e.currentTarget.style.color = 'var(--red)'; e.currentTarget.style.background = 'var(--redTint)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)'; e.currentTarget.style.background = 'transparent' }}>
+                            <button onClick={() => setConfirmDeleteSection(section.id)} title={t('rne.deleteSection')} style={{ width: 28, height: 28, borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; e.currentTarget.style.color = 'var(--red)'; e.currentTarget.style.background = 'var(--redTint)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)'; e.currentTarget.style.background = 'transparent' }}>
                               <IconTrash />
                             </button>
                           </>
                         )}
                         {isAdmin && isConfirmingDelete && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--red)' }}>Obrisati sekciju i sve dokumente?</span>
-                            <button onClick={() => handleDeleteSection(section.id)} style={{ padding: '4px 12px', borderRadius: 6, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12 }}>Obriši</button>
-                            <button onClick={() => setConfirmDeleteSection(null)} style={{ padding: '4px 10px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12 }}>Otkaži</button>
+                            <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--red)' }}>{t('doc2.deleteSectionConfirm')}</span>
+                            <button onClick={() => handleDeleteSection(section.id)} style={{ padding: '4px 12px', borderRadius: 6, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12 }}>{t('rne.delete')}</button>
+                            <button onClick={() => setConfirmDeleteSection(null)} style={{ padding: '4px 10px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12 }}>{t('tabs.cancel')}</button>
                           </div>
                         )}
                       </>
@@ -687,8 +687,8 @@ export default function DocumentsPage({
                           <DocCard doc={doc} isAdmin={isAdmin} onDelete={handleDeleteDoc} />
                           {confirmDeleteDoc === doc.id && (
                             <div style={{ marginTop: 6, padding: '8px 10px', background: 'var(--redTint)', border: '1px solid var(--red)', borderRadius: 8, display: 'flex', gap: 6 }}>
-                              <button onClick={() => handleDeleteDoc(doc.id)} style={{ flex: 1, padding: '4px', borderRadius: 6, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12 }}>Obriši</button>
-                              <button onClick={() => setConfirmDeleteDoc(null)} style={{ flex: 1, padding: '4px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12 }}>Otkaži</button>
+                              <button onClick={() => handleDeleteDoc(doc.id)} style={{ flex: 1, padding: '4px', borderRadius: 6, background: 'var(--red)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 600, fontSize: 12 }}>{t('rne.delete')}</button>
+                              <button onClick={() => setConfirmDeleteDoc(null)} style={{ flex: 1, padding: '4px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12 }}>{t('tabs.cancel')}</button>
                             </div>
                           )}
                         </div>
@@ -696,7 +696,7 @@ export default function DocumentsPage({
                     </div>
                   ) : isAdmin ? (
                     <div style={{ padding: '24px 0', color: 'var(--textSubtle)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, textAlign: 'center' }}>
-                      Sekcija je prazna
+                      {t('doc2.sectionEmpty')}
                     </div>
                   ) : null}
                 </div>
@@ -707,7 +707,7 @@ export default function DocumentsPage({
             {unsectioned.length > 0 && (
               <div>
                 <div style={{ marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--textMuted)' }}>Ostalo</span>
+                  <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--textMuted)' }}>{t('doc2.other')}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
                   {unsectioned.map(doc => (
