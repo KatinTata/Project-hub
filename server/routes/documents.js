@@ -63,7 +63,7 @@ router.get('/sections', (req, res) => {
 })
 
 router.post('/sections', (req, res) => {
-  if (getRole(req.userId) !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+  if (!isAdminRole(getRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   const { name } = req.body
   if (!name?.trim()) return res.status(400).json({ error: 'Naziv je obavezan' })
   const r = db.prepare(
@@ -73,7 +73,7 @@ router.post('/sections', (req, res) => {
 })
 
 router.put('/sections/:id', (req, res) => {
-  if (getRole(req.userId) !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+  if (!isAdminRole(getRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   const { name } = req.body
   if (!name?.trim()) return res.status(400).json({ error: 'Naziv je obavezan' })
   db.prepare('UPDATE document_sections SET name = ? WHERE id = ? AND user_id = ?')
@@ -82,7 +82,7 @@ router.put('/sections/:id', (req, res) => {
 })
 
 router.delete('/sections/:id', (req, res) => {
-  if (getRole(req.userId) !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+  if (!isAdminRole(getRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   db.prepare('DELETE FROM document_sections WHERE id = ? AND user_id = ?')
     .run(req.params.id, req.userId)
   res.json({ ok: true })
@@ -125,7 +125,7 @@ router.post('/', (req, res, next) => {
   })
 }, async (req, res) => {
   try {
-    if (getRole(req.userId) !== 'admin') {
+    if (!isAdminRole(getRole(req.userId))) {
       if (req.file) fs.unlink(req.file.path, () => {})
       return res.status(403).json({ error: 'Forbidden' })
     }
@@ -133,6 +133,21 @@ router.post('/', (req, res, next) => {
     if (req.file.mimetype !== 'application/pdf') {
       fs.unlink(req.file.path, () => {})
       return res.status(400).json({ error: 'Samo PDF fajlovi su podržani' })
+    }
+    // Validate real content, not just the client-supplied Content-Type: a PDF
+    // must begin with the "%PDF-" magic bytes.
+    try {
+      const fd = fs.openSync(req.file.path, 'r')
+      const head = Buffer.alloc(5)
+      fs.readSync(fd, head, 0, 5, 0)
+      fs.closeSync(fd)
+      if (head.toString('latin1') !== '%PDF-') {
+        fs.unlink(req.file.path, () => {})
+        return res.status(400).json({ error: 'Fajl nije validan PDF' })
+      }
+    } catch {
+      if (req.file) fs.unlink(req.file.path, () => {})
+      return res.status(400).json({ error: 'Nije moguće pročitati fajl' })
     }
 
     const { name, section_id, visible_to } = req.body
@@ -181,7 +196,12 @@ router.get('/:id/download', (req, res) => {
     const doc = db.prepare('SELECT * FROM documents WHERE id = ?').get(req.params.id)
     if (!doc) return res.status(404).json({ error: 'Dokument nije pronađen' })
 
-    if (!isAdminRole(role)) {
+    if (isAdminRole(role)) {
+      // Strictly per-user: an admin may only download their own documents.
+      if (Number(doc.user_id) !== Number(req.userId)) {
+        return res.status(403).json({ error: 'Pristup odbijen' })
+      }
+    } else {
       // Must be linked to the document's owner admin AND the doc must be visible to them
       const linked = db.prepare(`
         SELECT 1 FROM project_clients pc
@@ -213,7 +233,7 @@ router.get('/:id/download', (req, res) => {
 })
 
 router.delete('/:id', (req, res) => {
-  if (getRole(req.userId) !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+  if (!isAdminRole(getRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   const doc = db.prepare('SELECT file_path FROM documents WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
   if (doc?.file_path) {
     fs.unlink(path.join(uploadsDir, doc.file_path), () => {})

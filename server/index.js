@@ -23,6 +23,35 @@ import aiUsageRoutes from './routes/aiUsage.js'
 import { startAiUsageScheduler } from './aiUsage/scheduler.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Surface missing/weak secrets at startup instead of crashing later at first
+// login or first token encryption. A hard fail (exit) happens only when a
+// secret is entirely absent — that state cannot boot a working app anyway, so
+// it never regresses an already-running deploy. Weak/placeholder/bad-format
+// values are logged loudly as warnings but do not stop the server.
+function validateSecrets() {
+  const fatal = []
+  const warnings = []
+  const jwt = process.env.JWT_SECRET || ''
+  if (!jwt) fatal.push('JWT_SECRET nije postavljen.')
+  else if (jwt.length < 32 || jwt.startsWith('change-this')) warnings.push('JWT_SECRET je slab (< 32 znaka ili placeholder).')
+
+  const enc = process.env.ENCRYPTION_KEY || ''
+  if (!enc) fatal.push('ENCRYPTION_KEY nije postavljen.')
+  else if (!/^[0-9a-fA-F]{64}$/.test(enc)) warnings.push('ENCRYPTION_KEY nije 64 hex znaka (32 bajta) — enkripcija tokena neće raditi.')
+
+  if (warnings.length) console.error('\n[KONFIGURACIJA] Upozorenja:\n  - ' + warnings.join('\n  - ') + '\n')
+  if (fatal.length) {
+    console.error('\n[KONFIGURACIJA] Kritično:\n  - ' + fatal.join('\n  - '))
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Server se ne pokreće bez ovih tajni.\n')
+      process.exit(1)
+    }
+    console.error('Nastavljam u dev modu, ali auth/enkripcija neće raditi.\n')
+  }
+}
+validateSecrets()
+
 const app = express()
 app.set('trust proxy', 1)
 const PORT = process.env.PORT || 3001
