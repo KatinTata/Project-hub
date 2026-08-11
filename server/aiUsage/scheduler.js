@@ -5,6 +5,7 @@
 import { syncAzurePrices } from './pricing.js'
 import { fetchTodaysRates } from './fx.js'
 import { checkBudgets } from './budgets.js'
+import { runBackup } from '../backup.js'
 
 function belgradeNow() {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -17,11 +18,19 @@ function belgradeNow() {
 let lastPriceRun = ''
 let lastFxRun = ''
 let lastBudgetRun = ''
+let lastBackupRun = ''
 
 export function startAiUsageScheduler() {
   setInterval(async () => {
     const { hhmm, weekday } = belgradeNow()
     const today = new Date().toISOString().slice(0, 10)
+
+    // 03:00 daily — SQLite backup (retention handled inside)
+    if (hhmm === '03:00' && lastBackupRun !== today) {
+      lastBackupRun = today
+      try { const r = await runBackup(); console.log('[backup] OK ->', r.dest, `(cuva ${r.kept})`) }
+      catch (e) { console.error('[backup] failed:', e.message) }
+    }
 
     // 02:00 daily — Azure pricing sync
     if (hhmm === '02:00' && lastPriceRun !== today) {
