@@ -118,21 +118,16 @@ router.delete('/:id/permanent', (req, res) => {
 
 // Get billable task keys for a project
 router.get('/:id/billable', (req, res) => {
-  console.log('[billable GET] projectId:', req.params.id, 'userId:', req.userId)
   const project = findAdminProject(req.params.id, req.userId)
-  console.log('[billable GET] project found:', !!project)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const rows = db.prepare('SELECT task_key FROM task_billable WHERE project_id = ?').all(req.params.id)
-  console.log('[billable GET] keys:', rows.map(r => r.task_key))
   res.json(rows.map(r => r.task_key))
 })
 
 // Toggle billable for a task
 router.put('/:id/billable', (req, res) => {
-  console.log('[billable PUT] projectId:', req.params.id, 'userId:', req.userId, 'body:', req.body)
   if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
   const project = findAdminProject(req.params.id, req.userId)
-  console.log('[billable PUT] project found:', !!project)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const { taskKey, billable } = req.body
   if (!taskKey) return res.status(400).json({ error: 'taskKey je obavezan' })
