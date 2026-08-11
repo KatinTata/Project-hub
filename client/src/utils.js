@@ -9,7 +9,7 @@ export function getStatusCategory(statusName) {
   return 'inprog'
 }
 
-export function processEpicData(parents, subtasks) {
+export function processEpicData(parents, subtasks, epicSelf = null) {
   // Deduplicate parents by key
   const seenKeys = new Set()
   const uniqueParents = parents.filter(p => {
@@ -44,6 +44,7 @@ export function processEpicData(parents, subtasks) {
       timeoriginalestimate: f.timeoriginalestimate || 0,
       components: (f.components || []).map(c => c.name),
       assignee: f.assignee?.displayName || null,
+      worklogs: f.worklogEntries || [],
     }
   }
   for (const sub of subtasks) subMap[sub.key] = toSubEntry(sub)
@@ -99,6 +100,7 @@ export function processEpicData(parents, subtasks) {
       hoursToBill: f.hoursToBill > 0 ? f.hoursToBill * 3600 : 0, // Jira polje je u satima → sekunde
       modules,
       components: (f.components || []).map(c => c.name),
+      worklogs: f.worklogEntries || [],
     }
 
     tasks.push(task)
@@ -144,6 +146,7 @@ export function processEpicData(parents, subtasks) {
       hoursToBill: f.hoursToBill > 0 ? f.hoursToBill * 3600 : 0,
       modules: f.modules || [],
       components: (f.components || []).map(c => c.name),
+      worklogs: f.worklogEntries || [],
       isOrphanSubtask: true,
       parentKey,
     }
@@ -158,11 +161,44 @@ export function processEpicData(parents, subtasks) {
     if (over) overTasks.push(task)
   }
 
+  // Hours logged directly on the epic issue itself — a visible standalone row
+  // so the total matches Jira down to the last worklog.
+  if (epicSelf && (epicSelf.timespent || 0) > 0) {
+    const statusCat = getStatusCategory(epicSelf.status || '')
+    tasks.push({
+      key: epicSelf.key,
+      summary: `${epicSelf.summary || epicSelf.key} — logovano direktno na epic`,
+      status: epicSelf.status || '',
+      statusCategory: statusCat,
+      est: epicSelf.timeoriginalestimate || 0,
+      spent: epicSelf.timespent || 0,
+      over: false,
+      overPct: 0,
+      subtasks: [],
+      assignee: epicSelf.assignee || null,
+      billable: false,
+      hoursToBill: 0,
+      modules: [],
+      components: [],
+      worklogs: epicSelf.worklogEntries || [],
+      isEpicSelf: true,
+    })
+    totalEst += epicSelf.timeoriginalestimate || 0
+    totalSpent += epicSelf.timespent || 0
+    if (statusCat === 'done') done++
+    else if (statusCat === 'testing') testing++
+    else if (statusCat === 'todo') todo++
+    else inprog++
+  }
+
   const total = tasks.length
 
   return { tasks, totalEst, totalSpent, done, inprog, testing, todo, total, overTasks }
 }
 
+// Hours are attributed to the person who ACTUALLY logged them (worklog author).
+// Fallback to the assignee field only for issues whose worklogs are missing
+// (e.g. cached data fetched before worklogs existed) — so nothing is lost.
 export function buildAssigneeData(tasks) {
   const map = {}
 
@@ -172,43 +208,51 @@ export function buildAssigneeData(tasks) {
     return map[key]
   }
 
+  // Distribute one issue's spent seconds by its worklog authors; the remainder
+  // (deleted authors, partial worklog data) goes to the fallback name.
+  function attribute(spent, worklogs, fallbackName, perTask) {
+    if (!spent) return
+    const logged = (worklogs || []).reduce((s, w) => s + (w.seconds || 0), 0)
+    if (logged > 0) {
+      for (const w of worklogs) {
+        if (!w.seconds) continue
+        const name = w.author || fallbackName
+        entry(name).totalSpent += w.seconds
+        perTask.add(name || 'Neraspoređeno')
+      }
+      const remainder = spent - logged
+      if (remainder > 0) {
+        entry(fallbackName).totalSpent += remainder
+        perTask.add(fallbackName || 'Neraspoređeno')
+      }
+    } else {
+      entry(fallbackName).totalSpent += spent
+      perTask.add(fallbackName || 'Neraspoređeno')
+    }
+  }
+
   for (const task of tasks) {
     const subs = task.subtasks || []
 
-    // Task count: parent assignee always gets it
-    const pe = entry(task.assignee)
-    pe.totalTasks++
-    if (task.statusCategory === 'done') pe.doneTasks++
-    else if (task.statusCategory === 'todo') pe.todoTasks++
-    else pe.inprogTasks++
+    // participants = everyone whose hours land on this task (for task counts)
+    const participants = new Set()
 
-    // Task count: subtask assignees who differ from parent also get credited
-    // (deduplicated — one person counts once per parent task)
-    const subAssignees = new Set()
+    const subSpentTotal = subs.reduce((s, sub) => s + sub.timespent, 0)
+    const parentOwnSpent = Math.max(0, task.spent - subSpentTotal)
+    attribute(parentOwnSpent, task.worklogs, task.assignee, participants)
     for (const sub of subs) {
-      const a = sub.assignee || task.assignee
-      if (a && a !== (task.assignee || null)) subAssignees.add(a)
-    }
-    for (const a of subAssignees) {
-      const se = entry(a)
-      se.totalTasks++
-      if (task.statusCategory === 'done') se.doneTasks++
-      else if (task.statusCategory === 'todo') se.todoTasks++
-      else se.inprogTasks++
+      attribute(sub.timespent, sub.worklogs, sub.assignee || task.assignee, participants)
     }
 
-    // Spent: attribute each subtask's hours to the subtask's own assignee
-    if (subs.length === 0) {
-      pe.totalSpent += task.spent
-    } else {
-      const subSpentTotal = subs.reduce((s, sub) => s + sub.timespent, 0)
-      const parentOwnSpent = Math.max(0, task.spent - subSpentTotal)
-      if (parentOwnSpent > 0) pe.totalSpent += parentOwnSpent
-      for (const sub of subs) {
-        if (sub.timespent > 0) {
-          entry(sub.assignee || task.assignee).totalSpent += sub.timespent
-        }
-      }
+    // Tasks with no hours at all still belong to their assignee
+    if (participants.size === 0) participants.add(task.assignee || 'Neraspoređeno')
+
+    for (const name of participants) {
+      const e = entry(name)
+      e.totalTasks++
+      if (task.statusCategory === 'done') e.doneTasks++
+      else if (task.statusCategory === 'todo') e.todoTasks++
+      else e.inprogTasks++
     }
   }
 

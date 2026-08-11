@@ -187,8 +187,8 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     setLoadingProjects(prev => ({ ...prev, [project.id]: true }))
     setErrorProjects(prev => ({ ...prev, [project.id]: null }))
     try {
-      const { parents, subtasks, hasBillableField } = await api.getTasks(project)
-      const data = processEpicData(parents, subtasks)
+      const { parents, subtasks, epicSelf, hasBillableField } = await api.getTasks(project)
+      const data = processEpicData(parents, subtasks, epicSelf)
       data.hasBillableField = !!hasBillableField
       const fetchedAt = Date.now()
       saveProjectCache(project.id, data)

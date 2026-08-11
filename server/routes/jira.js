@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import db from '../db.js'
-import { decryptToken, makeJiraAuth, jiraGet, jiraPost, fetchEpicTasks, fetchByJql, fetchSubtasks, TASK_FIELDS, detectBillableField, parseBillableValue, detectModuleField, detectHoursToBillField } from '../jiraClient.js'
+import { decryptToken, makeJiraAuth, jiraGet, jiraPost, fetchEpicTasks, fetchByJql, fetchSubtasks, attachWorklogs, TASK_FIELDS, detectBillableField, parseBillableValue, detectModuleField, detectHoursToBillField } from '../jiraClient.js'
 
 const router = Router()
 
@@ -102,11 +102,11 @@ router.post('/tasks', async (req, res) => {
       detectHoursToBillField(jira.jiraUrl, jira.auth),
     ])
 
-    const extraFields = []
+    const extraFields = ['worklog'] // real authors + dates for hour attribution
     if (billableKey) extraFields.push(billableKey)
     if (moduleKey) extraFields.push(moduleKey)
     if (hoursToBillKey) extraFields.push(hoursToBillKey)
-    const fields = extraFields.length > 0 ? [...TASK_FIELDS, ...extraFields] : TASK_FIELDS
+    const fields = [...TASK_FIELDS, ...extraFields]
 
     const parents = await fetchByJql(jira.jiraUrl, resolvedJql, jira.auth, fields)
 
@@ -150,7 +150,29 @@ router.post('/tasks', async (req, res) => {
       }
     }
 
-    res.json({ parents, subtasks, hasBillableField: !!billableKey, hasModuleField: !!moduleKey })
+    await attachWorklogs(jira.jiraUrl, [...parents, ...subtasks], jira.auth)
+
+    // Hours logged directly on the epic issue itself (outside `parent = EPIC`)
+    let epicSelf = null
+    if (filterType === 'epic' && epicKey) {
+      try {
+        const epic = await jiraGet(jira.jiraUrl, `/issue/${epicKey}?fields=summary,status,timespent,timeoriginalestimate,assignee,worklog`, jira.auth)
+        if ((epic.fields?.timespent || 0) > 0) {
+          await attachWorklogs(jira.jiraUrl, [epic], jira.auth)
+          epicSelf = {
+            key: epic.key,
+            summary: epic.fields?.summary || '',
+            status: epic.fields?.status?.name || '',
+            timespent: epic.fields?.timespent || 0,
+            timeoriginalestimate: epic.fields?.timeoriginalestimate || 0,
+            assignee: epic.fields?.assignee?.displayName || null,
+            worklogEntries: epic.fields?.worklogEntries || [],
+          }
+        }
+      } catch { /* epic fetch is best-effort */ }
+    }
+
+    res.json({ parents, subtasks, epicSelf, hasBillableField: !!billableKey, hasModuleField: !!moduleKey })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

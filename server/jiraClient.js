@@ -143,6 +143,53 @@ export async function fetchByJql(jiraUrl, jql, auth, fields = TASK_FIELDS) {
   return results
 }
 
+// ── Worklogs (real authors + dates) ──────────────────────────────────────────
+// The search API inlines the first 20 worklogs per issue; issues with more get
+// a dedicated paginated /worklog call. Entries are slimmed to what the client
+// needs so the payload stays small.
+
+const slimWorklog = w => ({
+  author: w.author?.displayName || null,
+  started: String(w.started || '').slice(0, 10),
+  seconds: w.timeSpentSeconds || 0,
+})
+
+export async function fetchAllWorklogs(jiraUrl, key, auth) {
+  const out = []
+  let startAt = 0
+  for (let page = 0; page < 50; page++) {
+    const data = await jiraGet(jiraUrl, `/issue/${key}/worklog?startAt=${startAt}&maxResults=100`, auth)
+    const logs = data.worklogs || []
+    out.push(...logs.map(slimWorklog))
+    startAt += logs.length
+    if (startAt >= (data.total || 0) || logs.length === 0) break
+  }
+  return out
+}
+
+// Mutates each issue: fields.worklogEntries = [{author, started, seconds}],
+// raw fields.worklog removed. Issues with >20 logs are fetched concurrently.
+export async function attachWorklogs(jiraUrl, issues, auth, concurrency = 8) {
+  const needFull = []
+  for (const issue of issues) {
+    const wl = issue.fields?.worklog
+    if (!wl) { issue.fields.worklogEntries = []; continue }
+    if ((wl.total || 0) > (wl.worklogs || []).length) {
+      needFull.push(issue)
+    } else {
+      issue.fields.worklogEntries = (wl.worklogs || []).map(slimWorklog)
+    }
+    delete issue.fields.worklog
+  }
+  for (let i = 0; i < needFull.length; i += concurrency) {
+    const batch = needFull.slice(i, i + concurrency)
+    await Promise.all(batch.map(async issue => {
+      try { issue.fields.worklogEntries = await fetchAllWorklogs(jiraUrl, issue.key, auth) }
+      catch { issue.fields.worklogEntries = [] }
+    }))
+  }
+}
+
 export async function fetchSubtasks(jiraUrl, subKeys, auth, fields = TASK_FIELDS) {
   const seen = new Set()
   const subs = []

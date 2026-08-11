@@ -26,6 +26,10 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
 
   function getTasksFor(name) {
     return tasks.filter(task => {
+      // worklog authors (real hour owners) match first
+      if ((task.worklogs || []).some(w => (w.author || task.assignee || 'Neraspoređeno') === name)) return true
+      if ((task.subtasks || []).some(sub => (sub.worklogs || []).some(w => (w.author || sub.assignee || task.assignee || 'Neraspoređeno') === name))) return true
+      // fallback: assignee-based (tasks without any logged hours)
       if ((task.assignee || 'Neraspoređeno') === name) return true
       return (task.subtasks || []).some(sub => (sub.assignee || task.assignee || 'Neraspoređeno') === name)
     })
