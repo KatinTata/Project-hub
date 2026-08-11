@@ -98,6 +98,11 @@ app.use('/api/organizations', authMiddleware, organizationsRoutes)
 app.use('/api/reports', authMiddleware, reportsRoutes)
 app.use('/api/settings', authMiddleware, settingsRoutes)
 app.use('/api/ai-usage', authMiddleware, aiUsageRoutes)
+
+// Unknown API route → JSON 404 (so the SPA catch-all below never swallows a
+// mistyped/removed endpoint and returns index.html instead of an error).
+app.use('/api', (req, res) => res.status(404).json({ error: 'Endpoint nije pronađen' }))
+
 app.get('/rn/:token', (req, res) => {
   const row = db.prepare('SELECT html FROM published_notes WHERE token = ?').get(req.params.token)
   if (!row) return res.status(404).send('<!DOCTYPE html><html><body><h2>Release notes nisu pronađeni.</h2></body></html>')
@@ -111,6 +116,32 @@ if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')))
 }
 
+// Global error handler — last resort for errors that escape a route's own
+// try/catch. Never leaks internals to the client.
+app.use((err, req, res, next) => {
+  console.error('Neuhvaćena greška:', err)
+  if (res.headersSent) return next(err)
+  res.status(500).json({ error: 'Greška servera' })
+})
+
 startAiUsageScheduler()
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
+const server = app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
+
+// Keep the process alive on stray async errors instead of Node's default hard
+// crash, but make them visible in logs.
+process.on('unhandledRejection', (reason) => console.error('Unhandled promise rejection:', reason))
+process.on('uncaughtException', (err) => console.error('Uncaught exception:', err))
+
+// Graceful shutdown so SQLite (WAL) checkpoints cleanly on Railway redeploys.
+function shutdown(signal) {
+  console.log(`\n${signal} primljen — gašenje...`)
+  server.close(() => {
+    try { db.close() } catch {}
+    process.exit(0)
+  })
+  // Hard cap so a hung connection can't block the redeploy indefinitely.
+  setTimeout(() => process.exit(0), 10000).unref()
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
