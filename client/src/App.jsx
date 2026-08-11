@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy } from 'react'
 import { applyTheme, getEffectiveTheme } from './theme.js'
 import { api } from './api.js'
 import LoginPage from './pages/LoginPage.jsx'
-import DashboardPage from './pages/DashboardPage.jsx'
-import ReleaseNotesPage from './pages/ReleaseNotesPage.jsx'
-import ReleaseNotesEditorPage from './pages/ReleaseNotesEditorPage.jsx'
-import DocumentsPage from './pages/DocumentsPage.jsx'
-import MessagesPage from './pages/MessagesPage.jsx'
-import QAPage from './pages/QAPage.jsx'
-import AiUsagePage from './pages/AiUsagePage.jsx'
 import BrainAnimation from './components/BrainAnimation.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import UserManagementModal from './components/UserManagementModal.jsx'
+
+// Pages are code-split: each loads its own chunk on first navigation, so the
+// login/initial load no longer ships the whole app (pdfjs, tiptap, dnd-kit).
+const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'))
+const ReleaseNotesPage = lazy(() => import('./pages/ReleaseNotesPage.jsx'))
+const ReleaseNotesEditorPage = lazy(() => import('./pages/ReleaseNotesEditorPage.jsx'))
+const DocumentsPage = lazy(() => import('./pages/DocumentsPage.jsx'))
+const MessagesPage = lazy(() => import('./pages/MessagesPage.jsx'))
+const QAPage = lazy(() => import('./pages/QAPage.jsx'))
+const AiUsagePage = lazy(() => import('./pages/AiUsagePage.jsx'))
 
 export default function App() {
   const [page, setPage] = useState('login') // 'login' | 'dashboard' | 'releaseNotes' | 'releaseNotesEditor' | 'documents' | 'messages' | 'qa' | 'aiUsage'
