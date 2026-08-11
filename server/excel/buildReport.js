@@ -69,6 +69,7 @@ export async function buildProjectReport(payload) {
   const {
     meta = {}, totals = {}, tasks = [], assignees = [], components = [],
     modules = [], phases = [], hasBillableField = false, stackMatrix = null,
+    assigneeTasks = {},
   } = payload
 
   const wb = new ExcelJS.Workbook()
@@ -90,7 +91,9 @@ export async function buildProjectReport(payload) {
   buildTasksSheet(wb, tasks, phaseOfTask, hasBillableField)
   buildPhasesSheet(wb, phases, tasks)
   buildAssigneeSheet(wb, assignees)
+  if (Object.keys(assigneeTasks).length > 0) buildAssigneeDetailSheet(wb, assignees, assigneeTasks)
   buildBreakdownSheet(wb, modules, components)
+  if (modules.some(m => (m.people || []).length || (m.tasks || []).length)) buildModuleDetailSheet(wb, modules)
   if (stackMatrix && stackMatrix.rows) buildStackSheet(wb, stackMatrix)
 
   return wb.xlsx.writeBuffer()
@@ -503,6 +506,99 @@ function buildAssigneeSheet(wb, assignees) {
       ref: `F2:F${last}`,
       rules: [{ type: 'dataBar', cfvo: [{ type: 'min' }, { type: 'max' }], color: { argb: C.accent } }],
     })
+  }
+}
+
+// ── Sheet: Izvršioci detaljno — sati koje je svako logovao po tasku ─────────
+// Flat table (pivot-friendly): one row = one person × one task, hours are the
+// worklog-attributed seconds THAT person logged on that task.
+function buildAssigneeDetailSheet(wb, assignees, assigneeTasks) {
+  const ws = wb.addWorksheet('Izvršioci detaljno', { views: [{ state: 'frozen', ySplit: 1, showGridLines: false }] })
+  ws.columns = [{ width: 26 }, { width: 14 }, { width: 52 }, { width: 16 }, { width: 12 }, { width: 12 }]
+  const header = ws.getRow(1)
+  ;['Izvršilac', 'Task', 'Naziv', 'Status', 'Sati', '% osobe'].forEach((h, i) => { header.getCell(i + 1).value = h })
+  styleHeader(header)
+
+  const order = assignees.map(a => a.name).filter(n => assigneeTasks[n]?.length)
+  for (const name of Object.keys(assigneeTasks)) if (!order.includes(name)) order.push(name)
+
+  let r = 2
+  for (const name of order) {
+    const rows = assigneeTasks[name] || []
+    if (!rows.length) continue
+    const personTotal = rows.reduce((s, t) => s + (t.seconds || 0), 0)
+    rows.forEach((t, idx) => {
+      const row = ws.getRow(r)
+      row.getCell(1).value = idx === 0 ? name : ''
+      if (idx === 0) row.getCell(1).font = { name: FONT, size: 11, bold: true, color: { argb: C.text } }
+      row.getCell(2).value = t.key
+      row.getCell(3).value = t.summary || ''
+      row.getCell(4).value = t.status || ''
+      row.getCell(5).value = H(t.seconds); row.getCell(5).numFmt = HOURS_FMT
+      row.getCell(6).value = personTotal > 0 ? (t.seconds || 0) / personTotal : 0; row.getCell(6).numFmt = PCT_FMT
+      row.eachCell(cell => { cell.border = thinBorder(); if (!cell.font) cell.font = { name: FONT, size: 11, color: { argb: C.text } } })
+      r++
+    })
+    // subtotal line per person
+    const sum = ws.getRow(r)
+    sum.getCell(3).value = 'Ukupno — ' + name
+    sum.getCell(5).value = H(personTotal); sum.getCell(5).numFmt = HOURS_FMT
+    for (const c of [1, 2, 3, 4, 5, 6]) {
+      const cell = sum.getCell(c)
+      cell.font = { name: FONT, size: 11, bold: true, color: { argb: C.text } }
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: C.surfaceAlt || 'FFF1F5F9' } }
+      cell.border = thinBorder()
+    }
+    r += 2
+  }
+}
+
+// ── Sheet: Moduli detaljno — ko je logovao i na kojim taskovima ─────────────
+function buildModuleDetailSheet(wb, modules) {
+  const ws = wb.addWorksheet('Moduli detaljno', { views: [{ state: 'frozen', ySplit: 1, showGridLines: false }] })
+  ws.columns = [{ width: 30 }, { width: 26 }, { width: 12 }, { width: 12 }, { width: 4 }, { width: 30 }, { width: 14 }, { width: 52 }, { width: 12 }]
+
+  const h1 = ws.getRow(1)
+  ;['Modul', 'Osoba', 'Sati', '% modula'].forEach((h, i) => { h1.getCell(i + 1).value = h })
+  ;['Modul', 'Task', 'Naziv', 'Sati'].forEach((h, i) => { h1.getCell(6 + i).value = h })
+  styleHeader(h1)
+  h1.getCell(5).fill = { type: 'pattern', pattern: 'none' }
+  h1.getCell(5).border = undefined
+
+  const body = cell => { cell.border = thinBorder(); if (!cell.font) cell.font = { name: FONT, size: 11, color: { argb: C.text } } }
+
+  // left: people per module
+  let r = 2
+  for (const m of modules) {
+    const people = m.people || []
+    people.forEach((p, idx) => {
+      const row = ws.getRow(r)
+      row.getCell(1).value = idx === 0 ? m.name : ''
+      if (idx === 0) row.getCell(1).font = { name: FONT, size: 11, bold: true, color: { argb: C.text } }
+      row.getCell(2).value = p.name
+      row.getCell(3).value = H(p.spent); row.getCell(3).numFmt = HOURS_FMT
+      row.getCell(4).value = m.totalSpent > 0 ? (p.spent || 0) / m.totalSpent : 0; row.getCell(4).numFmt = PCT_FMT
+      for (const c of [1, 2, 3, 4]) body(row.getCell(c))
+      r++
+    })
+    if (people.length) r++
+  }
+
+  // right: tasks per module
+  let r2 = 2
+  for (const m of modules) {
+    const list = m.tasks || []
+    list.forEach((t, idx) => {
+      const row = ws.getRow(r2)
+      row.getCell(6).value = idx === 0 ? m.name : ''
+      if (idx === 0) row.getCell(6).font = { name: FONT, size: 11, bold: true, color: { argb: C.text } }
+      row.getCell(7).value = t.key
+      row.getCell(8).value = t.summary || ''
+      row.getCell(9).value = H(t.spent); row.getCell(9).numFmt = HOURS_FMT
+      for (const c of [6, 7, 8, 9]) body(row.getCell(c))
+      r2++
+    })
+    if (list.length) r2++
   }
 }
 

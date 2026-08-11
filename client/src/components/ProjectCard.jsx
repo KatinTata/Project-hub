@@ -5,7 +5,7 @@ import DonutChart from './DonutChart.jsx'
 import BarChart from './BarChart.jsx'
 import TaskTable from './TaskTable.jsx'
 import Badge from './ui/Badge.jsx'
-import { fmtHours, buildAssigneeData, buildComponentData, buildModuleData, billableSecondsOf } from '../utils.js'
+import { fmtHours, buildAssigneeData, buildComponentData, buildModuleData, billableSecondsOf, taskAttribution } from '../utils.js'
 import AssigneeWorkload from './AssigneeWorkload.jsx'
 import ComponentBreakdown from './ComponentBreakdown.jsx'
 import OverrunHeatmap from './OverrunHeatmap.jsx'
@@ -364,11 +364,22 @@ export default function ProjectCard({
     if (exporting) return
     setExporting(true)
     try {
+      // per-person hours on each task (worklog authors) for the detail sheet
+      const assigneeTasks = {}
+      for (const task of tasks) {
+        for (const [name, seconds] of Object.entries(taskAttribution(task))) {
+          if (!assigneeTasks[name]) assigneeTasks[name] = []
+          assigneeTasks[name].push({ key: task.key, summary: task.summary, status: task.status, seconds })
+        }
+      }
+      for (const name of Object.keys(assigneeTasks)) assigneeTasks[name].sort((a, b) => b.seconds - a.seconds)
+
       await api.exportProjectExcel(project.id, {
         meta: { epicKey: project.epicKey, jiraUrl, filterType: project.filterType },
         totals: { total, done, inprog, testing, todo, totalEst, totalSpent },
         tasks,
         assignees: assigneeData || [],
+        assigneeTasks,
         components: componentData || [],
         modules: moduleData || [],
         phases: chartPhases || [],
