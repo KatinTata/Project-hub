@@ -5,7 +5,6 @@ import LoginPage from './pages/LoginPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import ReleaseNotesPage from './pages/ReleaseNotesPage.jsx'
 import ReleaseNotesEditorPage from './pages/ReleaseNotesEditorPage.jsx'
-import EpicViewerPage from './pages/EpicViewerPage.jsx'
 import DocumentsPage from './pages/DocumentsPage.jsx'
 import MessagesPage from './pages/MessagesPage.jsx'
 import QAPage from './pages/QAPage.jsx'
@@ -15,10 +14,9 @@ import SettingsModal from './components/SettingsModal.jsx'
 import UserManagementModal from './components/UserManagementModal.jsx'
 
 export default function App() {
-  const [page, setPage] = useState('login') // 'login' | 'dashboard' | 'releaseNotes' | 'releaseNotesEditor' | 'epicViewer' | 'documents' | 'messages'
+  const [page, setPage] = useState('login') // 'login' | 'dashboard' | 'releaseNotes' | 'releaseNotesEditor' | 'documents' | 'messages' | 'qa' | 'aiUsage'
   const [user, setUser] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [epicViewerKey, setEpicViewerKey] = useState(null)
   const [messagesProjectId, setMessagesProjectId] = useState(null)
   const [openChatOnDashboard, setOpenChatOnDashboard] = useState(false)
   const [usersOpen, setUsersOpen] = useState(false)
@@ -127,28 +125,6 @@ export default function App() {
   const goToDocuments = () => { window.history.replaceState({}, '', '/documents'); setPage('documents') }
   const goToQA = () => { window.history.replaceState({}, '', '/qa'); setPage('qa') }
   const goToAiUsage = () => { window.history.replaceState({}, '', '/ai-usage'); setPage('aiUsage') }
-
-  if (page === 'epicViewer' && user) {
-    return (
-      <>
-        <EpicViewerPage
-          initialEpicKey={epicViewerKey}
-          user={user}
-          theme={theme}
-          onLogout={handleLogout}
-          onGoToDashboard={goToDashboard}
-          onGoToReleaseNotes={goToReleaseNotes}
-          onGoToDocuments={goToDocuments}
-          onGoToQA={goToQA}
-          onGoToAiUsage={goToAiUsage}
-          onOpenSettings={openSettings}
-          onOpenUsers={isAdmin ? openUsers : undefined}
-          onOpenChat={goToMessages}
-        />
-        {modals}
-      </>
-    )
-  }
 
   if (page === 'releaseNotes' && user) {
     return (
