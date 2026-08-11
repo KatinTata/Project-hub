@@ -128,127 +128,128 @@ function IconLock() {
 
 // ── Q&A Data ──────────────────────────────────────────────────────────────────
 
-const QA_DATA = [
+function getQaData(t) {
+  return [
   {
     id: 'dashboard',
-    label: 'Dashboard i praćenje projekata',
+    label: t('qa2.cat.dashboard'),
     icon: <IconGrid />,
     iconBg: 'rgba(79,142,247,0.12)',
     iconColor: 'var(--accent)',
     questions: [
       {
-        q: 'Šta vidim na glavnoj stranici (Dashboard) i šta mi sve prikazuje?',
+        q: t('qa2.dash.q1.q'),
         text: 'tabovi projekata metrički kartica donut grafikon bar grafikon tabela taskova jira automatski pregled',
         a: (<>
-          <AP>Dashboard je centralna komandna tabla sa kompletnim pregledom vaših projekata. Čim se ulogujete, vidite:</AP>
+          <AP>{t('qa2.dash.q1.intro')}</AP>
           <UL>
-            <LI><S>Tabove projekata</S> — lista svih projekata kojima imate pristup u horizontalnom redu na vrhu</LI>
-            <LI><S>8 metričkih kartica</S> — ključni pokazatelji performansi: ukupan broj taskova, završeni, in progress, for grooming, estimacija u satima, utrošeno, razlika i prekoračenja</LI>
-            <LI><S>Donut grafikon</S> — vizuelna distribucija taskova po statusu (zelena=završeno, žuta=u toku, siva=planiranje)</LI>
-            <LI><S>Bar grafikon</S> — poređenje estimacije i utrošenog vremena po taskovima</LI>
-            <LI><S>Tabela taskova</S> — kompletna lista svih taskova sa filterima i pretragom</LI>
+            <LI><S>{t('qa2.dash.q1.li1.s')}</S>{t('qa2.dash.q1.li1.t')}</LI>
+            <LI><S>{t('qa2.dash.q1.li2.s')}</S>{t('qa2.dash.q1.li2.t')}</LI>
+            <LI><S>{t('qa2.dash.q1.li3.s')}</S>{t('qa2.dash.q1.li3.t')}</LI>
+            <LI><S>{t('qa2.dash.q1.li4.s')}</S>{t('qa2.dash.q1.li4.t')}</LI>
+            <LI><S>{t('qa2.dash.q1.li5.s')}</S>{t('qa2.dash.q1.li5.t')}</LI>
           </UL>
-          <InfoBox type="green">Svi podaci se automatski povlače iz Jire — ne morate ništa ručno unositi.</InfoBox>
+          <InfoBox type="green">{t('qa2.dash.q1.info')}</InfoBox>
         </>),
       },
       {
-        q: 'Šta tačno znači svaka od 8 metričkih kartica?',
+        q: t('qa2.dash.q2.q'),
         text: 'ukupno taskova završeno in progress for grooming estimacija utrošeno razlika prekoračenja KPI indikator',
         a: (<UL>
-          <LI><S>UKUPNO TASKOVA</S> — ukupan broj roditeljskih taskova i subtaskova koji se prate za ovaj projekat</LI>
-          <LI><S>ZAVRŠENO</S> — taskovi u statusu Resolved, Closed ili Done, sa procentom od ukupnog broja</LI>
-          <LI><S>IN PROGRESS</S> — taskovi koji su trenutno aktivno u razvoju ili testiranju</LI>
-          <LI><S>FOR GROOMING</S> — taskovi koji još čekaju planiranje i estimaciju; visok broj znači puno neplanirane budućnosti</LI>
-          <LI><S>ESTIMACIJA</S> — ukupno originalno procenjeno vreme za sve taskove u satima</LI>
-          <LI><S>UTROŠENO</S> — ukupno logovano vreme rada u satima (direktno iz Jire)</LI>
-          <LI><S>RAZLIKA</S> — razlika između estimacije i utrošenog. Zelena boja i negativan broj su dobra stvar (radimo unutar procene), crvena boja znači prekoračenje</LI>
-          <LI><S>PREKORAČENJA</S> — broj taskova koji su prekoračili estimaciju za više od 15%. Trebalo bi da bude 0 ili što manji</LI>
+          <LI><S>{t('qa2.dash.q2.li1.s')}</S>{t('qa2.dash.q2.li1.t')}</LI>
+          <LI><S>{t('qa2.dash.q2.li2.s')}</S>{t('qa2.dash.q2.li2.t')}</LI>
+          <LI><S>IN PROGRESS</S>{t('qa2.dash.q2.li3.t')}</LI>
+          <LI><S>FOR GROOMING</S>{t('qa2.dash.q2.li4.t')}</LI>
+          <LI><S>{t('qa2.dash.q2.li5.s')}</S>{t('qa2.dash.q2.li5.t')}</LI>
+          <LI><S>{t('qa2.dash.q2.li6.s')}</S>{t('qa2.dash.q2.li6.t')}</LI>
+          <LI><S>{t('qa2.dash.q2.li7.s')}</S>{t('qa2.dash.q2.li7.t')}</LI>
+          <LI><S>{t('qa2.dash.q2.li8.s')}</S>{t('qa2.dash.q2.li8.t')}</LI>
         </UL>),
       },
       {
-        q: 'Šta znači crvena boja na nekom tasku u tabeli?',
+        q: t('qa2.dash.q3.q'),
         text: 'crvena boja prekoračenje estimacija 15% procenat pozadina progress bar ID ključ',
         a: (<>
-          <AP>Crvena boja na tasku znači da je taj task <S>prekoračio originalnu estimaciju za više od 15%</S>. Konkretno vidite:</AP>
+          <AP>{t('qa2.dash.q3.intro.a')}<S>{t('qa2.dash.q3.intro.s')}</S>{t('qa2.dash.q3.intro.b')}</AP>
           <UL>
-            <LI>Crvenu pozadinu celog reda taska</LI>
-            <LI>Crvenu boju Jira ključa (ID) taska</LI>
-            <LI>Procenat prekoračenja ispod ključa (npr. "+87% prekoračenje")</LI>
-            <LI>Crveni progress bar u koloni Napredak</LI>
-            <LI>Crvenu vrednost u koloni Utrošeno</LI>
+            <LI>{t('qa2.dash.q3.li1')}</LI>
+            <LI>{t('qa2.dash.q3.li2')}</LI>
+            <LI>{t('qa2.dash.q3.li3')}</LI>
+            <LI>{t('qa2.dash.q3.li4')}</LI>
+            <LI>{t('qa2.dash.q3.li5')}</LI>
           </UL>
-          <InfoBox type="amber">Prekoračeni taskovi se prikazuju i u crvenom baneru iznad tabele, kao i u KPI kartici "PREKORAČENJA".</InfoBox>
+          <InfoBox type="amber">{t('qa2.dash.q3.info')}</InfoBox>
         </>),
       },
       {
-        q: 'Kako mogu da filtriram taskove u tabeli?',
+        q: t('qa2.dash.q4.q'),
         text: 'filter dugmadi pretraga search svi završeni in progress grooming prekoračenje kategorija tražiti',
         a: (<>
-          <AP>Iznad tabele taskova se nalaze filter dugmadi sa brojevima:</AP>
+          <AP>{t('qa2.dash.q4.intro')}</AP>
           <BdgRow>
-            <Bdg c="gray">Svi (48)</Bdg>
-            <Bdg c="green">Završeni (20)</Bdg>
-            <Bdg c="blue">In Progress (4)</Bdg>
-            <Bdg c="gray">Grooming (24)</Bdg>
-            <Bdg c="red">Prekoračenje (3)</Bdg>
+            <Bdg c="gray">{t('qa2.dash.q4.b1')}</Bdg>
+            <Bdg c="green">{t('qa2.dash.q4.b2')}</Bdg>
+            <Bdg c="blue">{t('qa2.dash.q4.b3')}</Bdg>
+            <Bdg c="gray">{t('qa2.dash.q4.b4')}</Bdg>
+            <Bdg c="red">{t('qa2.dash.q4.b5')}</Bdg>
           </BdgRow>
-          <AP>Klik na bilo koji filter prikazuje samo taskove te kategorije. Filter "Prekoračenje" je posebno koristan za fokusiranje na problematične taskove. Pored filtera, na desnoj strani je <S>polje za pretragu</S> koje filtrira taskove po nazivu u realnom vremenu dok kucate.</AP>
+          <AP>{t('qa2.dash.q4.p2.a')}<S>{t('qa2.dash.q4.p2.s')}</S>{t('qa2.dash.q4.p2.b')}</AP>
         </>),
       },
       {
-        q: 'Kako da vidim subtaskove određenog taska?',
+        q: t('qa2.dash.q5.q'),
         text: 'subtask expand klik razviti skupiti jira ključ komponenta status utrošeno uvučeni',
-        a: (<AP>Kliknite na bilo koji red u tabeli taskova. Red će se razviti i prikazati sve subtaskove tog taska, uvučene sa manjim fontom. Za svaki subtask vidite: Jira ključ, komponentu, naziv, status i utrošeno vreme. Ponovnim klikom na red skupljate subtaskove.</AP>),
+        a: (<AP>{t('qa2.dash.q5.a')}</AP>),
       },
       {
-        q: 'Šta je donut grafikon i kako ga čitam?',
+        q: t('qa2.dash.q6.q'),
         text: 'donut kružni grafikon segment status zelena žuta siva procenat završenosti progress bar vizuelno',
         a: (<>
-          <AP>Donut (kružni) grafikon prikazuje vizuelnu raspodelu svih taskova po statusu. Svaki segment ima boju:</AP>
+          <AP>{t('qa2.dash.q6.intro')}</AP>
           <BdgRow>
-            <Bdg c="green">Završeno</Bdg>
+            <Bdg c="green">{t('qa2.dash.q6.b1')}</Bdg>
             <Bdg c="amber">In Progress / Testing</Bdg>
             <Bdg c="gray">For Grooming / Todo</Bdg>
           </BdgRow>
-          <AP>Broj u centru grafika je <S>procenat završenosti</S> projekta. Ispod grafika nalaze se tri progress bara sa tačnim brojevima: koliko taskova je u kojoj kategoriji od ukupnog.</AP>
+          <AP>{t('qa2.dash.q6.p2.a')}<S>{t('qa2.dash.q6.p2.s')}</S>{t('qa2.dash.q6.p2.b')}</AP>
         </>),
       },
       {
-        q: 'Šta mi prikazuje stubičasti (bar) grafikon i šta znači kada su stubovi crveni?',
+        q: t('qa2.dash.q7.q'),
         text: 'bar grafikon stub estimirano utrošeno plavi zeleni crveni prekoračenje hover tooltip poređenje',
         a: (<>
-          <AP>Bar grafikon prikazuje poređenje <S>estimiranog i utrošenog vremena</S> za 12 taskova sa najvećom estimacijom:</AP>
+          <AP>{t('qa2.dash.q7.p1.a')}<S>{t('qa2.dash.q7.p1.s')}</S>{t('qa2.dash.q7.p1.b')}</AP>
           <BdgRow>
-            <Bdg c="blue">Plavi stub — Estimirano vreme</Bdg>
-            <Bdg c="green">Zeleni stub — Utrošeno (OK)</Bdg>
-            <Bdg c="red">Crveni stub — Utrošeno (prekoračenje)</Bdg>
+            <Bdg c="blue">{t('qa2.dash.q7.b1')}</Bdg>
+            <Bdg c="green">{t('qa2.dash.q7.b2')}</Bdg>
+            <Bdg c="red">{t('qa2.dash.q7.b3')}</Bdg>
           </BdgRow>
-          <AP>Kada je stub utrošenog vremena <S>viši od plavog stuba estimacije</S> i crvene boje — task je prekoračio procenu. Pređite mišem (hover) preko bilo kog stuba da vidite tooltip sa detaljima: ključ taska, estimirano, utrošeno i razlika.</AP>
+          <AP>{t('qa2.dash.q7.p2.a')}<S>{t('qa2.dash.q7.p2.s')}</S>{t('qa2.dash.q7.p2.b')}</AP>
         </>),
       },
       {
-        q: 'Koliko se često osvežavaju podaci sa Jire?',
+        q: t('qa2.dash.q8.q'),
         text: 'osvežavanje refresh automatski ručno ikonica kružna strelica podešavanja vreme dnevno promena novi taskovi',
         a: (<>
-          <AP>Podaci se osvežavaju na dva načina:</AP>
+          <AP>{t('qa2.dash.q8.intro')}</AP>
           <UL>
-            <LI><S>Ručno</S> — klikom na ikonicu osvežavanja na desnoj strani header-a projekta (kružna strelica)</LI>
-            <LI><S>Automatski</S> — administrator može da podesi vreme dnevnog automatskog osvežavanja u Podešavanjima (npr. "09:00" — platforma svaki dan u 9h automatski povlači nove podatke)</LI>
+            <LI><S>{t('qa2.dash.q8.li1.s')}</S>{t('qa2.dash.q8.li1.t')}</LI>
+            <LI><S>{t('qa2.dash.q8.li2.s')}</S>{t('qa2.dash.q8.li2.t')}</LI>
           </UL>
-          <InfoBox>Platforma pamti prethodne podatke i prikazuje vam šta se promenilo od poslednjeg osvežavanja: novi taskovi, promene statusa, promene estimacije.</InfoBox>
+          <InfoBox>{t('qa2.dash.q8.info')}</InfoBox>
         </>),
       },
       {
-        q: 'Šta je progress bar na vrhu projekta i kako da ga čitam?',
+        q: t('qa2.dash.q9.q'),
         text: 'progress bar zeleni žuti sivi trobojan vizuelno procenat završenosti legenda header',
         a: (<>
-          <AP>Horizontalni progress bar ispod naslova projekta prikazuje <S>ukupan napredak projekta vizuelno u jednoj liniji</S>. Bar je trobojan:</AP>
+          <AP>{t('qa2.dash.q9.p1.a')}<S>{t('qa2.dash.q9.p1.s')}</S>{t('qa2.dash.q9.p1.b')}</AP>
           <UL>
-            <LI><span style={{ fontWeight: 600, color: 'var(--green)' }}>Zeleni deo</span> — procenat završenih taskova</LI>
-            <LI><span style={{ fontWeight: 600, color: 'var(--amber)' }}>Žuti deo</span> — procenat taskova u toku (in progress)</LI>
-            <LI><S>Sivi deo</S> — preostali taskovi (grooming/todo)</LI>
+            <LI><span style={{ fontWeight: 600, color: 'var(--green)' }}>{t('qa2.dash.q9.li1.s')}</span>{t('qa2.dash.q9.li1.t')}</LI>
+            <LI><span style={{ fontWeight: 600, color: 'var(--amber)' }}>{t('qa2.dash.q9.li2.s')}</span>{t('qa2.dash.q9.li2.t')}</LI>
+            <LI><S>{t('qa2.dash.q9.li3.s')}</S>{t('qa2.dash.q9.li3.t')}</LI>
           </UL>
-          <AP>Broj sa desne strane prikazuje ukupni procenat završenosti (zeleni + žuti deo). Ispod bara je legenda sa tačnim brojevima.</AP>
+          <AP>{t('qa2.dash.q9.p2')}</AP>
         </>),
       },
     ],
@@ -256,53 +257,53 @@ const QA_DATA = [
 
   {
     id: 'projekti',
-    label: 'Projekti i Jira integracija',
+    label: t('qa2.cat.projekti'),
     icon: <IconFolder />,
     iconBg: 'rgba(34,197,94,0.12)',
     iconColor: 'var(--green)',
     questions: [
       {
-        q: 'Zašto ne vidim projekat koji bi trebalo da postoji?',
+        q: t('qa2.prj.q1.q'),
         text: 'ne vidim projekat pristup administrator arhiviran kreiran vidljivost',
         a: (<>
-          <AP>Moguće je da:</AP>
+          <AP>{t('qa2.prj.q1.intro')}</AP>
           <UL>
-            <LI>Administrator još nije dodelio vama pristup tom projektu — kontaktirajte ga</LI>
-            <LI>Projekat je arhiviran (privremeno sakriven)</LI>
-            <LI>Projekat još nije kreiran u sistemu</LI>
+            <LI>{t('qa2.prj.q1.li1')}</LI>
+            <LI>{t('qa2.prj.q1.li2')}</LI>
+            <LI>{t('qa2.prj.q1.li3')}</LI>
           </UL>
-          <InfoBox type="amber">Klijenti vide samo projekte koji su im eksplicitno dodeljeni. Administrator kontroliše vidljivost.</InfoBox>
+          <InfoBox type="amber">{t('qa2.prj.q1.info')}</InfoBox>
         </>),
       },
       {
-        q: 'Šta znači status projekta (zelena / žuta tačka na tabu)?',
+        q: t('qa2.prj.q2.q'),
         text: 'zelena žuta siva tačka tab status aktivan pauziran završen jira epic',
         a: (<>
           <BdgRow>
-            <Bdg c="green">Zelena — Aktivan projekat, u toku</Bdg>
-            <Bdg c="amber">Žuta — Projekat je pauziran</Bdg>
-            <Bdg c="gray">Siva — Projekat je završen</Bdg>
+            <Bdg c="green">{t('qa2.prj.q2.b1')}</Bdg>
+            <Bdg c="amber">{t('qa2.prj.q2.b2')}</Bdg>
+            <Bdg c="gray">{t('qa2.prj.q2.b3')}</Bdg>
           </BdgRow>
-          <AP>Status se određuje na osnovu statusa Jira epica i taskova unutar projekta.</AP>
+          <AP>{t('qa2.prj.q2.p')}</AP>
         </>),
       },
       {
-        q: 'Da li vidim Jira podatke u realnom vremenu ili su keširani?',
+        q: t('qa2.prj.q3.q'),
         text: 'keširano keširanje realtime osvežavanje razlike prethodni podaci performanse brzina',
-        a: (<AP>Podaci se <S>keširaju</S> radi brzine i performansi. Pri svakom osvežavanju (ručnom ili automatskom), platforma povlači najsvežije podatke iz Jire i prikazuje razlike od prethodnog osvežavanja. Između osvežavanja prikazuju se poslednji preuzeti podaci.</AP>),
+        a: (<AP>{t('qa2.prj.q3.a')}<S>{t('qa2.prj.q3.s')}</S>{t('qa2.prj.q3.b')}</AP>),
       },
       {
-        q: 'Šta su Faze projekta i kako ih koristim?',
+        q: t('qa2.prj.q4.q'),
         text: 'faze phases milestone etape isporuke boja napredak administrator backend frontend',
         a: (<>
-          <AP>Faze (Phases) su opcioni milestone-ovi koji grupišu taskove u logičke etape isporuke (npr. "Faza 1 — Backend", "Faza 2 — Frontend"). Svaka faza ima boju i prikazuje napredak u okviru te etape.</AP>
-          <AP>Upravljanje fazama je u nadležnosti administratora. Klijenti mogu videti faze ako je to administrator konfigurisao.</AP>
+          <AP>{t('qa2.prj.q4.p1')}</AP>
+          <AP>{t('qa2.prj.q4.p2')}</AP>
         </>),
       },
       {
-        q: 'Mogu li da pregledam listu svih taskova bez filtera?',
+        q: t('qa2.prj.q5.q'),
         text: 'lista taskova bez filtera svi pretraga naziv pronađi',
-        a: (<AP>Da. U tabeli taskova kliknite na filter <Bdg c="gray">Svi</Bdg> (prvi filter s leva) da vidite sve taskove bez ograničenja. Možete koristiti polje za pretragu da brzo pronađete specifičan task po nazivu ili delu naziva.</AP>),
+        a: (<AP>{t('qa2.prj.q5.a')}<Bdg c="gray">{t('table.filter.all')}</Bdg>{t('qa2.prj.q5.b')}</AP>),
       },
     ],
   },
@@ -315,85 +316,85 @@ const QA_DATA = [
     iconColor: '#14B8A6',
     questions: [
       {
-        q: 'Šta su Release Notes i kada se pojavljuju?',
+        q: t('qa2.rel.q1.q'),
         text: 'release notes formalna obaveštenja funkcionalnosti ispravke greške promene verzija klijent',
         a: (<>
-          <AP>Release Notes su formalna obaveštenja o novim funkcionalnostima, ispravkama grešaka i promenama u sistemu koji tim isporučuje. Prikazuju se u modulu <S>Release Notes</S> u navigacionoj traci.</AP>
-          <InfoBox>Vidite samo release notes koji su vam eksplicitno dodeljeni — svaki klijent vidi samo svoje relevantne informacije.</InfoBox>
+          <AP>{t('qa2.rel.q1.a')}<S>Release Notes</S>{t('qa2.rel.q1.b')}</AP>
+          <InfoBox>{t('qa2.rel.q1.info')}</InfoBox>
         </>),
       },
       {
-        q: 'Kako da pristupim mojim Release Notes?',
+        q: t('qa2.rel.q2.q'),
         text: 'pristup navigaciona traka lista datum direktan link email token bez prijavljivanja otvoriti',
         a: (<>
-          <AP>Kliknite na <S>Release Notes</S> u navigacionoj traci. Vidite listu svih release notes koji su vam dodeljeni, sortirane po datumu. Klik na bilo koji release notes otvara detaljan prikaz sadržaja.</AP>
-          <AP>Administrator vam može poslati i <S>direktan link</S> na release notes putem emaila — u tom slučaju možete pročitati sadržaj i bez prijavljivanja na platformu.</AP>
+          <AP>{t('qa2.rel.q2.p1.a')}<S>Release Notes</S>{t('qa2.rel.q2.p1.b')}</AP>
+          <AP>{t('qa2.rel.q2.p2.a')}<S>{t('qa2.rel.q2.p2.s')}</S>{t('qa2.rel.q2.p2.b')}</AP>
         </>),
       },
       {
-        q: 'Koje informacije obično sadrže Release Notes?',
+        q: t('qa2.rel.q3.q'),
         text: 'nove funkcionalnosti ispravke greške poboljšanja performansi tehničke promene datum isporuke sadržaj',
         a: (<>
-          <AP>Release notes tipično sadrže:</AP>
+          <AP>{t('qa2.rel.q3.intro')}</AP>
           <UL>
-            <LI><S>Nove funkcionalnosti</S> — šta je novo isporučeno u ovoj verziji</LI>
-            <LI><S>Ispravke grešaka</S> — problemi koji su rešeni</LI>
-            <LI><S>Poboljšanja performansi</S> — optimizacije i unapređenja</LI>
-            <LI><S>Tehničke promene</S> — promene koje mogu uticati na integracije</LI>
-            <LI><S>Datum isporuke</S> — kada su promene primenjene</LI>
+            <LI><S>{t('qa2.rel.q3.li1.s')}</S>{t('qa2.rel.q3.li1.t')}</LI>
+            <LI><S>{t('qa2.rel.q3.li2.s')}</S>{t('qa2.rel.q3.li2.t')}</LI>
+            <LI><S>{t('qa2.rel.q3.li3.s')}</S>{t('qa2.rel.q3.li3.t')}</LI>
+            <LI><S>{t('qa2.rel.q3.li4.s')}</S>{t('qa2.rel.q3.li4.t')}</LI>
+            <LI><S>{t('qa2.rel.q3.li5.s')}</S>{t('qa2.rel.q3.li5.t')}</LI>
           </UL>
         </>),
       },
       {
-        q: 'Šta znači status "Released" na release notes?',
+        q: t('qa2.rel.q4.q'),
         text: 'released status produkcija primenjeno draft vidljivo objavljen',
         a: (<>
           <BdgRow><Bdg c="green">Released</Bdg></BdgRow>
-          <AP>označava da su promene opisane u release notes već primenjene u produkcijskom sistemu i vidljive su vama. Suprotno od draft statusa (koji je vidljiv samo administratorima tokom kreiranja).</AP>
+          <AP>{t('qa2.rel.q4.a')}</AP>
         </>),
       },
       {
-        q: 'Mogu li da podelim Release Notes sa nekim ko nema nalog?',
+        q: t('qa2.rel.q5.q'),
         text: 'javni link token bez naloga podeliti email jedinstven siguran pristup bez registracije',
-        a: (<AP>Administrator može da generiše <S>javni link</S> za svaki objavljeni release notes. Taj link možete podeliti sa bilo kim — osoba ne mora da ima nalog na platformi da bi pročitala sadržaj. Link je jedinstven i siguran (token-based).</AP>),
+        a: (<AP>{t('qa2.rel.q5.a')}<S>{t('qa2.rel.q5.s')}</S>{t('qa2.rel.q5.b')}</AP>),
       },
     ],
   },
 
   {
     id: 'dokumenta',
-    label: 'Dokumenta',
+    label: t('docs.title'),
     icon: <IconDocPages />,
     iconBg: 'rgba(245,158,11,0.12)',
     iconColor: 'var(--amber)',
     questions: [
       {
-        q: 'Koje dokumente mogu da vidim na platformi?',
+        q: t('qa2.doc.q1.q'),
         text: 'dokumenti deljeni sekcije folderi projektna dokumentacija specifikacije izveštaji ugovori klijent vidljivost',
         a: (<>
-          <AP>Vidite samo dokumente koji su vam eksplicitno deljeni od strane administratora. Dokumenti su organizovani u <S>sekcije</S> (foldere) kao što su: Projektna dokumentacija, Specifikacije, Izveštaji, Ugovori i sl.</AP>
-          <InfoBox type="green">Dokumenti drugih klijenata su skriveni — privatnost podataka je garantovana.</InfoBox>
+          <AP>{t('qa2.doc.q1.a')}<S>{t('qa2.doc.q1.s')}</S>{t('qa2.doc.q1.b')}</AP>
+          <InfoBox type="green">{t('qa2.doc.q1.info')}</InfoBox>
         </>),
       },
       {
-        q: 'Kako da preuzmem dokument?',
+        q: t('qa2.doc.q2.q'),
         text: 'preuzimanje download ikonica fajl računar prijavljivanje PDF',
-        a: (<AP>U Dokumenta modulu, pronađite željeni dokument i kliknite na ikonicu <S>preuzimanja (download)</S> pored naziva fajla. Fajl će se preuzeti na vaš računar. Prijavljivanje na platformu je obavezno za pristup dokumentima.</AP>),
+        a: (<AP>{t('qa2.doc.q2.a')}<S>{t('qa2.doc.q2.s')}</S>{t('qa2.doc.q2.b')}</AP>),
       },
       {
-        q: 'Mogu li da gledam PDF direktno na platformi bez preuzimanja?',
+        q: t('qa2.doc.q3.q'),
         text: 'PDF thumbnail pregled stranica browser preuzimanje prikaz miniatura',
-        a: (<AP>Da. PDF dokumenti prikazuju <S>thumbnail prve stranice</S> direktno u listi, tako da možete videti o čemu se radi bez preuzimanja. Za kompletni pregled sadržaja koristite opciju preuzimanja ili pregledača u browseru.</AP>),
+        a: (<AP>{t('qa2.doc.q3.a')}<S>{t('qa2.doc.q3.s')}</S>{t('qa2.doc.q3.b')}</AP>),
       },
       {
-        q: 'Zašto ne vidim dokument koji mi je trebalo da bude poslat?',
+        q: t('qa2.doc.q4.q'),
         text: 'ne vidim dokument pristup administrator sekcija osvežiti F5 poslat',
         a: (<>
-          <AP>Nekoliko mogućih razloga:</AP>
+          <AP>{t('qa2.doc.q4.intro')}</AP>
           <UL>
-            <LI>Administrator još nije dodelio pristup vama specifično — obratite se administratoru</LI>
-            <LI>Dokument je u sekciji kojoj nemate pristup</LI>
-            <LI>Osvežite stranicu klikom na F5 u browseru da proverite da li se pojavio</LI>
+            <LI>{t('qa2.doc.q4.li1')}</LI>
+            <LI>{t('qa2.doc.q4.li2')}</LI>
+            <LI>{t('qa2.doc.q4.li3')}</LI>
           </UL>
         </>),
       },
@@ -402,167 +403,162 @@ const QA_DATA = [
 
   {
     id: 'poruke',
-    label: 'Poruke i komunikacija',
+    label: t('qa2.cat.poruke'),
     icon: <IconChat />,
     iconBg: 'rgba(168,85,247,0.12)',
     iconColor: '#A855F7',
     questions: [
       {
-        q: 'Kako da znam da imam novu poruku?',
+        q: t('qa2.msg.q1.q'),
         text: 'nova poruka notifikacija zvono crvena tačka nepročitane 60 sekundi automatski provera',
         a: (<>
-          <AP>Crvena tačka se pojavljuje na <S>ikoni zvona</S> u navigacionoj traci na vrhu ekrana. Klik na zvono prikazuje poslednjih 5 nepročitanih poruka sa kratkim pregledom sadržaja. Odatle možete direktno otvoriti konverzaciju ili kliknuti "Označi sve kao pročitano".</AP>
-          <InfoBox>Platforma proverava nove poruke svakih 60 sekundi automatski — ne morate osvežavati stranicu.</InfoBox>
+          <AP>{t('qa2.msg.q1.a')}<S>{t('qa2.msg.q1.s')}</S>{t('qa2.msg.q1.b')}</AP>
+          <InfoBox>{t('qa2.msg.q1.info')}</InfoBox>
         </>),
       },
       {
-        q: 'Koje poruke mogu da vidim kao klijent? Da li vidim poruke za druge klijente?',
+        q: t('qa2.msg.q2.q'),
         text: 'klijent vidljivost privatnost direktno sve korisnici izolacija drugi',
         a: (<>
-          <AP>Kao klijent, vidite samo:</AP>
+          <AP>{t('qa2.msg.q2.intro')}</AP>
           <UL>
-            <LI>Poruke koje su vam <S>direktno poslate</S></LI>
-            <LI>Poruke koje su poslate <S>"svima"</S> na projektu</LI>
+            <LI>{t('qa2.msg.q2.li1.t')}<S>{t('qa2.msg.q2.li1.s')}</S></LI>
+            <LI>{t('qa2.msg.q2.li2.a')}<S>{t('qa2.msg.q2.li2.s')}</S>{t('qa2.msg.q2.li2.b')}</LI>
           </UL>
-          <InfoBox type="green">Ne možete videti poruke namenjene drugim klijentima — svaki klijent ima svoju privatnu komunikaciju sa timom.</InfoBox>
+          <InfoBox type="green">{t('qa2.msg.q2.info')}</InfoBox>
         </>),
       },
       {
-        q: 'Kako se šalje poruka vezana za određeni Jira task?',
+        q: t('qa2.msg.q3.q'),
         text: 'slanje poruke jira task ključ hover ikona forma automatski naziv konverzacija tema',
         a: (<>
-          <AP>Postoje dva načina:</AP>
+          <AP>{t('qa2.common.twoWays')}</AP>
           <UL>
-            <LI><S>Iz tabele taskova</S> — na desktop uređajima, kada pređete mišem (hover) preko reda taska, pojavljuje se ikona poruke. Klik automatski otvara formu sa popunjenim Jira ključem taska.</LI>
-            <LI><S>Iz Poruka modula</S> — u polju za slanje poruke unesite Jira ključ taska u predviđeno polje (npr. <M>KNJAZ-101</M>). Sistem automatski pronalazi naziv taska.</LI>
+            <LI><S>{t('qa2.msg.q3.li1.s')}</S>{t('qa2.msg.q3.li1.t')}</LI>
+            <LI><S>{t('qa2.msg.q3.li2.s')}</S>{t('qa2.msg.q3.li2.a')}<M>KNJAZ-101</M>{t('qa2.msg.q3.li2.b')}</LI>
           </UL>
-          <AP>Ovako poslate poruke grupišu se u konverzacije po temi/tasku, što olakšava praćenje komunikacije.</AP>
+          <AP>{t('qa2.msg.q3.p2')}</AP>
         </>),
       },
       {
-        q: 'Da li mogu da odgovorim na poruku?',
+        q: t('qa2.msg.q4.q'),
         text: 'odgovor reply konverzacija levi panel desni panel pošalji hronološki',
-        a: (<AP>Da. Otvorite konverzaciju klikom na nju u levom panelu, a zatim unesite odgovor u polje na dnu desnog panela i kliknite Pošalji. Odgovor se odmah pojavljuje u konverzaciji hronološki.</AP>),
+        a: (<AP>{t('qa2.msg.q4.a')}</AP>),
       },
       {
-        q: 'Kako su organizovane konverzacije?',
+        q: t('qa2.msg.q5.q'),
         text: 'konverzacije projekat tema leva strana lista organizacija jira task generalna panel',
-        a: (<AP>Konverzacije su organizovane po <S>projektu i temi</S>. U levom panelu birate projekat iz liste, a zatim vidite listu svih konverzacija za taj projekat. Svaka konverzacija može biti vezana za specifičan Jira task ili može biti generalna po temi. Klik na konverzaciju otvara sve poruke u desnom panelu.</AP>),
+        a: (<AP>{t('qa2.msg.q5.a')}<S>{t('qa2.msg.q5.s')}</S>{t('qa2.msg.q5.b')}</AP>),
       },
       {
-        q: 'Zašto ne mogu da vidim neke projekte u Porukama?',
+        q: t('qa2.msg.q6.q'),
         text: 'ne mogu da vidim projekat pristup administrator arhiviran lista poruke',
-        a: (<AP>Vidite samo projekte kojima imate dodeljeni pristup. Ako projekat koji tražite nije u listi, obratite se administratoru da vam dodeli pristup. Moguće je i da je projekat arhiviran.</AP>),
+        a: (<AP>{t('qa2.msg.q6.a')}</AP>),
       },
     ],
   },
 
   {
     id: 'nalog',
-    label: 'Nalog i podešavanja',
+    label: t('qa2.cat.nalog'),
     icon: <IconUser />,
     iconBg: 'rgba(107,114,128,0.12)',
     iconColor: 'var(--textMuted)',
     questions: [
       {
-        q: 'Kako da promenim lozinku?',
+        q: t('qa2.acc.q1.q'),
         text: 'promena lozinke avatar podešavanja profil stara nova sačuvaj dropdown',
         a: (<ol style={{ paddingLeft: 20, color: 'var(--text)', fontSize: 14, lineHeight: 1.9, margin: '4px 0' }}>
-          <li>Kliknite na vaš avatar (inicijali) u gornjem desnom uglu</li>
-          <li>Izaberite <S>Podešavanja</S> iz dropdown menija</li>
-          <li>U tabu <S>Profil</S> pronađite sekciju za promenu lozinke</li>
-          <li>Unesite staru lozinku i dva puta novu lozinku</li>
-          <li>Kliknite <S>Sačuvaj</S></li>
+          <li>{t('qa2.acc.q1.li1')}</li>
+          <li>{t('qa2.acc.q1.li2.a')}<S>{t('topbar.settings')}</S>{t('qa2.acc.q1.li2.b')}</li>
+          <li>{t('qa2.acc.q1.li3.a')}<S>{t('settings.tab.profile')}</S>{t('qa2.acc.q1.li3.b')}</li>
+          <li>{t('qa2.acc.q1.li4')}</li>
+          <li>{t('qa2.acc.q1.li5.a')}<S>{t('settings.jira.save')}</S></li>
         </ol>),
       },
       {
-        q: 'Kako da promenim temu (tamna / svetla)?',
+        q: t('qa2.acc.q2.q'),
         text: 'tema tamna svetla sistemska toggle ikonica navigacija podešavanja tab sunce mesec',
         a: (<>
-          <AP>Postoje dva načina:</AP>
+          <AP>{t('qa2.common.twoWays')}</AP>
           <UL>
-            <LI><S>Brzo</S> — kliknite na ikonicu sunca/meseca u gornjoj navigacionoj traci, tema se menja odmah</LI>
-            <LI><S>Detaljno</S> — idite u Podešavanja → tab Tema, gde možete izabrati Tamnu, Svetlu ili Sistemsku temu (prati podešavanja vašeg uređaja)</LI>
+            <LI><S>{t('qa2.acc.q2.li1.s')}</S>{t('qa2.acc.q2.li1.t')}</LI>
+            <LI><S>{t('qa2.acc.q2.li2.s')}</S>{t('qa2.acc.q2.li2.t')}</LI>
           </UL>
-          <AP>Izbor se pamti i primenjuje pri svakom ponovnom otvaranju platforme.</AP>
+          <AP>{t('qa2.acc.q2.p2')}</AP>
         </>),
       },
       {
-        q: 'Zaboravio/la sam lozinku — šta da radim?',
+        q: t('qa2.acc.q3.q'),
         text: 'zaboravljena lozinka reset email administrator privremena samoreset',
-        a: (<AP>Platforma trenutno ne podržava samoreset lozinke putem emaila. <S>Obratite se svom administratoru</S> koji može resetovati vašu lozinku iz sistema za upravljanje korisnicima. Dobićete novu privremenu lozinku koju zatim možete promeniti u Podešavanjima.</AP>),
+        a: (<AP>{t('qa2.acc.q3.a')}<S>{t('qa2.acc.q3.s')}</S>{t('qa2.acc.q3.b')}</AP>),
       },
       {
-        q: 'Koliko dugo ostajem prijavljen/a?',
+        q: t('qa2.acc.q4.q'),
         text: 'sesija 7 dana jwt token istekne sigurnost kredencijali prijaviti',
-        a: (<AP>Sesija traje <S>7 dana</S> od poslednje prijave. Nakon toga, biće vam prikazana login stranica i moraćete ponovo da unesete kredencijale. Ovo je standardna sigurnosna mera.</AP>),
+        a: (<AP>{t('qa2.acc.q4.a')}<S>{t('qa2.acc.q4.s')}</S>{t('qa2.acc.q4.b')}</AP>),
       },
       {
-        q: 'Kako da se odjavim?',
+        q: t('qa2.acc.q5.q'),
         text: 'odjava logout avatar meni navigaciona traka preusmeriti login',
-        a: (<AP>Kliknite na vaš avatar (inicijali) u gornjem desnom uglu navigacione trake, a zatim izaberite <S>Odjava</S> iz menija. Bićete odmah odjavljeni i preusmereni na login stranicu.</AP>),
+        a: (<AP>{t('qa2.acc.q5.a')}<S>{t('topbar.logout')}</S>{t('qa2.acc.q5.b')}</AP>),
       },
       {
-        q: 'Mogu li da promenim jezik interfejsa?',
+        q: t('qa2.acc.q6.q'),
         text: 'jezik srpski engleski prevod interfejs podešavanja tab tema odmah',
-        a: (<AP>Da. Idite u Podešavanja → tab Tema i jezik, gde možete prebaciti između Srpskog i Engleskog jezika. Promena se odmah primenjuje na sve tekste u interfejsu.</AP>),
+        a: (<AP>{t('qa2.acc.q6.a')}</AP>),
       },
     ],
   },
 
   {
     id: 'sigurnost',
-    label: 'Sigurnost i privatnost',
+    label: t('qa2.cat.sigurnost'),
     icon: <IconLock />,
     iconBg: 'rgba(239,68,68,0.10)',
     iconColor: 'var(--red)',
     questions: [
       {
-        q: 'Da li su moji podaci sigurni na platformi?',
+        q: t('qa2.sec.q1.q'),
         text: 'sigurnost bezbednost lozinka hash bcrypt api token enkriptovan AES JWT sesija rate limiting zaštita',
         a: (<>
-          <AP>Da. Platforma koristi više slojeva zaštite:</AP>
+          <AP>{t('qa2.sec.q1.intro')}</AP>
           <UL>
-            <LI><S>Lozinke</S> — nikad se ne čuvaju u originalnom obliku, uvek kao hash (bcrypt)</LI>
-            <LI><S>API tokeni</S> — enkriptovani AES-256 algoritmom pre čuvanja u bazi</LI>
-            <LI><S>Sesije</S> — JWT tokeni sa rokom trajanja od 7 dana</LI>
-            <LI><S>Izolacija podataka</S> — svaki klijent vidi samo svoje podatke</LI>
-            <LI><S>Rate limiting</S> — ograničen broj pokušaja prijave (zaštita od napada)</LI>
+            <LI><S>{t('qa2.sec.q1.li1.s')}</S>{t('qa2.sec.q1.li1.t')}</LI>
+            <LI><S>{t('qa2.sec.q1.li2.s')}</S>{t('qa2.sec.q1.li2.t')}</LI>
+            <LI><S>{t('qa2.sec.q1.li3.s')}</S>{t('qa2.sec.q1.li3.t')}</LI>
+            <LI><S>{t('qa2.sec.q1.li4.s')}</S>{t('qa2.sec.q1.li4.t')}</LI>
+            <LI><S>Rate limiting</S>{t('qa2.sec.q1.li5.t')}</LI>
           </UL>
         </>),
       },
       {
-        q: 'Da li drugi klijenti mogu da vide moje projekte ili poruke?',
+        q: t('qa2.sec.q2.q'),
         text: 'privatnost izolacija projekti poruke release notes dokumenti drugi klijenti striktna',
         a: (<>
-          <AP>Ne. Sistem je dizajniran sa <S>striktnom izolacijom podataka po korisniku</S>:</AP>
+          <AP>{t('qa2.sec.q2.a')}<S>{t('qa2.sec.q2.s')}</S>{t('qa2.sec.q2.b')}</AP>
           <UL>
-            <LI>Vidite samo projekte dodeljene vama</LI>
-            <LI>Vidite samo poruke upućene vama ili svima</LI>
-            <LI>Vidite samo release notes dodeljene vama</LI>
-            <LI>Vidite samo dokumente u sekcijama kojima imate pristup</LI>
+            <LI>{t('qa2.sec.q2.li1')}</LI>
+            <LI>{t('qa2.sec.q2.li2')}</LI>
+            <LI>{t('qa2.sec.q2.li3')}</LI>
+            <LI>{t('qa2.sec.q2.li4')}</LI>
           </UL>
         </>),
       },
       {
-        q: 'Šta se dešava kada istekne moja sesija?',
+        q: t('qa2.sec.q3.q'),
         text: 'sesija istekne 7 dana login stranica preusmereni email lozinka sigurnosna mera',
-        a: (<AP>Posle 7 dana od poslednje prijave, vaša sesija automatski istekne. Sledeći put kada pokušate da koristite platformu, bićete preusmereni na login stranicu i moraćete uneti email i lozinku ponovo. Ovo je sigurnosna mera koja sprečava neovlašćen pristup.</AP>),
+        a: (<AP>{t('qa2.sec.q3.a')}</AP>),
       },
       {
-        q: 'Mogu li da pristupim platformi sa više uređaja istovremeno?',
+        q: t('qa2.sec.q4.q'),
         text: 'više uređaja kompjuter laptop tablet telefon responsive sesija istovremeno nezavisno',
-        a: (<AP>Da. Možete se prijaviti sa kompjutera, laptopa, tableta i telefona istovremeno. Svaki uređaj ima svoju sesiju nezavisno od ostalih. Platforma je responsive i prilagođena za korišćenje na svim uređajima.</AP>),
+        a: (<AP>{t('qa2.sec.q4.a')}</AP>),
       },
     ],
   },
-]
-
-// Pre-assign stable IDs
-const QA_DATA_STABLE = QA_DATA.map(cat => ({
-  ...cat,
-  questions: cat.questions.map((q, qi) => ({ ...q, uid: `${cat.id}-${qi}` })),
-}))
+  ]
+}
 
 // ── QAItem ────────────────────────────────────────────────────────────────────
 
@@ -612,7 +608,7 @@ function QAItem({ q, a, isOpen, onToggle }) {
 
 // ── CategorySection ───────────────────────────────────────────────────────────
 
-function CategorySection({ category, visibleQuestions, openId, setOpenId }) {
+function CategorySection({ category, visibleQuestions, openId, setOpenId, t }) {
   return (
     <div style={{ marginBottom: 48 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
@@ -623,7 +619,7 @@ function CategorySection({ category, visibleQuestions, openId, setOpenId }) {
           {category.label}
         </span>
         <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 12, padding: '2px 8px', marginLeft: 'auto' }}>
-          {visibleQuestions.length} pitanja
+          {t('qa2.category.count', { n: visibleQuestions.length })}
         </span>
       </div>
       {visibleQuestions.map(item => (
@@ -681,12 +677,19 @@ export default function QAPage({
   onGoToMessages, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat,
   projects = [],
 }) {
+  const t = useT()
   const [openId, setOpenId] = useState(null)
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState('all')
   const [searchFocused, setSearchFocused] = useState(false)
 
   const messagesAction = onGoToMessages || onOpenChat
+
+  const QA_DATA = getQaData(t)
+  const QA_DATA_STABLE = QA_DATA.map(cat => ({
+    ...cat,
+    questions: cat.questions.map((q, qi) => ({ ...q, uid: `${cat.id}-${qi}` })),
+  }))
 
   const totalAll = QA_DATA_STABLE.reduce((s, c) => s + c.questions.length, 0)
 
@@ -701,7 +704,7 @@ export default function QAPage({
   })).filter(cat => cat.questions.length > 0)
 
   const pills = [
-    { id: 'all', label: 'Sve', count: totalAll },
+    { id: 'all', label: t('qa2.pill.all'), count: totalAll },
     ...QA_DATA_STABLE.map(c => ({ id: c.id, label: c.label, count: c.questions.length })),
   ]
 
@@ -739,10 +742,10 @@ export default function QAPage({
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 32, color: 'var(--text)', marginBottom: 12 }}>
-            Pitanja i odgovori
+            {t('qa2.page.title')}
           </h1>
           <p style={{ color: 'var(--textMuted)', fontSize: 15, fontFamily: "'Hanken Grotesk', -apple-system, sans-serif", lineHeight: 1.6 }}>
-            Pronađite odgovore na najčešća pitanja o Intelisale Project Hub platformi
+            {t('qa2.page.subtitle')}
           </p>
         </div>
 
@@ -758,7 +761,7 @@ export default function QAPage({
             type="text"
             value={search}
             onChange={e => handleSearch(e.target.value)}
-            placeholder="Pretraži pitanja..."
+            placeholder={t('qa2.search.placeholder')}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             style={{
@@ -797,8 +800,8 @@ export default function QAPage({
                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 15.803m10.607 0A7.5 7.5 0 0 1 5.196 15.803" />
               </svg>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, color: 'var(--text)' }}>Nema pitanja koja odgovaraju pretrazi</p>
-            <p style={{ fontSize: 13 }}>Pokušajte sa drugačijim pojmom pretrage.</p>
+            <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, color: 'var(--text)' }}>{t('qa2.empty.title')}</p>
+            <p style={{ fontSize: 13 }}>{t('qa2.empty.sub')}</p>
           </div>
         ) : (
           filtered.map(cat => (
@@ -808,6 +811,7 @@ export default function QAPage({
               visibleQuestions={cat.questions}
               openId={openId}
               setOpenId={setOpenId}
+              t={t}
             />
           ))
         )}
