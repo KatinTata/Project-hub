@@ -125,6 +125,23 @@ function extractDescriptionText(doc) {
   return lines.join('').trim()
 }
 
+// Release-notes authoring is internal only. Clients keep read access to just
+// three routes: /public/:token, /client-list and /:id/detail. Everything else
+// (fetching Jira data, AI enhance, publishing arbitrary HTML, managing
+// sections/clients) requires an internal role — this closes the vector where
+// any authenticated user could host arbitrary HTML on /rn.
+const CLIENT_OPEN_ROUTES = [
+  { method: 'GET', re: /^\/public\// },
+  { method: 'GET', re: /^\/client-list\/?$/ },
+  { method: 'GET', re: /^\/\d+\/detail\/?$/ },
+]
+router.use((req, res, next) => {
+  if (CLIENT_OPEN_ROUTES.some(r => r.method === req.method && r.re.test(req.path))) return next()
+  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId)?.role
+  if (!isAdminRole(role)) return res.status(403).json({ error: 'Samo za interne korisnike' })
+  next()
+})
+
 // ── Route: Task detail (summary + comments) ──────────────────────────────────
 
 router.post('/task-detail', async (req, res) => {
