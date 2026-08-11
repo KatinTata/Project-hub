@@ -14,10 +14,11 @@ const ROLE_COLORS = {
   user: { bg: 'rgba(107,122,153,0.10)', text: 'var(--textMuted)', border: 'rgba(107,122,153,0.20)' },
 }
 
-export default function UserManagementModal({ projects, onClose, isSuperAdmin }) {
+export default function UserManagementModal({ onClose, isSuperAdmin }) {
   const t = useT()
   const [users, setUsers] = useState([])
   const [organizations, setOrganizations] = useState([])
+  const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [creating, setCreating] = useState(false)
@@ -41,9 +42,10 @@ export default function UserManagementModal({ projects, onClose, isSuperAdmin })
   async function loadAll() {
     try {
       setLoading(true)
-      const [userData, orgData] = await Promise.all([api.getUsers(), api.getOrganizations()])
+      const [userData, orgData, projData] = await Promise.all([api.getUsers(), api.getOrganizations(), api.getProjects()])
       setUsers(userData)
       setOrganizations(orgData)
+      setProjects(projData)
     } catch (err) {
       setError(err.message)
     } finally {

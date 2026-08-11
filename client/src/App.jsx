@@ -117,7 +117,7 @@ export default function App() {
   const modals = (
     <>
       {settingsOpen && <SettingsModal user={user} theme={theme} onSetTheme={handleSetTheme} onClose={() => setSettingsOpen(false)} onUserUpdate={handleUserUpdate} isSuperAdmin={isSuperAdmin} />}
-      {usersOpen && <UserManagementModal projects={[]} onClose={() => setUsersOpen(false)} isSuperAdmin={isSuperAdmin} />}
+      {usersOpen && <UserManagementModal onClose={() => setUsersOpen(false)} isSuperAdmin={isSuperAdmin} />}
     </>
   )
 

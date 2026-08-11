@@ -393,7 +393,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               <span>⚙️</span>
               <span>
                 {t('dash.demoNotice')}{' '}
-                <button onClick={() => setSettingsOpen(true)} style={{ color: 'var(--amber)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>
+                <button onClick={() => onOpenSettings?.()} style={{ color: 'var(--amber)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>
                   {t('dash.settings')}
                 </button>{' '}
                 {t('dash.demoNotice2')}
@@ -468,7 +468,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
                     done: hasJira,
                     title: t('dash.step1'),
                     desc: t('dash.step1Sub'),
-                    action: { label: t('dash.openSettings'), onClick: () => setSettingsOpen(true) },
+                    action: { label: t('dash.openSettings'), onClick: () => onOpenSettings?.() },
                   },
               {
                 step: '2',
@@ -532,7 +532,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           </div>
 
           <button
-            onClick={() => setSettingsOpen(true)}
+            onClick={() => onOpenSettings?.()}
             style={{
               display: 'none',
               background: 'var(--accent)',
