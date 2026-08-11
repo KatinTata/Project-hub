@@ -27,6 +27,7 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
   const [animated, setAnimated] = useState(false)
   const [showNoModule, setShowNoModule] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [openModule, setOpenModule] = useState(null)
 
   useEffect(() => {
     const t = setTimeout(() => setAnimated(true), 50)
@@ -114,9 +115,15 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
         <div style={{ flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column', gap: 9 }}>
           {arcs.map((arc, i) => {
             const pct = Math.round(arc.pct * 100)
+            const canOpen = (arc.people?.length > 0 || arc.tasks?.length > 0)
+            const isOpen = openModule === arc.name
             return (
               <div key={i}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <div
+                  onClick={() => canOpen && setOpenModule(prev => prev === arc.name ? null : arc.name)}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, cursor: canOpen ? 'pointer' : 'default', borderRadius: 4 }}
+                  title={canOpen ? 'Klikni za detalje — ko je logovao i na kojim taskovima' : undefined}
+                >
                   <span style={{
                     display: 'flex', alignItems: 'center', gap: 6,
                     fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12,
@@ -124,6 +131,11 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
                     fontWeight: 500,
                     overflow: 'hidden',
                   }}>
+                    {canOpen && (
+                      <svg viewBox="0 0 12 12" width={9} height={9} style={{ flexShrink: 0, transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
+                        <path d="M4 2l4 4-4 4" stroke="var(--textSubtle)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
                     <span style={{ width: 9, height: 9, borderRadius: '50%', background: arc.color, flexShrink: 0, opacity: arc.isFaded ? 0.6 : 1 }} />
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {arc.name}
@@ -143,6 +155,66 @@ export default function ModuleChart({ moduleData = [], noModuleTasks = [], jiraU
                     transition: 'width 0.6s ease',
                   }} />
                 </div>
+
+                {/* Drill-down: people + tasks for this module */}
+                {isOpen && (
+                  <div style={{ margin: '8px 0 4px 15px', padding: '10px 12px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                    {arc.people?.length > 0 && (
+                      <>
+                        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--textMuted)', marginBottom: 6 }}>
+                          Ko je logovao
+                        </div>
+                        {arc.people.map(p => {
+                          const ppct = arc.totalSpent > 0 ? (p.spent / arc.totalSpent) * 100 : 0
+                          return (
+                            <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                              <span style={{ width: 130, flexShrink: 0, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11.5, color: p.name === 'Neraspoređeno' ? 'var(--amber)' : 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {p.name}
+                              </span>
+                              <div style={{ flex: 1, height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${ppct}%`, background: arc.color, opacity: 0.8, borderRadius: 4 }} />
+                              </div>
+                              <span style={{ width: 78, flexShrink: 0, textAlign: 'right', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
+                                {fmtHours(p.spent)} · {Math.round(ppct)}%
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </>
+                    )}
+                    {arc.tasks?.length > 0 && (
+                      <>
+                        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--textMuted)', margin: '10px 0 6px' }}>
+                          Taskovi ({arc.tasks.length})
+                        </div>
+                        <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          {arc.tasks.map(t => {
+                            const href = jiraLink(jiraUrl, t.key)
+                            return (
+                              <div key={t.key} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                                {href ? (
+                                  <a href={href} target="_blank" rel="noopener noreferrer"
+                                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 600, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
+                                    onMouseEnter={e => e.target.style.textDecoration = 'underline'}
+                                    onMouseLeave={e => e.target.style.textDecoration = 'none'}
+                                  >{t.key}</a>
+                                ) : (
+                                  <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 600, color: 'var(--accent)', flexShrink: 0 }}>{t.key}</span>
+                                )}
+                                <span style={{ flex: 1, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11.5, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {t.summary}
+                                </span>
+                                <span style={{ flexShrink: 0, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
+                                  {fmtHours(t.spent)}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             )
           })}

@@ -294,32 +294,70 @@ export function buildComponentData(tasks) {
     .sort((a, b) => b.totalSpent - a.totalSpent)
 }
 
+// Per-module hours, with drill-down: who logged them (worklog authors, same
+// attribution rules as buildAssigneeData) and on which tasks. A task tagged
+// with N modules contributes 1/N of its hours to each.
 export function buildModuleData(tasks) {
   const map = {}
   const noModuleTasks = []
 
-  function add(name, spentShare, taskKey) {
-    if (!map[name]) map[name] = { name, totalSpent: 0, taskKeys: new Set() }
-    map[name].totalSpent += spentShare
-    map[name].taskKeys.add(taskKey)
+  function mod(name) {
+    if (!map[name]) map[name] = { name, totalSpent: 0, taskKeys: new Set(), people: {}, tasks: [] }
+    return map[name]
+  }
+
+  // {name → seconds} for one task: worklog authors first, assignee as fallback
+  function attribution(task) {
+    const out = {}
+    const add = (name, sec) => { if (sec > 0) { const k = name || 'Neraspoređeno'; out[k] = (out[k] || 0) + sec } }
+    const attr = (spent, worklogs, fallback) => {
+      if (!spent) return
+      const logged = (worklogs || []).reduce((s, w) => s + (w.seconds || 0), 0)
+      if (logged > 0) {
+        for (const w of (worklogs || [])) add(w.author || fallback, w.seconds || 0)
+        if (spent - logged > 0) add(fallback, spent - logged)
+      } else add(fallback, spent)
+    }
+    const subs = task.subtasks || []
+    const subTotal = subs.reduce((s, sub) => s + sub.timespent, 0)
+    attr(Math.max(0, (task.spent || 0) - subTotal), task.worklogs, task.assignee)
+    for (const sub of subs) attr(sub.timespent, sub.worklogs, sub.assignee || task.assignee)
+    return out
   }
 
   for (const task of tasks) {
     const modules = task.modules || []
     const spent = task.spent || 0
-    if (modules.length === 0) {
-      noModuleTasks.push({ key: task.key, summary: task.summary })
-      if (spent > 0) add('Bez modula', spent, task.key)
-    } else {
-      const share = spent / modules.length
-      for (const mod of modules) add(mod, share, task.key)
+    if (modules.length === 0) noModuleTasks.push({ key: task.key, summary: task.summary })
+    if (spent <= 0 && modules.length === 0) continue
+
+    const targets = modules.length > 0 ? modules : ['Bez modula']
+    if (spent <= 0) {
+      for (const name of targets) mod(name).taskKeys.add(task.key)
+      continue
+    }
+    const share = 1 / targets.length
+    const people = attribution(task)
+    for (const name of targets) {
+      const m = mod(name)
+      m.totalSpent += spent * share
+      m.taskKeys.add(task.key)
+      m.tasks.push({ key: task.key, summary: task.summary, status: task.status, spent: spent * share })
+      for (const [p, sec] of Object.entries(people)) m.people[p] = (m.people[p] || 0) + sec * share
     }
   }
 
   const totalSpentAll = Object.values(map).reduce((s, d) => s + d.totalSpent, 0)
   return {
     moduleData: Object.values(map)
-      .map(d => ({ name: d.name, totalSpent: d.totalSpent, taskCount: d.taskKeys.size, pct: totalSpentAll > 0 ? d.totalSpent / totalSpentAll : 0 }))
+      .map(d => ({
+        name: d.name,
+        totalSpent: d.totalSpent,
+        taskCount: d.taskKeys.size,
+        pct: totalSpentAll > 0 ? d.totalSpent / totalSpentAll : 0,
+        people: Object.entries(d.people).map(([name, spent]) => ({ name, spent })).sort((a, b) => b.spent - a.spent),
+        tasks: d.tasks.sort((a, b) => b.spent - a.spent),
+      }))
       .sort((a, b) => b.totalSpent - a.totalSpent),
     noModuleTasks,
   }
