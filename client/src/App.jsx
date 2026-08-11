@@ -16,6 +16,28 @@ const MessagesPage = lazy(() => import('./pages/MessagesPage.jsx'))
 const QAPage = lazy(() => import('./pages/QAPage.jsx'))
 const AiUsagePage = lazy(() => import('./pages/AiUsagePage.jsx'))
 
+// Single source of truth for URL <-> page mapping, so the initial load, login
+// and browser Back/Forward all resolve the same way.
+function pageFromPath(pathname) {
+  if (pathname === '/release-notes/editor') return 'releaseNotesEditor'
+  if (pathname.startsWith('/release-notes')) return 'releaseNotes'
+  if (pathname.startsWith('/documents')) return 'documents'
+  if (pathname.startsWith('/messages')) return 'messages'
+  if (pathname.startsWith('/qa')) return 'qa'
+  if (pathname.startsWith('/ai-usage')) return 'aiUsage'
+  return 'dashboard'
+}
+
+const PATH_FOR_PAGE = {
+  dashboard: '/',
+  releaseNotes: '/release-notes',
+  releaseNotesEditor: '/release-notes/editor',
+  documents: '/documents',
+  messages: '/messages',
+  qa: '/qa',
+  aiUsage: '/ai-usage',
+}
+
 export default function App() {
   const [page, setPage] = useState('login') // 'login' | 'dashboard' | 'releaseNotes' | 'releaseNotesEditor' | 'documents' | 'messages' | 'qa' | 'aiUsage'
   const [user, setUser] = useState(null)
@@ -50,28 +72,24 @@ export default function App() {
     api.me()
       .then(res => {
         setUser(res.user)
-        const path = window.location.pathname
-        if (path === '/release-notes/editor') setPage('releaseNotesEditor')
-        else if (path.startsWith('/release-notes')) setPage('releaseNotes')
-        else if (path.startsWith('/documents')) setPage('documents')
-        else if (path.startsWith('/messages')) setPage('messages')
-        else if (path.startsWith('/ai-usage')) setPage('aiUsage')
-        else setPage('dashboard')
+        setPage(pageFromPath(window.location.pathname))
       })
       .catch(() => localStorage.removeItem('jt_token'))
       .finally(() => setChecking(false))
   }, [])
 
+  // Browser Back/Forward: re-resolve the page from the URL.
+  useEffect(() => {
+    function onPop() {
+      if (localStorage.getItem('jt_token')) setPage(pageFromPath(window.location.pathname))
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
   function handleLogin(userData) {
     setUser(userData)
-    const path = window.location.pathname
-    if (path === '/release-notes/editor') setPage('releaseNotesEditor')
-    else if (path.startsWith('/release-notes')) setPage('releaseNotes')
-    else if (path.startsWith('/documents')) setPage('documents')
-    else if (path.startsWith('/messages')) setPage('messages')
-    else if (path.startsWith('/qa')) setPage('qa')
-    else if (path.startsWith('/ai-usage')) setPage('aiUsage')
-    else setPage('dashboard')
+    setPage(pageFromPath(window.location.pathname))
   }
 
   function handleLogout() {
@@ -109,10 +127,15 @@ export default function App() {
   const isSuperAdmin = user?.role === 'super_admin'
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
 
+  function navigate(page, pathOverride) {
+    const path = pathOverride || PATH_FOR_PAGE[page] || '/'
+    if (window.location.pathname !== path) window.history.pushState({}, '', path)
+    setPage(page)
+  }
+
   function goToMessages(projectId) {
     setMessagesProjectId(projectId || null)
-    window.history.replaceState({}, '', '/messages')
-    setPage('messages')
+    navigate('messages')
   }
 
   const modals = (
@@ -122,12 +145,12 @@ export default function App() {
     </>
   )
 
-  const goToDashboard = () => { window.history.replaceState({}, '', '/'); setPage('dashboard') }
-  const goToReleaseNotes = () => { window.history.replaceState({}, '', '/release-notes'); setPage('releaseNotes') }
-  const goToReleaseNotesEditor = () => { window.history.replaceState({}, '', '/release-notes/editor'); setPage('releaseNotesEditor') }
-  const goToDocuments = () => { window.history.replaceState({}, '', '/documents'); setPage('documents') }
-  const goToQA = () => { window.history.replaceState({}, '', '/qa'); setPage('qa') }
-  const goToAiUsage = () => { window.history.replaceState({}, '', '/ai-usage'); setPage('aiUsage') }
+  const goToDashboard = () => navigate('dashboard')
+  const goToReleaseNotes = () => navigate('releaseNotes')
+  const goToReleaseNotesEditor = () => navigate('releaseNotesEditor')
+  const goToDocuments = () => navigate('documents')
+  const goToQA = () => navigate('qa')
+  const goToAiUsage = () => navigate('aiUsage')
 
   if (page === 'releaseNotes' && user) {
     return (
