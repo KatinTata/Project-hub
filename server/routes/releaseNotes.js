@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto'
 import db from '../db.js'
 import { decryptToken, makeJiraAuth, jiraPost, detectBillableField, parseBillableValue } from '../jiraClient.js'
 import { preparePublishedHtml } from '../publishedHtml.js'
+import { logAudit } from '../audit.js'
 import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, BorderStyle, AlignmentType, HeadingLevel, ShadingType,
@@ -736,6 +737,7 @@ router.post('/publish', (req, res) => {
     }
 
     const noteRow = db.prepare('SELECT id FROM published_notes WHERE token = ?').get(token)
+    logAudit(req.userId, 'releasenote.publish', `note id=${noteRow?.id}, projekat=${projectId || '-'}, verzija=${version || '-'}`, req)
     res.json({ token, id: noteRow?.id, updated: false })
   } catch (err) {
     console.error('publish error:', err)
@@ -881,6 +883,7 @@ router.delete('/:id', (req, res) => {
     const note = db.prepare('SELECT id FROM published_notes WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
     if (!note) return res.status(404).json({ error: 'Nije pronađeno' })
     db.prepare('DELETE FROM published_notes WHERE id = ?').run(note.id)
+    logAudit(req.userId, 'releasenote.delete', `note id=${note.id}`, req)
     res.json({ ok: true })
   } catch (err) {
     res.status(500).json({ error: err.message })

@@ -80,6 +80,19 @@ db.exec(`
   )
 `)
 
+// Security-relevant audit trail. No FK on user_id on purpose: deleting a user
+// must NOT erase what they did.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS audit_log (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER,
+    action     TEXT NOT NULL,
+    detail     TEXT,
+    ip         TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
 // Migrations for existing DBs (fail silently if column already exists)
 try { db.exec(`ALTER TABLE projects ADD COLUMN archived INTEGER DEFAULT 0`) } catch {}
 try { db.exec(`ALTER TABLE projects ADD COLUMN archived_at TEXT`) } catch {}

@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
 import db from '../db.js'
+import { logAudit } from '../audit.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = process.env.DATA_DIR
@@ -213,6 +214,7 @@ router.get('/:id/download', (req, res) => {
       }
     }
 
+    logAudit(req.userId, 'document.download', `dokument ${doc.id} (${doc.original_name})`, req)
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(doc.original_name)}`)
 

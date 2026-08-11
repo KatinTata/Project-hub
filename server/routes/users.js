@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcrypt'
 import db from '../db.js'
+import { logAudit } from '../audit.js'
 
 const router = Router()
 
@@ -70,6 +71,7 @@ router.post('/', requireAdmin, async (req, res) => {
     const result = db.prepare(
       'INSERT INTO users (email, password, name, role, organization_id) VALUES (?, ?, ?, ?, ?)'
     ).run(email.toLowerCase(), hash, name, role, organizationId || null)
+    logAudit(req.userId, 'user.create', `kreiran ${email.toLowerCase()} (rola: ${role})`, req)
 
     const user = db.prepare(`
       SELECT u.id, u.email, u.name, u.role, u.organization_id as organizationId,
@@ -129,6 +131,11 @@ router.put('/:id', requireAdmin, async (req, res) => {
     values.push(req.params.id)
     db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...values)
 
+    const changes = []
+    if (password?.trim()) changes.push('lozinka resetovana')
+    if (role && role !== target.role) changes.push(`rola ${target.role}→${role}`)
+    logAudit(req.userId, 'user.update', `${email.toLowerCase()}${changes.length ? ' — ' + changes.join(', ') : ''}`, req)
+
     const updated = db.prepare(`
       SELECT u.id, u.email, u.name, u.role, u.organization_id as organizationId,
              o.name as organizationName, u.created_at as createdAt
@@ -152,6 +159,7 @@ router.delete('/:id', requireAdmin, (req, res) => {
     return res.status(403).json({ error: 'Samo super admin može obrisati super admin nalog' })
   }
   db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id)
+  logAudit(req.userId, 'user.delete', `obrisan korisnik id=${req.params.id} (rola: ${user.role})`, req)
   res.json({ ok: true })
 })
 
@@ -177,6 +185,7 @@ router.post('/:id/projects', requireAdmin, (req, res) => {
     if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
 
     db.prepare('INSERT OR IGNORE INTO project_clients (project_id, client_user_id) VALUES (?, ?)').run(projectId, req.params.id)
+    logAudit(req.userId, 'user.project.assign', `projekat ${projectId} → korisnik ${req.params.id}`, req)
     res.json({ ok: true })
   } catch (err) {
     console.error(err)
@@ -190,6 +199,7 @@ router.delete('/:id/projects/:projectId', requireAdmin, (req, res) => {
   const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.projectId, req.userId)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   db.prepare('DELETE FROM project_clients WHERE project_id = ? AND client_user_id = ?').run(req.params.projectId, req.params.id)
+  logAudit(req.userId, 'user.project.unassign', `projekat ${req.params.projectId} ⊘ korisnik ${req.params.id}`, req)
   res.json({ ok: true })
 })
 

@@ -20,6 +20,7 @@ import organizationsRoutes from './routes/organizations.js'
 import reportsRoutes from './routes/reports.js'
 import settingsRoutes from './routes/settings.js'
 import aiUsageRoutes from './routes/aiUsage.js'
+import auditRoutes from './routes/audit.js'
 import { startAiUsageScheduler } from './aiUsage/scheduler.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -98,6 +99,7 @@ app.use('/api/organizations', authMiddleware, organizationsRoutes)
 app.use('/api/reports', authMiddleware, reportsRoutes)
 app.use('/api/settings', authMiddleware, settingsRoutes)
 app.use('/api/ai-usage', authMiddleware, aiUsageRoutes)
+app.use('/api/audit', authMiddleware, auditRoutes)
 
 // Unknown API route → JSON 404 (so the SPA catch-all below never swallows a
 // mistyped/removed endpoint and returns index.html instead of an error).

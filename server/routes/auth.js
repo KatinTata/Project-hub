@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import db from '../db.js'
 import { authMiddleware } from '../auth.js'
 import { encryptToken, makeJiraAuth, jiraGet } from '../jiraClient.js'
+import { logAudit } from '../audit.js'
 
 const router = Router()
 
@@ -38,11 +39,18 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email?.toLowerCase())
-    if (!user) return res.status(401).json({ error: 'Pogrešan email ili lozinka' })
+    if (!user) {
+      logAudit(null, 'login.failure', `email: ${email || '?'}`, req)
+      return res.status(401).json({ error: 'Pogrešan email ili lozinka' })
+    }
 
     const match = await bcrypt.compare(password, user.password)
-    if (!match) return res.status(401).json({ error: 'Pogrešan email ili lozinka' })
+    if (!match) {
+      logAudit(user.id, 'login.failure', `email: ${user.email}`, req)
+      return res.status(401).json({ error: 'Pogrešan email ili lozinka' })
+    }
 
+    logAudit(user.id, 'login.success', `email: ${user.email}`, req)
     const token = signToken(user.id)
     // sharedJira must ship at login too (not only /me) — otherwise admins who
     // inherit the org connection look "unconnected" until a manual refresh.
