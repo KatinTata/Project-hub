@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { authMiddleware } from './auth.js'
@@ -25,8 +27,35 @@ const app = express()
 app.set('trust proxy', 1)
 const PORT = process.env.PORT || 3001
 
+// Security headers. CSP is disabled here because the SPA relies on inline
+// style attributes and the Google Fonts CDN; a per-route CSP is applied to
+// the public /rn page below. All other protections (nosniff, HSTS,
+// X-Frame-Options, referrer policy) still apply.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }))
+
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }))
 app.use(express.json({ limit: '20mb' }))
+
+// Generous safety-net limiter for the whole API — blocks gross abuse without
+// interfering with normal dashboard use.
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 1000, standardHeaders: true, legacyHeaders: false })
+app.use('/api', apiLimiter)
+
+// Strict limiter for login: only FAILED attempts count, so legitimate users
+// are never blocked but brute-force is throttled.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 15,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Previše pokušaja prijave. Pokušajte ponovo za 15 minuta.' },
+})
+app.use('/api/auth/login', loginLimiter)
+
+// Moderate limiter for the AI enhance endpoint (direct Anthropic cost).
+const aiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false })
+app.use('/api/release-notes/ai-enhance', aiLimiter)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/projects', authMiddleware, projectRoutes)

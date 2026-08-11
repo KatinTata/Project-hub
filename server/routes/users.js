@@ -92,6 +92,12 @@ router.put('/:id', requireAdmin, async (req, res) => {
   const target = db.prepare('SELECT id, role FROM users WHERE id = ? AND id != ?').get(req.params.id, req.userId)
   if (!target) return res.status(404).json({ error: 'Korisnik nije pronađen' })
 
+  // Only a super_admin may modify an existing super_admin account (blocks
+  // an ordinary admin from resetting a super_admin's password / email).
+  if (target.role === 'super_admin' && getUserRole(req.userId) !== 'super_admin') {
+    return res.status(403).json({ error: 'Samo super admin može menjati super admin nalog' })
+  }
+
   const { name, email, role, password, organizationId } = req.body
   if (!name || !email) return res.status(400).json({ error: 'Ime i email su obavezni' })
   if (role && !['admin', 'user', 'super_admin'].includes(role)) return res.status(400).json({ error: 'Nevalidna uloga' })
@@ -139,8 +145,12 @@ router.put('/:id', requireAdmin, async (req, res) => {
 
 // DELETE /api/users/:id
 router.delete('/:id', requireAdmin, (req, res) => {
-  const user = db.prepare('SELECT id FROM users WHERE id = ? AND id != ?').get(req.params.id, req.userId)
+  const user = db.prepare('SELECT id, role FROM users WHERE id = ? AND id != ?').get(req.params.id, req.userId)
   if (!user) return res.status(404).json({ error: 'Korisnik nije pronađen' })
+  // Only a super_admin may delete a super_admin account.
+  if (user.role === 'super_admin' && getUserRole(req.userId) !== 'super_admin') {
+    return res.status(403).json({ error: 'Samo super admin može obrisati super admin nalog' })
+  }
   db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id)
   res.json({ ok: true })
 })
@@ -176,6 +186,9 @@ router.post('/:id/projects', requireAdmin, (req, res) => {
 
 // DELETE /api/users/:id/projects/:projectId — unassign project from user
 router.delete('/:id/projects/:projectId', requireAdmin, (req, res) => {
+  // Only the owning admin/super_admin may unassign a client from a project.
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.params.projectId, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   db.prepare('DELETE FROM project_clients WHERE project_id = ? AND client_user_id = ?').run(req.params.projectId, req.params.id)
   res.json({ ok: true })
 })
