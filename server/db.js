@@ -15,6 +15,49 @@ const db = new Database(path.join(dataDir, 'tracker.db'))
 db.pragma('journal_mode = WAL')
 db.pragma('foreign_keys = ON')
 
+// ── Migracioni sistem (P2-D1) ────────────────────────────────────────────────
+// Šema evoluira ISKLJUČIVO aditivno. Dva mehanizma:
+//  - addColumn(table, col, ddl): ALTER samo ako kolona ne postoji (PRAGMA
+//    table_info). "Kolona već postoji" je legitiman preskok; svaka DRUGA
+//    greška se loguje i BACA — server ne sme da se digne na polomljenoj šemi.
+//  - runOnce(id, name, fn): numerisana jednokratna migracija kroz ledger
+//    tabelu schema_migrations (za buduće data-migracije).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS schema_migrations (
+    id         INTEGER PRIMARY KEY,
+    name       TEXT NOT NULL,
+    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+function hasColumn(table, col) {
+  return db.prepare(`PRAGMA table_info(${table})`).all().some(c => c.name === col)
+}
+
+function addColumn(table, col, ddl) {
+  if (hasColumn(table, col)) return
+  try {
+    db.exec(ddl)
+    console.log(`[migracija] ${table}.${col} dodata`)
+  } catch (err) {
+    console.error(`[migracija] ${table}.${col} NEUSPEŠNA: ${err.message}`)
+    throw err
+  }
+}
+
+// eslint-disable-next-line no-unused-vars -- infrastruktura za buduće data-migracije
+function runOnce(id, name, fn) {
+  if (db.prepare('SELECT 1 FROM schema_migrations WHERE id = ?').get(id)) return
+  try {
+    fn()
+    db.prepare('INSERT INTO schema_migrations (id, name) VALUES (?, ?)').run(id, name)
+    console.log(`[migracija ${id}] ${name} primenjena`)
+  } catch (err) {
+    console.error(`[migracija ${id}] ${name} NEUSPEŠNA: ${err.message}`)
+    throw err
+  }
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,10 +137,10 @@ db.exec(`
 `)
 
 // Migrations for existing DBs (fail silently if column already exists)
-try { db.exec(`ALTER TABLE projects ADD COLUMN archived INTEGER DEFAULT 0`) } catch {}
-try { db.exec(`ALTER TABLE projects ADD COLUMN archived_at TEXT`) } catch {}
-try { db.exec(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'admin'`) } catch {}
-try { db.exec(`ALTER TABLE users ADD COLUMN organization_id INTEGER REFERENCES organizations(id) ON DELETE SET NULL`) } catch {}
+addColumn('projects', 'archived', `ALTER TABLE projects ADD COLUMN archived INTEGER DEFAULT 0`)
+addColumn('projects', 'archived_at', `ALTER TABLE projects ADD COLUMN archived_at TEXT`)
+addColumn('users', 'role', `ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'admin'`)
+addColumn('users', 'organization_id', `ALTER TABLE users ADD COLUMN organization_id INTEGER REFERENCES organizations(id) ON DELETE SET NULL`)
 try { db.exec(`UPDATE users SET role = 'user' WHERE role = 'client'`) } catch {}
 // Promote oldest admin to super_admin if no super_admin exists
 try {
@@ -106,16 +149,16 @@ try {
     db.prepare("UPDATE users SET role = 'super_admin' WHERE id = (SELECT MIN(id) FROM users WHERE role = 'admin')").run()
   }
 } catch {}
-try { db.exec(`ALTER TABLE projects ADD COLUMN filter_type TEXT DEFAULT 'epic'`) } catch {}
-try { db.exec(`ALTER TABLE projects ADD COLUMN filter_jql TEXT`) } catch {}
-try { db.exec(`ALTER TABLE projects ADD COLUMN filter_meta TEXT`) } catch {}
-try { db.exec(`ALTER TABLE messages ADD COLUMN task_key TEXT DEFAULT NULL`) } catch {}
-try { db.exec(`ALTER TABLE messages ADD COLUMN recipient_user_id INTEGER DEFAULT NULL`) } catch {}
-try { db.exec(`ALTER TABLE messages ADD COLUMN task_summary TEXT DEFAULT NULL`) } catch {}
-try { db.exec(`ALTER TABLE messages ADD COLUMN subject TEXT DEFAULT NULL`) } catch {}
-try { db.exec(`ALTER TABLE users ADD COLUMN anthropic_key TEXT`) } catch {}
+addColumn('projects', 'filter_type', `ALTER TABLE projects ADD COLUMN filter_type TEXT DEFAULT 'epic'`)
+addColumn('projects', 'filter_jql', `ALTER TABLE projects ADD COLUMN filter_jql TEXT`)
+addColumn('projects', 'filter_meta', `ALTER TABLE projects ADD COLUMN filter_meta TEXT`)
+addColumn('messages', 'task_key', `ALTER TABLE messages ADD COLUMN task_key TEXT DEFAULT NULL`)
+addColumn('messages', 'recipient_user_id', `ALTER TABLE messages ADD COLUMN recipient_user_id INTEGER DEFAULT NULL`)
+addColumn('messages', 'task_summary', `ALTER TABLE messages ADD COLUMN task_summary TEXT DEFAULT NULL`)
+addColumn('messages', 'subject', `ALTER TABLE messages ADD COLUMN subject TEXT DEFAULT NULL`)
+addColumn('users', 'anthropic_key', `ALTER TABLE users ADD COLUMN anthropic_key TEXT`)
 // P1-11: revokacija sesija — inkrement pri promeni lozinke/role poništava stare JWT-ove
-try { db.exec(`ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0`) } catch {}
+addColumn('users', 'token_version', `ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0`)
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS phases (
@@ -132,8 +175,8 @@ db.exec(`
 
 // Legacy DBs whose `phases` predates these columns. Runs AFTER the CREATE so a
 // fresh DB already has them (these then no-op); an old DB gets them added.
-try { db.exec(`ALTER TABLE phases ADD COLUMN due_date TEXT DEFAULT NULL`) } catch {}
-try { db.exec(`ALTER TABLE phases ADD COLUMN start_date TEXT DEFAULT NULL`) } catch {}
+addColumn('phases', 'due_date', `ALTER TABLE phases ADD COLUMN due_date TEXT DEFAULT NULL`)
+addColumn('phases', 'start_date', `ALTER TABLE phases ADD COLUMN start_date TEXT DEFAULT NULL`)
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS phase_tasks (
@@ -159,9 +202,9 @@ db.exec(`
   )
 `)
 
-try { db.exec(`ALTER TABLE published_notes ADD COLUMN status TEXT DEFAULT 'published'`) } catch {}
-try { db.exec(`ALTER TABLE published_notes ADD COLUMN released_at DATETIME`) } catch {}
-try { db.exec(`ALTER TABLE published_notes ADD COLUMN version TEXT`) } catch {}
+addColumn('published_notes', 'status', `ALTER TABLE published_notes ADD COLUMN status TEXT DEFAULT 'published'`)
+addColumn('published_notes', 'released_at', `ALTER TABLE published_notes ADD COLUMN released_at DATETIME`)
+addColumn('published_notes', 'version', `ALTER TABLE published_notes ADD COLUMN version TEXT`)
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS document_sections (
@@ -189,7 +232,7 @@ db.exec(`
 `)
 
 // Migration: add file_path column for disk-based storage (replaces BLOB approach)
-try { db.exec(`ALTER TABLE documents ADD COLUMN file_path TEXT`) } catch {}
+addColumn('documents', 'file_path', `ALTER TABLE documents ADD COLUMN file_path TEXT`)
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS release_note_sections (
@@ -210,7 +253,7 @@ db.exec(`
   )
 `)
 
-try { db.exec(`ALTER TABLE published_notes ADD COLUMN section_id INTEGER REFERENCES release_note_sections(id) ON DELETE SET NULL`) } catch {}
+addColumn('published_notes', 'section_id', `ALTER TABLE published_notes ADD COLUMN section_id INTEGER REFERENCES release_note_sections(id) ON DELETE SET NULL`)
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS task_billable (
@@ -397,7 +440,7 @@ db.exec(`
 
 // Manual "we actually work with this one" flag — survives tenant discovery
 // (is_active mirrors the Agentic API's enabled flag and gets overwritten).
-try { db.exec(`ALTER TABLE client_tenant_mappings ADD COLUMN is_tracked INTEGER DEFAULT 1`) } catch {}
+addColumn('client_tenant_mappings', 'is_tracked', `ALTER TABLE client_tenant_mappings ADD COLUMN is_tracked INTEGER DEFAULT 1`)
 
 // AI packages (tiers): fixed monthly access fee + included consumption.
 // A tenant on a package gets its consumption limit from included_eur.
@@ -413,7 +456,7 @@ db.exec(`
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `)
-try { db.exec(`ALTER TABLE tenant_budgets ADD COLUMN package_id INTEGER REFERENCES ai_packages(id)`) } catch {}
+addColumn('tenant_budgets', 'package_id', `ALTER TABLE tenant_budgets ADD COLUMN package_id INTEGER REFERENCES ai_packages(id)`)
 
 // In-app budget notifications (email is optional / added later)
 db.exec(`
