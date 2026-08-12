@@ -433,4 +433,22 @@ db.exec(`
   )
 `)
 
+// ── Indeksi (P1-13, aditivno) ────────────────────────────────────────────────
+// Najčešći filteri/spajanja bez pokrivajućeg indeksa. UNIQUE ograničenja već
+// pokrivaju: message_reads(message_id, user_id) PK — ali ne i upit samo po
+// user_id; project_clients(project_id, client_user_id) — ali ne i upit samo po
+// client_user_id; project_snapshots(project_id, day) je pokriven UNIQUE-om.
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_messages_project_created ON messages(project_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_message_reads_user ON message_reads(user_id);
+  CREATE INDEX IF NOT EXISTS idx_project_clients_client ON project_clients(client_user_id);
+  CREATE INDEX IF NOT EXISTS idx_phase_tasks_project ON phase_tasks(project_id);
+  CREATE INDEX IF NOT EXISTS idx_phase_tasks_phase ON phase_tasks(phase_id);
+  CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at);
+  CREATE INDEX IF NOT EXISTS idx_published_notes_user ON published_notes(user_id);
+  CREATE INDEX IF NOT EXISTS idx_published_notes_project ON published_notes(project_id);
+  CREATE INDEX IF NOT EXISTS idx_ap_exchange_rates_lookup ON ap_exchange_rates(currency_from, currency_to, rate_date);
+  CREATE INDEX IF NOT EXISTS idx_ai_usage_alerts_month ON ai_usage_alerts(month);
+`)
+
 export default db
