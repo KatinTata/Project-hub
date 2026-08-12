@@ -2,6 +2,7 @@ import { api } from '../../api.js'
 import { useT } from '../../lang.jsx'
 import { fmtMoney } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
+import Button from '../../ui/Button.jsx'
 
 // ── shared styles / helpers ───────────────────────────────────────────────────
 
@@ -117,13 +118,13 @@ export function FilterBar({ preset, setPreset, range, setRange, onExport, onExpo
           {['USD', 'EUR', 'RSD'].map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       )}
-      <button onClick={onExport} disabled={exporting} style={{ ...btnS, background: '#0D9488', color: '#fff', border: 'none' }}>
+      <Button onClick={onExport} disabled={exporting} style={{ background: '#0D9488', color: '#fff', border: 'none' }}>
         {exporting ? t('ai2.filter.exporting') : t('ai2.filter.excelReport')}
-      </button>
+      </Button>
       {onExportPdf && (
-        <button onClick={onExportPdf} disabled={exporting} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>
+        <Button onClick={onExportPdf} disabled={exporting} style={{ background: '#7C3AED', color: '#fff', border: 'none' }}>
           {t('ai2.filter.pdfReport')}
-        </button>
+        </Button>
       )}
       {loading && <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{t('ai2.filter.loadingInline')}</span>}
     </div>

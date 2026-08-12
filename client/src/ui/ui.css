@@ -1,0 +1,92 @@
+/* ── Zajedničke UI klase (P2-A4) ─────────────────────────────────────────────
+   Hover/focus stanja žive ovde (CSS), ne u JS handlerima — rade i mišem i
+   tastaturom. Boje/razmaci dolaze iz CSS varijabli (theme.js). */
+
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font, 'Hanken Grotesk', sans-serif);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: var(--radius-md, 8px);
+  padding: 7px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+.ui-btn:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.ui-btn--subtle { background: var(--surfaceAlt); border: 1px solid var(--borderHover); color: var(--text); }
+.ui-btn--subtle:hover:not(:disabled) { border-color: var(--accent); }
+
+.ui-btn--primary { background: var(--accent); border: 1px solid transparent; color: #fff; }
+.ui-btn--primary:hover:not(:disabled) { background: var(--accentHover); }
+
+.ui-btn--ghost { background: transparent; border: 1px solid var(--border); color: var(--textMuted); }
+.ui-btn--ghost:hover:not(:disabled) { background: var(--surfaceAlt); color: var(--text); }
+
+.ui-btn--danger { background: transparent; border: 1px solid var(--red); color: var(--red); }
+.ui-btn--danger:hover:not(:disabled) { background: var(--redTint); }
+
+/* Mala pilula (filteri, brze akcije u listama) */
+.ui-btn--pill {
+  background: var(--surfaceAlt);
+  border: 1px solid var(--borderHover);
+  color: var(--text);
+  border-radius: var(--radius-sm, 6px);
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.ui-btn--pill:hover:not(:disabled) { border-color: var(--accent); }
+
+.ui-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font, 'Hanken Grotesk', sans-serif);
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.ui-input:focus { border-color: var(--accent); outline: none; }
+.ui-input::placeholder { color: var(--textSubtle); }
+
+.ui-label {
+  display: block;
+  font-size: 11px;
+  font-family: var(--font, 'Hanken Grotesk', sans-serif);
+  color: var(--textMuted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.ui-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.ui-table { width: 100%; border-collapse: collapse; }
+.ui-table th {
+  padding: 8px 12px;
+  font-family: var(--font, 'Hanken Grotesk', sans-serif);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--textMuted);
+  text-align: left;
+  background: var(--surfaceAlt);
+}
+.ui-table td {
+  padding: 8px 12px;
+  font-family: var(--font, 'Hanken Grotesk', sans-serif);
+  font-size: 13px;
+  color: var(--text);
+  border-top: 1px solid var(--border);
+}

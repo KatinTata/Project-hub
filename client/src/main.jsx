@@ -9,6 +9,7 @@ import { ToastProvider } from './ui/Toast.jsx'
 import { ConfirmProvider } from './ui/Confirm.jsx'
 import { queryClient } from './queries.js'
 import App from './App.jsx'
+import './ui/ui.css'
 
 // Apply initial theme before render to avoid flash
 const savedTheme = localStorage.getItem('jt_theme') || 'dark'

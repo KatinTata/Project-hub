@@ -2,7 +2,7 @@ import { useT } from '../../lang.jsx'
 import RichBodyEditor from '../../components/RichBodyEditor.jsx'
 import { GROUP_CONFIG, KEY_COLORS, keyPrefixOf, getHelpLinks, migrateBodyHtml } from '../../lib/renderReleaseNoteHtml.js'
 import { buildHelpUrl, smallBtnStyle, iconBtnStyle } from './uiHelpers.js'
-import { IconLink } from './icons.jsx'
+import { IconLink } from '../../ui/icons.jsx'
 
 // Wizard step 2: edit task names/bodies grouped by section, AI generate/translate,
 // drag tasks between sections, rename sections.

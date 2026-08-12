@@ -34,12 +34,6 @@ export const inputStyle = {
   borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14, boxSizing: 'border-box',
 }
 
-export const pillBtnStyle = {
-  background: 'var(--surfaceAlt)', border: '1px solid var(--borderHover)', borderRadius: 6,
-  color: 'var(--text)', fontSize: 12, fontWeight: 600, fontFamily: 'Hanken Grotesk', cursor: 'pointer', padding: '5px 12px',
-  transition: 'all 0.2s ease', whiteSpace: 'nowrap',
-}
-
 export const iconBtnStyle = {
   background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 14,
   padding: '2px 4px', display: 'flex', alignItems: 'center', flexShrink: 0, transition: 'opacity 0.2s',

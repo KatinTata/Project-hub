@@ -4,7 +4,8 @@ import JqlEditor from '../../components/JqlEditor.jsx'
 import JqlFieldSelect from './JqlFieldSelect.jsx'
 import Step1Row from './Step1Row.jsx'
 import { statusCat } from './uiHelpers.js'
-import { labelStyle, inputStyle, smallBtnStyle, pillBtnStyle } from './uiHelpers.js'
+import { labelStyle, inputStyle, smallBtnStyle } from './uiHelpers.js'
+import Button from '../../ui/Button.jsx'
 
 // Wizard step 1: pick project / JQL / copy-from-existing, then select tasks.
 export default function SelectStep({ source, config, setConfigField, isMobile, onContinue }) {
@@ -170,9 +171,9 @@ export default function SelectStep({ source, config, setConfigField, isMobile, o
             </span>
             {tasks.length > 0 && (
               <>
-                <button onClick={() => setSelectedIds(new Set(tasks.map(t => t.id)))} style={pillBtnStyle}>{t('rne.selectAll')}</button>
-                <button onClick={() => setSelectedIds(new Set())} style={pillBtnStyle}>{t('rne.clearAll')}</button>
-                <button onClick={() => setSelectedIds(new Set(tasks.filter(t => statusCat(t) === 'resolved').map(t => t.id)))} style={pillBtnStyle}>{t('rne.onlyResolved')}</button>
+                <Button variant="pill" onClick={() => setSelectedIds(new Set(tasks.map(t => t.id)))}>{t('rne.selectAll')}</Button>
+                <Button variant="pill" onClick={() => setSelectedIds(new Set())}>{t('rne.clearAll')}</Button>
+                <Button variant="pill" onClick={() => setSelectedIds(new Set(tasks.filter(t => statusCat(t) === 'resolved').map(t => t.id)))}>{t('rne.onlyResolved')}</Button>
               </>
             )}
             <button onClick={onContinue} disabled={selectedIds.size === 0}

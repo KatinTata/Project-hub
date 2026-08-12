@@ -44,6 +44,33 @@ export const themes = {
   },
 }
 
+// ── Dizajn tokeni (P2-A4) ─────────────────────────────────────────────────────
+// Skale razmaka/radijusa/senki/tipografije — koriste se i kao CSS varijable
+// (--space-*, --radius-*, --shadow-*, --font) i kao JS vrednosti za inline stil.
+export const tokens = {
+  space: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
+  radius: { sm: 6, md: 8, lg: 12 },
+  shadow: {
+    pop: '0 8px 24px rgba(0,0,0,0.2)',
+    modal: '0 24px 80px rgba(0,0,0,0.4)',
+  },
+  font: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+}
+
+const tokenVars = {
+  '--space-xs': `${tokens.space.xs}px`,
+  '--space-sm': `${tokens.space.sm}px`,
+  '--space-md': `${tokens.space.md}px`,
+  '--space-lg': `${tokens.space.lg}px`,
+  '--space-xl': `${tokens.space.xl}px`,
+  '--radius-sm': `${tokens.radius.sm}px`,
+  '--radius-md': `${tokens.radius.md}px`,
+  '--radius-lg': `${tokens.radius.lg}px`,
+  '--shadow-pop': tokens.shadow.pop,
+  '--shadow-modal': tokens.shadow.modal,
+  '--font': tokens.font,
+}
+
 export function getEffectiveTheme(mode) {
   if (mode === 'system') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -53,7 +80,7 @@ export function getEffectiveTheme(mode) {
 
 export function applyTheme(mode) {
   const effective = getEffectiveTheme(mode)
-  const vars = themes[effective]
+  const vars = { ...themes[effective], ...tokenVars }
   const root = document.documentElement
   Object.entries(vars).forEach(([key, val]) => root.style.setProperty(key, val))
 }

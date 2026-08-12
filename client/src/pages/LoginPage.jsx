@@ -3,6 +3,10 @@ import { api } from '../api.js'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useT } from '../lang.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
+import Button from '../ui/Button.jsx'
+import Input from '../ui/Input.jsx'
+import Label from '../ui/Label.jsx'
+import Card from '../ui/Card.jsx'
 
 export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
   const t = useT()
@@ -39,15 +43,13 @@ export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
       padding: 20,
     }}>
       <BrainAnimation />
-      <div style={{
+      <Card style={{
         position: 'relative',
         zIndex: 1,
         width: '100%',
         maxWidth: 420,
-        background: 'var(--surface)',
         backdropFilter: 'blur(2px)',
         WebkitBackdropFilter: 'blur(2px)',
-        border: '1px solid var(--border)',
         borderRadius: 16,
         padding: isMobile ? '24px 20px' : '36px 40px',
         boxShadow: '0 16px 48px rgba(0,0,0,0.15)',
@@ -68,29 +70,27 @@ export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>{t('login.email')}</label>
-            <input
+            <Label htmlFor="login-email" style={{ letterSpacing: '0.08em' }}>{t('login.email')}</Label>
+            <Input
+              id="login-email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="vas@email.com"
               required
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
+              style={{ width: '100%', padding: '10px 14px' }}
             />
           </div>
           <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>{t('login.password')}</label>
-            <input
+            <Label htmlFor="login-password" style={{ letterSpacing: '0.08em' }}>{t('login.password')}</Label>
+            <Input
+              id="login-password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
+              style={{ width: '100%', padding: '10px 14px' }}
             />
           </div>
 
@@ -107,51 +107,17 @@ export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
             }}>{error}</div>
           )}
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
             disabled={loading}
-            style={{
-              width: '100%',
-              background: 'var(--accent)',
-              color: '#fff',
-              borderRadius: 8,
-              padding: '11px',
-              fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
-              fontWeight: 600,
-              fontSize: 15,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              border: 'none',
-              opacity: loading ? 0.7 : 1,
-              transition: 'all 0.2s ease',
-            }}
+            style={{ width: '100%', padding: '11px', fontSize: 15 }}
           >
             {loading ? t('login.submitting') : t('login.submit')}
-          </button>
+          </Button>
         </form>
 
-      </div>
+      </Card>
     </div>
   )
-}
-
-const labelStyle = {
-  display: 'block',
-  fontSize: 11,
-  fontFamily: "'Hanken Grotesk'",
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
-  color: 'var(--textMuted)',
-  marginBottom: 6,
-}
-
-const inputStyle = {
-  width: '100%',
-  background: 'var(--bg)',
-  border: '1px solid var(--border)',
-  borderRadius: 8,
-  padding: '10px 14px',
-  color: 'var(--text)',
-  fontSize: 14,
-  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
-  transition: 'border-color 0.2s',
 }
