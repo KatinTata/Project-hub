@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { applyTheme } from './theme.js'
 import { LangProvider } from './lang.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { ToastProvider } from './ui/Toast.jsx'
 import App from './App.jsx'
 
 // Apply initial theme before render to avoid flash
@@ -20,9 +21,11 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <LangProvider>
       <ErrorBoundary>
-        <Suspense fallback={Loading}>
-          <App />
-        </Suspense>
+        <ToastProvider>
+          <Suspense fallback={Loading}>
+            <App />
+          </Suspense>
+        </ToastProvider>
       </ErrorBoundary>
     </LangProvider>
   </StrictMode>
