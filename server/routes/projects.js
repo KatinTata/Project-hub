@@ -2,6 +2,7 @@ import { Router } from 'express'
 import db from '../db.js'
 import { getRole as getUserRole, isAdminRole } from '../rbac.js'
 import { dayInBelgrade } from '../dates.js'
+import { logAudit } from '../audit.js'
 
 const router = Router()
 
@@ -77,6 +78,7 @@ router.delete('/:id', (req, res) => {
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const now = new Date().toISOString()
   db.prepare('UPDATE projects SET archived = 1, archived_at = ? WHERE id = ?').run(now, req.params.id)
+  logAudit(req.userId, 'project.archive', `projekat ${req.params.id}`, req)
   res.json({ ok: true })
 })
 
@@ -107,6 +109,7 @@ router.delete('/:id/permanent', (req, res) => {
   const project = findAdminProject(req.params.id, req.userId)
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   db.prepare('DELETE FROM projects WHERE id = ?').run(req.params.id)
+  logAudit(req.userId, 'project.delete.permanent', `projekat ${req.params.id} trajno obrisan`, req)
   res.json({ ok: true })
 })
 

@@ -167,6 +167,7 @@ router.post('/', (req, res, next) => {
       filePath
     )
 
+    logAudit(req.userId, 'document.upload', `dokument ${r.lastInsertRowid} (${req.file.originalname}, ${req.file.size} B, vidljivost: ${visibleTo})`, req)
     res.json({
       id: r.lastInsertRowid,
       user_id: req.userId,
@@ -233,7 +234,8 @@ router.delete('/:id', (req, res) => {
   if (doc?.file_path) {
     fs.unlink(path.join(uploadsDir, doc.file_path), () => {})
   }
-  db.prepare('DELETE FROM documents WHERE id = ? AND user_id = ?').run(req.params.id, req.userId)
+  const r = db.prepare('DELETE FROM documents WHERE id = ? AND user_id = ?').run(req.params.id, req.userId)
+  if (r.changes > 0) logAudit(req.userId, 'document.delete', `dokument ${req.params.id}`, req)
   res.json({ ok: true })
 })
 

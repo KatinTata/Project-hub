@@ -16,6 +16,7 @@ import { mailConfigured } from '../aiUsage/mailer.js'
 import { buildReportData, buildXlsx, buildReportHtml } from '../aiUsage/report.js'
 import { getRole, isAdminRole } from '../rbac.js'
 import { logger } from '../logger.js'
+import { logAudit } from '../audit.js'
 
 const router = Router()
 const MAX_APP_FILTERS = 40
@@ -347,6 +348,7 @@ router.put('/admin/config', (req, res) => {
       updated_at = CURRENT_TIMESTAMP
     WHERE service_key = 'agentic_admin'
   `).run(base_url?.trim() || null, is_active === undefined ? null : (is_active ? 1 : 0), enc)
+  logAudit(req.userId, 'aiusage.config.update', `base_url: ${base_url?.trim() || '-'}, aktivno: ${is_active ?? '-'}${enc ? ', ključ promenjen' : ''}`, req)
   res.json({ ok: true })
 })
 
@@ -374,6 +376,7 @@ router.put('/admin/pricing-config', (req, res) => {
   const { global_markup_pct, pricing_source_url } = req.body
   db.prepare('UPDATE ai_pricing_config SET global_markup_pct = COALESCE(?, global_markup_pct), pricing_source_url = COALESCE(?, pricing_source_url), updated_at = CURRENT_TIMESTAMP WHERE id = 1')
     .run(global_markup_pct == null ? null : Number(global_markup_pct), pricing_source_url?.trim() || null)
+  logAudit(req.userId, 'aiusage.pricing.update', `globalna marža: ${global_markup_pct ?? '-'}%`, req)
   res.json({ ok: true })
 })
 
@@ -422,6 +425,7 @@ router.put('/admin/models/:modelName', (req, res) => {
     `).run(inP, outP, model_markup_pct == null ? null : Number(model_markup_pct), is_active === undefined ? null : (is_active ? 1 : 0), priceChanged ? 1 : 0, name)
     if (priceChanged) auditPriceChange(name, prev, inP, outP, changedBy)
   }
+  logAudit(req.userId, 'aiusage.model.update', `model ${name}${priceChanged ? ' — cena promenjena' : ''}`, req)
   res.json({ ok: true })
 })
 
@@ -514,6 +518,7 @@ router.put('/admin/mappings/:tenantId', (req, res) => {
       db.prepare('UPDATE client_tenant_mappings SET updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ?').run(tenantId)
     })()
   }
+  logAudit(req.userId, 'aiusage.mapping.update', `tenant ${tenantId}${is_tracked !== undefined ? `, praćen: ${is_tracked ? 'da' : 'ne'}` : ''}${Array.isArray(client_user_ids) ? `, korisnici: [${client_user_ids.join(',')}]` : ''}`, req)
   res.json({ ok: true })
 })
 
@@ -660,6 +665,7 @@ router.put('/budgets/:tenantId', (req, res) => {
       package_id = excluded.package_id,
       updated_at = CURRENT_TIMESTAMP
   `).run(req.params.tenantId, limit, Number(warning_pct) || 80, notify_enabled === false ? 0 : 1, extra_emails?.trim() || null, pkg)
+  logAudit(req.userId, 'aiusage.budget.update', `tenant ${req.params.tenantId}, limit: ${limit ?? '-'} EUR, paket: ${pkg ?? '-'}`, req)
   res.json({ ok: true })
 })
 
@@ -679,6 +685,7 @@ router.post('/admin/packages', (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?)
   `).run(name.trim(), Number(monthly_fee_eur) || 0, Number(included_eur) || 0,
     description?.trim() || null, Number(sort_order) || 0, is_active === false ? 0 : 1)
+  logAudit(req.userId, 'aiusage.package.create', `paket "${name.trim()}" (${Number(monthly_fee_eur) || 0} EUR / ${Number(included_eur) || 0} EUR)`, req)
   res.json({ ok: true, id: info.lastInsertRowid })
 })
 
@@ -691,6 +698,7 @@ router.put('/admin/packages/:id', (req, res) => {
     WHERE id = ?
   `).run(name.trim(), Number(monthly_fee_eur) || 0, Number(included_eur) || 0,
     description?.trim() || null, Number(sort_order) || 0, is_active === false ? 0 : 1, req.params.id)
+  logAudit(req.userId, 'aiusage.package.update', `paket ${req.params.id} ("${name.trim()}")`, req)
   res.json({ ok: true })
 })
 
@@ -698,6 +706,7 @@ router.delete('/admin/packages/:id', (req, res) => {
   if (!requireManage(req, res)) return
   db.prepare('UPDATE tenant_budgets SET package_id = NULL WHERE package_id = ?').run(req.params.id)
   db.prepare('DELETE FROM ai_packages WHERE id = ?').run(req.params.id)
+  logAudit(req.userId, 'aiusage.package.delete', `paket ${req.params.id}`, req)
   res.json({ ok: true })
 })
 

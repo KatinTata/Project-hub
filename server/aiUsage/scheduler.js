@@ -7,6 +7,7 @@ import { fetchTodaysRates } from './fx.js'
 import { checkBudgets } from './budgets.js'
 import { runBackup } from '../backup.js'
 import { runDailySnapshots } from '../snapshots.js'
+import { pruneAuditLog } from '../audit.js'
 
 function belgradeNow() {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -27,11 +28,13 @@ export function startAiUsageScheduler() {
     const { hhmm, weekday } = belgradeNow()
     const today = new Date().toISOString().slice(0, 10)
 
-    // 03:00 daily — SQLite backup (retention handled inside)
+    // 03:00 daily — SQLite backup (retention handled inside) + audit retencija
     if (hhmm === '03:00' && lastBackupRun !== today) {
       lastBackupRun = today
       try { const r = await runBackup(); console.log('[backup] OK ->', r.dest, `(cuva ${r.kept})`) }
       catch (e) { console.error('[backup] failed:', e.message) }
+      const pruned = pruneAuditLog()
+      if (pruned > 0) console.log(`[audit] retencija: obrisano ${pruned} zapisa starijih od godinu dana`)
     }
 
     // 02:00 daily — Azure pricing sync

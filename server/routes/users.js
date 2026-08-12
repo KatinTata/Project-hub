@@ -245,6 +245,8 @@ router.post('/import', requireAdmin, async (req, res) => {
     }
   }
 
+  const created = results.filter(r => r.status === 'created').length
+  logAudit(req.userId, 'user.import', `bulk import: ${created} kreirano, ${results.length - created} preskočeno/greška`, req)
   res.json({ results })
 })
 

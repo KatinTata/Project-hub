@@ -82,6 +82,7 @@ router.put('/jira-config', authMiddleware, requireSuperAdmin, async (req, res) =
     }
     db.prepare('UPDATE users SET jira_url = ?, jira_email = ?, jira_token = ? WHERE id = ?')
       .run(jiraUrl, jiraEmail, encryptedToken, req.userId)
+    logAudit(req.userId, 'config.jira.update', `url: ${jiraUrl || '-'}${jiraToken ? ', token promenjen' : ''}`, req)
     res.json({ ok: true })
   } catch {
     res.status(500).json({ error: 'Greška servera' })
@@ -110,6 +111,7 @@ router.put('/ai-config', authMiddleware, requireSuperAdmin, (req, res) => {
       encryptedKey = existing?.anthropic_key || null
     }
     db.prepare('UPDATE users SET anthropic_key = ? WHERE id = ?').run(encryptedKey, req.userId)
+    logAudit(req.userId, 'config.ai.update', anthropicKey ? 'Anthropic ključ promenjen' : 'bez izmene ključa', req)
     res.json({ ok: true })
   } catch {
     res.status(500).json({ error: 'Greška servera' })
@@ -126,6 +128,7 @@ router.put('/password', authMiddleware, async (req, res) => {
     // token_version++ poništava sve postojeće tokene; novi token vraćamo da
     // TEKUĆA sesija ne bude izbačena (klijent ga čuva umesto starog).
     db.prepare('UPDATE users SET password = ?, token_version = token_version + 1 WHERE id = ?').run(hash, req.userId)
+    logAudit(req.userId, 'user.password.change', null, req)
     res.json({ ok: true, token: signToken(req.userId) })
   } catch {
     res.status(500).json({ error: 'Greška servera' })
@@ -134,6 +137,7 @@ router.put('/password', authMiddleware, async (req, res) => {
 
 router.delete('/account', authMiddleware, async (req, res) => {
   try {
+    logAudit(req.userId, 'user.account.delete', 'korisnik obrisao sopstveni nalog', req)
     db.prepare('DELETE FROM users WHERE id = ?').run(req.userId)
     res.json({ ok: true })
   } catch {
