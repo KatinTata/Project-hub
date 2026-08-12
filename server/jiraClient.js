@@ -2,24 +2,45 @@ import crypto from 'crypto'
 import axios from 'axios'
 import { dayInBelgrade } from './dates.js'
 
-const ALGO = 'aes-256-cbc'
+// ── Enkripcija tajni (P1-15): AES-256-GCM sa autentikacijom ─────────────────
+// Novi format: 'v2:iv:tag:ciphertext' (hex). GCM auth tag garantuje da
+// manipulisan ciphertext pri dekripciji BACA grešku umesto da vrati smeće.
+// Stari CBC format ('iv:ciphertext', bez prefiksa) se i dalje dešifruje radi
+// postojećih zapisa — novi upisi su uvek GCM. ENCRYPTION_KEY ostaje 64 hex.
+
+const GCM_PREFIX = 'v2'
 
 export function encryptToken(text) {
   const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex')
-  const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipheriv(ALGO, key, iv)
+  const iv = crypto.randomBytes(12) // preporučena dužina IV za GCM
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
   const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()])
-  return iv.toString('hex') + ':' + encrypted.toString('hex')
+  const tag = cipher.getAuthTag()
+  return `${GCM_PREFIX}:${iv.toString('hex')}:${tag.toString('hex')}:${encrypted.toString('hex')}`
+}
+
+function decryptGcm(stored) {
+  const [, ivHex, tagHex, encHex] = stored.split(':')
+  const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex')
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'))
+  decipher.setAuthTag(Buffer.from(tagHex, 'hex'))
+  return Buffer.concat([decipher.update(Buffer.from(encHex, 'hex')), decipher.final()]).toString('utf8')
+}
+
+function decryptLegacyCbc(stored) {
+  const [ivHex, encHex] = stored.split(':')
+  const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex')
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, Buffer.from(ivHex, 'hex'))
+  return Buffer.concat([decipher.update(Buffer.from(encHex, 'hex')), decipher.final()]).toString('utf8')
 }
 
 export function decryptToken(stored) {
-  const [ivHex, encHex] = stored.split(':')
-  const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex')
-  const iv = Buffer.from(ivHex, 'hex')
-  const enc = Buffer.from(encHex, 'hex')
-  const decipher = crypto.createDecipheriv(ALGO, key, iv)
-  const decrypted = Buffer.concat([decipher.update(enc), decipher.final()])
-  return decrypted.toString('utf8')
+  return String(stored).startsWith(`${GCM_PREFIX}:`) ? decryptGcm(stored) : decryptLegacyCbc(stored)
+}
+
+// Da li je vrednost u starom CBC formatu (za lazy re-enkripciju pri čitanju).
+export function isLegacyEncrypted(stored) {
+  return !!stored && !String(stored).startsWith(`${GCM_PREFIX}:`)
 }
 
 export function makeJiraAuth(email, token) {

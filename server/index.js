@@ -22,6 +22,7 @@ import settingsRoutes from './routes/settings.js'
 import aiUsageRoutes from './routes/aiUsage.js'
 import auditRoutes from './routes/audit.js'
 import { startAiUsageScheduler } from './aiUsage/scheduler.js'
+import { migrateSecretsToGcm } from './secretsMigration.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -128,6 +129,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Greška servera' })
 })
 
+migrateSecretsToGcm()
 startAiUsageScheduler()
 
 const server = app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
