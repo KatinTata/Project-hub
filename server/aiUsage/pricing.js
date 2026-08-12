@@ -84,11 +84,20 @@ function normalizeMeter(meterName) {
   return null
 }
 
-function pricePer1M(retailPrice, unitOfMeasure) {
-  const u = String(unitOfMeasure || '')
-  if (u.includes('1M')) return retailPrice
-  if (u.includes('100')) return retailPrice * 10000
-  return retailPrice * 1000 // '1K' or assumption
+export function pricePer1M(retailPrice, unitOfMeasure) {
+  // Stara verzija je koristila includes('100') — jedinica "1000 Tokens" sadrži
+  // "100" kao podstring, pa je cena množena 10.000x umesto 1.000x (10x naduvana).
+  // Zato: eksplicitni oblici prvo, pa generičko parsiranje količine.
+  const u = String(unitOfMeasure || '').trim()
+  if (/\b1\s*M\b/i.test(u) || /\b1[,.]?000[,.]?000\b/.test(u)) return retailPrice
+  if (/\b1\s*K\b/i.test(u)) return retailPrice * 1000
+  const m = u.match(/(\d[\d,.\s]*)/)
+  if (m) {
+    const qty = parseInt(m[1].replace(/[,.\s]/g, ''), 10)
+    if (qty > 0) return retailPrice * (1_000_000 / qty)
+  }
+  console.warn(`[ai-pricing] Nepoznata jedinica mere "${unitOfMeasure}" — pretpostavljam 1K tokena`)
+  return retailPrice * 1000 // konzervativan fallback kao i ranije
 }
 
 export async function syncAzurePrices(changedBy = 'sync') {
