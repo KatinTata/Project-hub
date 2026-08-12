@@ -21,6 +21,8 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
       <button
         onClick={() => setOpen(o => !o)}
         title={t('notif.title')}
+        aria-label={t('notif.title')}
+        aria-expanded={open}
         style={{
           position: 'relative',
           width: 34, height: 34, borderRadius: 8,

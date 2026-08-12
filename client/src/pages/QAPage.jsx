@@ -575,7 +575,10 @@ function QAItem({ q, a, isOpen, onToggle }) {
     }}>
       <div
         role="button"
+        tabIndex={0}
+        aria-expanded={isOpen}
         onClick={onToggle}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         style={{

@@ -19,6 +19,14 @@
       a { color: inherit; text-decoration: none; }
       button { cursor: pointer; border: none; background: none; font-family: inherit; }
       input, textarea, select { font-family: inherit; outline: none; }
+      /* P2-C1: vidljiv fokus za tastaturnu navigaciju. !important namerno —
+         pobedjuje rasuti inline outline:none; misem fokusirani elementi
+         (:focus bez :focus-visible) ostaju bez prstena. */
+      :focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 2px; }
+      /* P2-C7: globalno poštuj reduced-motion */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      }
       ::-webkit-scrollbar { width: 6px; height: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
