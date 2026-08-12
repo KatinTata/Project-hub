@@ -225,7 +225,10 @@ router.get('/:id/snapshots', (req, res) => {
     ? findAdminProject(req.params.id, req.userId)
     : db.prepare('SELECT p.id FROM project_clients pc JOIN projects p ON p.id = pc.project_id WHERE pc.client_user_id = ? AND p.id = ?').get(req.userId, req.params.id)
   if (!access) return res.status(404).json({ error: 'Projekat nije pronađen' })
-  const rows = db.prepare('SELECT day, payload FROM project_snapshots WHERE project_id = ? ORDER BY day ASC').all(req.params.id)
+  // P2-B6: default poslednjih 366 dana — dovoljno za godišnji trend, a projekat
+  // sa višegodišnjom istorijom ne šalje sve. ?limit menja opseg.
+  const limit = Math.min(2000, Math.max(1, parseInt(req.query.limit, 10) || 366))
+  const rows = db.prepare('SELECT day, payload FROM (SELECT day, payload FROM project_snapshots WHERE project_id = ? ORDER BY day DESC LIMIT ?) ORDER BY day ASC').all(req.params.id, limit)
   res.json(rows.map(r => {
     let payload = {}
     try { payload = JSON.parse(r.payload) } catch {}

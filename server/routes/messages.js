@@ -166,6 +166,16 @@ router.get('/:projectId', (req, res) => {
     ? { sql: 'AND (m.recipient_user_id IS NULL OR m.recipient_user_id = ? OR m.sender_id = ?)', params: [req.userId, req.userId] }
     : { sql: '', params: [] }
 
+  // Paginacija (P2-B6): default poslednjih 200 poruka; ?before=<id> vraća
+  // stariju stranicu. Bez parametara stari klijent dobija najsvežiju istoriju
+  // (ranije: SVE poruke projekta odjednom).
+  const limit = Math.min(500, Math.max(1, parseInt(req.query.limit, 10) || 200))
+  const before = parseInt(req.query.before, 10)
+  const beforeFilter = Number.isFinite(before)
+    ? { sql: 'AND m.id < ?', params: [before] }
+    : { sql: '', params: [] }
+
+  // Poslednjih N po id DESC, pa obrnuto u hronološki redosled za prikaz
   const messages = db.prepare(`
     SELECT m.id, m.text, m.task_key, m.task_summary, m.subject, m.created_at, m.sender_id, m.recipient_user_id,
            sender.name as sender_name, sender.role as sender_role,
@@ -175,9 +185,14 @@ router.get('/:projectId', (req, res) => {
     JOIN users sender ON sender.id = m.sender_id
     LEFT JOIN users recip ON recip.id = m.recipient_user_id
     LEFT JOIN message_reads mr ON mr.message_id = m.id AND mr.user_id = ?
-    WHERE m.project_id = ? ${recipientFilter.sql}
-    ORDER BY m.created_at ASC
-  `).all(req.userId, req.userId, projectId, ...recipientFilter.params)
+    WHERE m.project_id = ? ${recipientFilter.sql} ${beforeFilter.sql}
+    ORDER BY m.id DESC
+    LIMIT ?
+  `).all(req.userId, req.userId, projectId, ...recipientFilter.params, ...beforeFilter.params, limit + 1)
+
+  const hasMore = messages.length > limit
+  if (hasMore) messages.length = limit
+  messages.reverse()
 
   // Auto-mark as read
   const unread = messages.filter(m => !m.is_read)
@@ -186,6 +201,8 @@ router.get('/:projectId', (req, res) => {
     db.transaction(() => { unread.forEach(m => insert.run(m.id, req.userId)) })()
   }
 
+  // Niz kao i ranije (backward-kompatibilno); hasMore kroz response header.
+  res.setHeader('X-Has-More', hasMore ? '1' : '0')
   res.json(messages)
 })
 

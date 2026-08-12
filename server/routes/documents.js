@@ -88,6 +88,9 @@ const META = 'id, user_id, section_id, name, original_name, file_size, thumbnail
 
 router.get('/', (req, res) => {
   const role = getRole(req.userId)
+  // P2-B6: default prvih 200 dokumenata (najnoviji prvo); ?limit/?offset za dalje.
+  const limit = Math.min(500, Math.max(1, parseInt(req.query.limit, 10) || 200))
+  const offset = Math.max(0, parseInt(req.query.offset, 10) || 0)
   if (!isAdminRole(role)) {
     // Client sees only documents from admins they're linked to (via assigned projects),
     // and only those marked visible to them.
@@ -99,13 +102,13 @@ router.get('/', (req, res) => {
     if (adminIds.length === 0) return res.json([])
     const ph = adminIds.map(() => '?').join(',')
     const docs = db.prepare(
-      `SELECT ${META} FROM documents WHERE user_id IN (${ph}) ORDER BY created_at DESC`
-    ).all(...adminIds)
+      `SELECT ${META} FROM documents WHERE user_id IN (${ph}) ORDER BY created_at DESC LIMIT ? OFFSET ?`
+    ).all(...adminIds, limit, offset)
     return res.json(docs.filter(d => canClientSee(d, req.userId)))
   }
   const docs = db.prepare(
-    `SELECT ${META} FROM documents WHERE user_id = ? ORDER BY created_at DESC`
-  ).all(req.userId)
+    `SELECT ${META} FROM documents WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`
+  ).all(req.userId, limit, offset)
   res.json(docs)
 })
 

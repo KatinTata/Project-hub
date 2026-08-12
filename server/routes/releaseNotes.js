@@ -767,7 +767,8 @@ router.get('/list', (req, res) => {
       LEFT JOIN release_note_sections rns ON rns.id = pn.section_id
       WHERE pn.user_id = ?
       ORDER BY pn.created_at DESC
-    `).all(req.userId)
+      LIMIT ? OFFSET ?
+    `).all(req.userId, Math.min(500, parseInt(req.query.limit, 10) || 200), parseInt(req.query.offset, 10) || 0)
     res.json({ notes })
   } catch (err) {
     { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
@@ -788,7 +789,8 @@ router.get('/client-list', (req, res) => {
       LEFT JOIN release_note_sections rns ON rns.id = pn.section_id
       WHERE rnc.client_user_id = ?
       ORDER BY pn.created_at DESC
-    `).all(req.userId)
+      LIMIT ? OFFSET ?
+    `).all(req.userId, Math.min(500, parseInt(req.query.limit, 10) || 200), parseInt(req.query.offset, 10) || 0)
     res.json({ notes })
   } catch (err) {
     { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }

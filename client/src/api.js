@@ -91,7 +91,13 @@ export const api = {
   getJqlSuggestions: (fieldName, fieldValue) => request('GET', `/jira/jql-suggestions?fieldName=${encodeURIComponent(fieldName)}&fieldValue=${encodeURIComponent(fieldValue || '')}`),
 
   // Messages
-  getMessages: (projectId) => request('GET', `/messages/${projectId}`),
+  getMessages: (projectId, { before, limit } = {}) => {
+    const q = new URLSearchParams()
+    if (before) q.set('before', before)
+    if (limit) q.set('limit', limit)
+    const qs = q.toString()
+    return request('GET', `/messages/${projectId}${qs ? '?' + qs : ''}`)
+  },
   sendMessage: (projectId, body) => request('POST', `/messages/${projectId}`, body),
   getUnreadCount: () => request('GET', '/messages/unread-count'),
   getRecentUnread: () => request('GET', '/messages/recent-unread'),

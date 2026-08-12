@@ -31,6 +31,7 @@ export default function MessagesPage({
 
   // Messages for active project
   const [messages, setMessages] = useState([])
+  const [hasOlder, setHasOlder] = useState(false)
   const [clients, setClients] = useState([])
   const [taskInfoMap, setTaskInfoMap] = useState({})
   const [loadingMsgs, setLoadingMsgs] = useState(false)
@@ -74,11 +75,21 @@ export default function MessagesPage({
     if (!loadingMsgs) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, threadFilter, loadingMsgs])
 
+  async function loadOlder() {
+    if (!activeId || !messages.length) return
+    try {
+      const older = await api.getMessages(activeId, { before: messages[0].id })
+      setHasOlder(older.length >= 200)
+      if (older.length) setMessages(prev => [...older, ...prev])
+    } catch {}
+  }
+
   async function loadMessages(projectId) {
     setLoadingMsgs(true)
     try {
       const msgs = await api.getMessages(projectId)
       setMessages(msgs)
+      setHasOlder(msgs.length >= 200) // server default limit — pun odgovor znači da starijih verovatno ima
       const fromDb = {}
       msgs.forEach(m => { if (m.task_key && m.task_summary) fromDb[m.task_key] = m.task_summary })
       setTaskInfoMap(fromDb)
@@ -339,7 +350,17 @@ export default function MessagesPage({
                   {threadFilter === 'all' ? t('msg.noMessages') : t('msg.noThreadMessages')}
                 </div>
               ) : (
-                filtered.map((m, i) => {
+                <>
+                {hasOlder && (
+                  <button onClick={loadOlder} style={{
+                    alignSelf: 'center', marginBottom: 12, padding: '6px 16px', borderRadius: 8,
+                    background: 'transparent', border: '1px solid var(--border)', color: 'var(--accent)',
+                    fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  }}>
+                    {t('msg.loadOlder')}
+                  </button>
+                )}
+                {filtered.map((m, i) => {
                   const isMe = m.sender_id === user.id
                   const prevMsg = filtered[i - 1]
                   const showHeader = !prevMsg || prevMsg.sender_id !== m.sender_id ||
@@ -397,7 +418,8 @@ export default function MessagesPage({
                       </div>
                     </div>
                   )
-                })
+                })}
+                </>
               )}
               <div ref={bottomRef} />
             </div>
