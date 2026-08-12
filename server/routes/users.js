@@ -107,6 +107,11 @@ router.put('/:id', requireAdmin, async (req, res) => {
       values.push(hash)
     }
 
+    // P1-11: promena role ili reset lozinke poništava postojeće sesije korisnika
+    if ((role && role !== target.role) || password?.trim()) {
+      fields.push('token_version = token_version + 1')
+    }
+
     values.push(req.params.id)
     db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...values)
 

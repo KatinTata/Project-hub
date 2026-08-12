@@ -77,7 +77,9 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
     setPwLoading(true)
     setPwMsg(null)
     try {
-      await api.changePassword({ oldPassword, newPassword })
+      const resp = await api.changePassword({ oldPassword, newPassword })
+      // Server posle promene lozinke poništava stare tokene i vraća nov (P1-11)
+      if (resp?.token) localStorage.setItem('jt_token', resp.token)
       setPwMsg({ ok: true, msg: t('settings.password.changed') })
       setOldPassword('')
       setNewPassword('')

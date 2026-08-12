@@ -114,6 +114,8 @@ try { db.exec(`ALTER TABLE messages ADD COLUMN recipient_user_id INTEGER DEFAULT
 try { db.exec(`ALTER TABLE messages ADD COLUMN task_summary TEXT DEFAULT NULL`) } catch {}
 try { db.exec(`ALTER TABLE messages ADD COLUMN subject TEXT DEFAULT NULL`) } catch {}
 try { db.exec(`ALTER TABLE users ADD COLUMN anthropic_key TEXT`) } catch {}
+// P1-11: revokacija sesija — inkrement pri promeni lozinke/role poništava stare JWT-ove
+try { db.exec(`ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0`) } catch {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS phases (

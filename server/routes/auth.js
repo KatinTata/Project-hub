@@ -10,7 +10,8 @@ import { requireSuperAdmin } from '../rbac.js'
 const router = Router()
 
 function signToken(userId) {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
+  const tv = db.prepare('SELECT token_version FROM users WHERE id = ?').get(userId)?.token_version || 0
+  return jwt.sign({ userId, tv }, process.env.JWT_SECRET, { expiresIn: '7d' })
 }
 
 // First-run setup — only works if no users exist yet
@@ -122,8 +123,10 @@ router.put('/password', authMiddleware, async (req, res) => {
     const match = await bcrypt.compare(oldPassword, user.password)
     if (!match) return res.status(400).json({ error: 'Pogrešna trenutna lozinka' })
     const hash = await bcrypt.hash(newPassword, 12)
-    db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hash, req.userId)
-    res.json({ ok: true })
+    // token_version++ poništava sve postojeće tokene; novi token vraćamo da
+    // TEKUĆA sesija ne bude izbačena (klijent ga čuva umesto starog).
+    db.prepare('UPDATE users SET password = ?, token_version = token_version + 1 WHERE id = ?').run(hash, req.userId)
+    res.json({ ok: true, token: signToken(req.userId) })
   } catch {
     res.status(500).json({ error: 'Greška servera' })
   }
