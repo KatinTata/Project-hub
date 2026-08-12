@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import Badge from './ui/Badge.jsx'
 import ProgressBar from './ui/ProgressBar.jsx'
 import { fmtHours, getStatusCategory } from '../utils.js'
@@ -436,21 +437,59 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
           Nema taskova
         </div>
       ) : (
-        filtered.map(task => (
-          <TaskRow
-            key={task.key}
-            task={task}
-            expanded={!!expanded[task.key]}
-            onToggle={() => toggleExpand(task.key)}
-            isMobile={isMobile}
-            isTablet={isTablet}
-            isClient={isClient}
-            onOpenQuickMsg={onOpenMessages ? (task) => onOpenMessages(task.key) : undefined}
-            jiraUrl={jiraUrl}
-          />
-        ))
+        <VirtualRows
+          filtered={filtered}
+          expanded={expanded}
+          toggleExpand={toggleExpand}
+          isMobile={isMobile}
+          isTablet={isTablet}
+          isClient={isClient}
+          onOpenMessages={onOpenMessages}
+          jiraUrl={jiraUrl}
+        />
       )}
 
+    </div>
+  )
+}
+
+// Virtualizovani redovi (P2-B2): projekat sa 300+ taskova više ne drži sve
+// redove u DOM-u. useWindowVirtualizer zadržava skrol STRANICE (bez unutrašnjeg
+// skrolbara); measureElement meri stvarnu visinu pa expand/collapse radi.
+function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isClient, onOpenMessages, jiraUrl }) {
+  const listRef = useRef(null)
+  const virtualizer = useWindowVirtualizer({
+    count: filtered.length,
+    estimateSize: () => 56,
+    overscan: 12,
+    scrollMargin: listRef.current?.offsetTop ?? 0,
+    getItemKey: i => filtered[i].key,
+  })
+
+  return (
+    <div ref={listRef} style={{ position: 'relative', height: virtualizer.getTotalSize() }}>
+      {virtualizer.getVirtualItems().map(vi => {
+        const task = filtered[vi.index]
+        return (
+          <div
+            key={task.key}
+            data-index={vi.index}
+            ref={virtualizer.measureElement}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${vi.start - virtualizer.options.scrollMargin}px)` }}
+          >
+            <TaskRow
+              task={task}
+              expanded={!!expanded[task.key]}
+              onToggle={() => toggleExpand(task.key)}
+              isMobile={isMobile}
+              isTablet={isTablet}
+              isClient={isClient}
+              onOpenQuickMsg={onOpenMessages ? (task) => onOpenMessages(task.key) : undefined}
+              jiraUrl={jiraUrl}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 }
