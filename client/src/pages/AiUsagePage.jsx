@@ -316,8 +316,40 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
 
 // ── tables ────────────────────────────────────────────────────────────────────
 
+// P2-B2: velike tabele ne renderuju sve redove odjednom — prvih 50 + "prikaži
+// još". (<table> semantika se ne slaže sa absolute-position virtualizacijom,
+// a redovi ovde su lagani pa je inkrementalni prikaz dovoljan.)
+const ROWS_STEP = 50
+
+function useRevealRows(rows) {
+  const [limit, setLimit] = useState(ROWS_STEP)
+  const all = rows || []
+  return {
+    visible: all.slice(0, limit),
+    hiddenCount: Math.max(0, all.length - limit),
+    showMore: () => setLimit(l => l + ROWS_STEP),
+  }
+}
+
+function ShowMoreRow({ colSpan, hiddenCount, onClick, t }) {
+  if (!hiddenCount) return null
+  return (
+    <tr>
+      <td colSpan={colSpan} style={{ padding: 0 }}>
+        <button onClick={onClick} style={{
+          width: '100%', padding: '10px 0', background: 'var(--surfaceAlt)', border: 'none',
+          color: 'var(--accent)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, fontWeight: 600, cursor: 'pointer',
+        }}>
+          {t('ai2.showMore', { n: hiddenCount })}
+        </button>
+      </td>
+    </tr>
+  )
+}
+
 function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded, setExpanded }) {
   const t = useT()
+  const { visible, hiddenCount, showMore } = useRevealRows(rows)
   if (!rows?.length) return null
   const total = rows.reduce((s, r) => s + r.cost_usd, 0)
   return (
@@ -333,7 +365,7 @@ function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.share')}</th>
         </tr></thead>
         <tbody>
-          {rows.map(r => {
+          {visible.map(r => {
             const id = r[idKey]
             const kids = r[childKey] || []
             const isOpen = !!expanded[id]
@@ -356,6 +388,7 @@ function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded
               )) : []),
             ]
           })}
+          <ShowMoreRow colSpan={5} hiddenCount={hiddenCount} onClick={showMore} t={t} />
         </tbody>
       </table>
     </div>
@@ -364,6 +397,7 @@ function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded
 
 function SimpleTable({ title, rows, nameKey, costKey = 'cost', cur = 'USD' }) {
   const t = useT()
+  const { visible, hiddenCount, showMore } = useRevealRows(rows)
   if (!rows?.length) return null
   const total = rows.reduce((s, r) => s + (r[costKey] || 0), 0)
   return (
@@ -378,7 +412,7 @@ function SimpleTable({ title, rows, nameKey, costKey = 'cost', cur = 'USD' }) {
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.tokens')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.cost')}</th>
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.share')}</th>
         </tr></thead>
-        <tbody>{rows.map((r, i) => (
+        <tbody>{visible.map((r, i) => (
           <tr key={i}>
             <td style={tdStyle}>{r[nameKey]}</td>
             <td style={{ ...tdMono, textAlign: 'right' }}>{fmtNum(r.requests)}</td>
@@ -386,7 +420,9 @@ function SimpleTable({ title, rows, nameKey, costKey = 'cost', cur = 'USD' }) {
             <td style={{ ...tdMono, textAlign: 'right', fontWeight: 600 }}>{fmtMoney(r[costKey], cur)}</td>
             <td style={{ ...tdMono, textAlign: 'right', color: 'var(--textMuted)' }}>{total > 0 ? Math.round((r[costKey] || 0) / total * 100) + '%' : '—'}</td>
           </tr>
-        ))}</tbody>
+        ))}
+          <ShowMoreRow colSpan={5} hiddenCount={hiddenCount} onClick={showMore} t={t} />
+        </tbody>
       </table>
     </div>
   )
@@ -394,6 +430,7 @@ function SimpleTable({ title, rows, nameKey, costKey = 'cost', cur = 'USD' }) {
 
 function ModelsTable({ rows }) {
   const t = useT()
+  const { visible, hiddenCount, showMore } = useRevealRows(rows)
   if (!rows?.length) return null
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
@@ -404,7 +441,7 @@ function ModelsTable({ rows }) {
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.input')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.output')}</th>
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.cost')}</th>
         </tr></thead>
-        <tbody>{rows.map(r => (
+        <tbody>{visible.map(r => (
           <tr key={r.model}>
             <td style={tdStyle}>
               {r.model}
@@ -415,7 +452,9 @@ function ModelsTable({ rows }) {
             <td style={{ ...tdMono, textAlign: 'right' }}>{fmtTok(r.completion_tokens)}</td>
             <td style={{ ...tdMono, textAlign: 'right', fontWeight: 600 }}>{fmtMoney(r.cost_usd)}</td>
           </tr>
-        ))}</tbody>
+        ))}
+          <ShowMoreRow colSpan={5} hiddenCount={hiddenCount} onClick={showMore} t={t} />
+        </tbody>
       </table>
     </div>
   )
