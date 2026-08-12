@@ -37,7 +37,7 @@ function handleErr(res, err, emptyPayload) {
     return res.json({ ...emptyPayload, not_configured: true, cost_basis: 'none' })
   }
   console.error('[ai-usage]', err)
-  res.status(500).json({ error: err.message })
+  { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
 }
 
 // ── Dashboard KPI (§7.1) ──────────────────────────────────────────────────────
@@ -439,13 +439,13 @@ router.post('/admin/sync', async (req, res) => {
   try {
     const email = db.prepare('SELECT email FROM users WHERE id = ?').get(req.userId)?.email || 'sync'
     res.json(await syncAzurePrices(email))
-  } catch (err) { res.status(500).json({ error: err.message }) }
+  } catch (err) { { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) } }
 })
 
 router.post('/admin/fx-fetch', async (req, res) => {
   if (!requireManage(req, res)) return
   try { res.json({ results: await fetchTodaysRates() }) }
-  catch (err) { res.status(500).json({ error: err.message }) }
+  catch (err) { { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) } }
 })
 
 // ── Tenant ↔ client mapping (Faza 3) ─────────────────────────────────────────
@@ -489,7 +489,7 @@ router.post('/admin/mappings/discover', async (req, res) => {
     res.json({ ok: true, discovered: n })
   } catch (err) {
     if (err instanceof AdminApiNotConfiguredError) return res.status(400).json({ error: 'Admin API nije konfigurisan' })
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -703,7 +703,7 @@ router.delete('/admin/packages/:id', (req, res) => {
 router.post('/budgets/check', async (req, res) => {
   if (!requireManage(req, res)) return
   try { res.json(await checkBudgets()) }
-  catch (err) { res.status(500).json({ error: err.message }) }
+  catch (err) { { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) } }
 })
 
 // Client-facing: own budget status (first mapped tenant that has a limit)
@@ -754,7 +754,7 @@ router.get('/export/xlsx', async (req, res) => {
   } catch (err) {
     if (err instanceof AdminApiNotConfiguredError) return res.status(400).json({ error: 'Admin API nije konfigurisan' })
     console.error('[ai-usage xlsx]', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -771,7 +771,7 @@ router.get('/export/html', async (req, res) => {
   } catch (err) {
     if (err instanceof AdminApiNotConfiguredError) return res.status(400).json({ error: 'Admin API nije konfigurisan' })
     console.error('[ai-usage html]', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 

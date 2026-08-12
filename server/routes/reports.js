@@ -51,7 +51,7 @@ router.post('/:projectId/excel', async (req, res) => {
     res.send(Buffer.from(buffer))
   } catch (err) {
     console.error('reports/excel error:', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 

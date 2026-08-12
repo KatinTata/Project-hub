@@ -23,6 +23,7 @@ import aiUsageRoutes from './routes/aiUsage.js'
 import auditRoutes from './routes/audit.js'
 import { startAiUsageScheduler } from './aiUsage/scheduler.js'
 import { migrateSecretsToGcm } from './secretsMigration.js'
+import { logger, httpLogger } from './logger.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -67,6 +68,14 @@ app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false 
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }))
 app.use(express.json({ limit: '20mb' }))
+app.use(httpLogger)
+
+// Health check (bez autentikacije) — za Railway healthcheck i monitoring.
+app.get('/health', (req, res) => {
+  let dbOk = false
+  try { dbOk = db.prepare('SELECT 1 as ok').get()?.ok === 1 } catch {}
+  res.status(dbOk ? 200 : 503).json({ status: dbOk ? 'ok' : 'degraded', uptime: Math.round(process.uptime()), dbOk })
+})
 
 // Generous safety-net limiter for the whole API — blocks gross abuse without
 // interfering with normal dashboard use.
@@ -122,22 +131,23 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Global error handler — last resort for errors that escape a route's own
-// try/catch. Never leaks internals to the client.
+// try/catch. Never leaks internals to the client; requestId povezuje odgovor
+// sa punim stack trace-om u logu.
 app.use((err, req, res, next) => {
-  console.error('Neuhvaćena greška:', err)
+  logger.error({ err, requestId: req.id }, 'Neuhvaćena greška')
   if (res.headersSent) return next(err)
-  res.status(500).json({ error: 'Greška servera' })
+  res.status(500).json({ error: 'Greška servera', requestId: req.id })
 })
 
 migrateSecretsToGcm()
 startAiUsageScheduler()
 
-const server = app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
+const server = app.listen(PORT, () => logger.info(`Server running on http://localhost:${PORT}`))
 
 // Keep the process alive on stray async errors instead of Node's default hard
 // crash, but make them visible in logs.
-process.on('unhandledRejection', (reason) => console.error('Unhandled promise rejection:', reason))
-process.on('uncaughtException', (err) => console.error('Uncaught exception:', err))
+process.on('unhandledRejection', (reason) => logger.error({ err: reason }, 'Unhandled promise rejection'))
+process.on('uncaughtException', (err) => logger.error({ err }, 'Uncaught exception'))
 
 // Graceful shutdown so SQLite (WAL) checkpoints cleanly on Railway redeploys.
 function shutdown(signal) {

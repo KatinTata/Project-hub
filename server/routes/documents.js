@@ -180,7 +180,7 @@ router.post('/', (req, res, next) => {
     })
   } catch (err) {
     if (req.file) fs.unlink(req.file.path, () => {})
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -223,7 +223,7 @@ router.get('/:id/download', (req, res) => {
     if (doc.file_size) res.setHeader('Content-Length', doc.file_size)
     res.send(doc.file_data)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 

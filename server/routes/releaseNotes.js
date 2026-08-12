@@ -184,7 +184,7 @@ router.post('/task-detail', async (req, res) => {
     })
   } catch (err) {
     console.error('task-detail error:', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -213,7 +213,7 @@ router.post('/tasks', async (req, res) => {
     res.json({ tasks, projectName: project?.display_name || project?.epic_key || 'JQL' })
   } catch (err) {
     console.error('releaseNotes /tasks error:', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -235,7 +235,7 @@ router.post('/field-suggestions', async (req, res) => {
     res.json({ results })
   } catch (err) {
     console.error('field-suggestions error:', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -394,7 +394,7 @@ router.post('/export/xlsx', async (req, res) => {
     res.end()
   } catch (err) {
     console.error('release-notes xlsx error:', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -497,7 +497,7 @@ router.post('/export/docx', async (req, res) => {
     res.send(buffer)
   } catch (err) {
     console.error('releaseNotes /export/docx error:', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -652,7 +652,7 @@ router.post('/ai-enhance', async (req, res) => {
     res.json({ result })
   } catch (err) {
     console.error('releaseNotes /ai-enhance error:', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -663,7 +663,7 @@ router.get('/sections', (req, res) => {
     const sections = db.prepare('SELECT id, name, position FROM release_note_sections WHERE user_id = ? ORDER BY position ASC, name ASC').all(req.userId)
     res.json({ sections })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -676,7 +676,7 @@ router.post('/sections', (req, res) => {
     const result = db.prepare('INSERT INTO release_note_sections (user_id, name, position) VALUES (?, ?, ?)').run(req.userId, name.trim(), position)
     res.json({ id: result.lastInsertRowid, name: name.trim(), position })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -687,7 +687,7 @@ router.delete('/sections/:id', (req, res) => {
     db.prepare('DELETE FROM release_note_sections WHERE id = ?').run(sec.id)
     res.json({ ok: true })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -740,7 +740,7 @@ router.post('/publish', (req, res) => {
     res.json({ token, id: noteRow?.id, updated: false })
   } catch (err) {
     console.error('publish error:', err)
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -771,7 +771,7 @@ router.get('/list', (req, res) => {
     `).all(req.userId)
     res.json({ notes })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -792,7 +792,7 @@ router.get('/client-list', (req, res) => {
     `).all(req.userId)
     res.json({ notes })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -824,7 +824,7 @@ router.get('/:id/detail', (req, res) => {
     if (!note) return res.status(404).json({ error: 'Nije pronađeno' })
     res.json({ note })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -841,7 +841,7 @@ router.get('/:id/clients', (req, res) => {
     `).all(note.id)
     res.json({ clients })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -858,7 +858,7 @@ router.put('/:id/clients', (req, res) => {
     for (const cid of (clientIds || [])) insert.run(note.id, cid)
     res.json({ ok: true })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -872,7 +872,7 @@ router.put('/:id/release', (req, res) => {
       .run('released', note.id)
     res.json({ ok: true })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -886,7 +886,7 @@ router.delete('/:id', (req, res) => {
     logAudit(req.userId, 'releasenote.delete', `note id=${note.id}`, req)
     res.json({ ok: true })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 

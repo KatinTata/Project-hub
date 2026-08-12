@@ -77,7 +77,7 @@ router.get('/epic/:epicKey', async (req, res) => {
     const data = await jiraGet(jira.jiraUrl, `/issue/${encodeURIComponent(req.params.epicKey)}`, jira.auth)
     res.json(data)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -201,7 +201,7 @@ router.post('/tasks', async (req, res) => {
 
     res.json({ parents, subtasks, epicSelf, hasBillableField: !!billableKey, hasModuleField: !!moduleKey })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -245,7 +245,7 @@ router.post('/test-jql', requireInternal, async (req, res) => {
 
     res.json({ count, preview })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -313,7 +313,7 @@ router.get('/task-info/:key', async (req, res) => {
     const data = await jiraGet(jira.jiraUrl, `/issue/${encodeURIComponent(req.params.key)}?fields=summary`, jira.auth)
     res.json({ key: req.params.key, summary: data.fields?.summary || '' })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
@@ -339,7 +339,7 @@ router.get('/changelog/:key', requireInternal, async (req, res) => {
       changelog: result,
     })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }
 })
 
