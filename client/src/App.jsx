@@ -15,7 +15,7 @@ const ReleaseNotesEditorPage = lazy(() => import('./pages/releaseNotesEditor/Rel
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage.jsx'))
 const MessagesPage = lazy(() => import('./pages/MessagesPage.jsx'))
 const QAPage = lazy(() => import('./pages/QAPage.jsx'))
-const AiUsagePage = lazy(() => import('./pages/AiUsagePage.jsx'))
+const AiUsagePage = lazy(() => import('./pages/aiUsage/AiUsagePage.jsx'))
 
 // Single source of truth for URL <-> page mapping, so the initial load, login
 // and browser Back/Forward all resolve the same way.
