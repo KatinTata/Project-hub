@@ -63,15 +63,16 @@ describe('buildCapacity — prozor i load', () => {
     expect(c.rows[0].cells.Backend.status).toBe('none')
   })
 
-  // [BUG P1-8.5] prozor bez ijednog radnog dana (vikend) → capacity 0, load null, status over
-  it('prozor samo vikend → over sa load=null (golden master)', () => {
+  // [ISPRAVKA P1-8.5] prozor bez ijednog radnog dana → jasan status 'nocapacity', ne lažni 'over'
+  it('prozor samo vikend → nocapacity umesto over sa praznim brojem', () => {
     const phases = [phase(1, 'F1', '2026-08-15', '2026-08-16', ['A-1'])] // sub-ned
     const c = buildCapacity([task('A-1', { est: 13 * H })], phases, {}, { peoplePerStack: { Backend: 1 } })
     const cell = c.rows[0].cells.Backend
     expect(c.rows[0].workingDays).toBe(0)
     expect(cell.capacity).toBe(0)
     expect(cell.load).toBe(null)
-    expect(cell.status).toBe('over')
+    expect(cell.status).toBe('nocapacity')
+    expect(c.rows[0].worst).toBe('nocapacity')
   })
 
   it('done taskovi ne prave demand (remaining basis)', () => {
@@ -111,8 +112,8 @@ describe('buildCapacity — preklapanja (overallocation)', () => {
     expect(c.warnings).toHaveLength(0)
   })
 
-  // [BUG P1-8.6] tri paralelne faze po 3h/dan = 9h/dan stvarno, ali parovi daju 6h < 6.5h
-  it('tri paralelne faze po 3h/dan ne prave upozorenje (golden master)', () => {
+  // [ISPRAVKA P1-8.6] opterećenje se sabira preko SVIH aktivnih faza, ne parno
+  it('tri paralelne faze po 3h/dan → upozorenje sa 9h/dan', () => {
     const phases = [
       phase(1, 'F1', '2026-08-10', '2026-08-14', ['A-1']),
       phase(2, 'F2', '2026-08-10', '2026-08-14', ['B-1']),
@@ -124,7 +125,23 @@ describe('buildCapacity — preklapanja (overallocation)', () => {
       task('C-1', { est: 15 * H, assignee: 'Ana' }),
     ]
     const c = buildCapacity(tasks, phases, {}, {})
-    expect(c.warnings).toHaveLength(0) // stvarno opterećenje 9h/dan — bug dokumentovan
+    expect(c.warnings).toHaveLength(1)
+    expect(c.warnings[0].perDay).toBeCloseTo(9)
+    expect(c.warnings[0].phases).toHaveLength(3)
+  })
+
+  it('delimično preklopljene faze: najgori segment određuje upozorenje', () => {
+    const phases = [
+      phase(1, 'F1', '2026-08-10', '2026-08-14', ['A-1']),
+      phase(2, 'F2', '2026-08-12', '2026-08-18', ['B-1']),
+    ]
+    const tasks = [
+      task('A-1', { est: 20 * H, assignee: 'Ana' }), // 4h/dan u F1
+      task('B-1', { est: 20 * H, assignee: 'Ana' }), // 4h/dan u F2
+    ]
+    const c = buildCapacity(tasks, phases, {}, {})
+    expect(c.warnings).toHaveLength(1)
+    expect(c.warnings[0].perDay).toBeCloseTo(8)
   })
 
   it('Neraspoređeno se ne računa u preklapanja', () => {

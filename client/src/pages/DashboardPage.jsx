@@ -202,7 +202,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           for (const s of sm.stacks) stacks[s] = { plan: sm.colTotals[s].plan, spent: sm.colTotals[s].spent, remaining: sm.colTotals[s].remaining }
           const billableSpent = (data.tasks || []).reduce((acc, t) => acc + billableSecondsOf(t), 0)
           api.saveSnapshot(project.id, {
-            total: data.total, done: data.done, inprog: data.inprog, testing: data.testing, todo: data.todo,
+            total: data.total, done: data.done, inprog: data.inprog, testing: data.testing, todo: data.todo, unknown: data.unknown || 0,
             totalEst: data.totalEst, totalSpent: data.totalSpent, remainingEst: sm.grand.remaining, billableSpent, stacks,
           }).catch(() => {})
         } catch {}

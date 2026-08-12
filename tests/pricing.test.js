@@ -88,12 +88,22 @@ describe('makePriceResolver — rezolucija modela', () => {
     expect(makePriceResolver()('my-gpt-4o-deployment').priced).toBe(true)
   })
 
-  // [BUG P1-8.10] gpt-4o bez svog reda pada na cenu gpt-4 i priced=true
-  it('gpt-4o bez svog reda pada na gpt-4 (golden master)', () => {
+  // [ISPRAVKA P1-8.10] gpt-4o bez svog reda NE pada na gpt-4 — necenovan umesto tiho pogrešan
+  it('gpt-4o bez svog reda je necenovan, ne dobija cenu gpt-4', () => {
     seed([{ model: 'gpt-4', input: 30, output: 60 }])
     const r = makePriceResolver()('gpt-4o')
-    expect(r.inputPer1m).toBe(30)
-    expect(r.priced).toBe(true) // tiho pogrešna cena — dokumentovan bug
+    expect(r.priced).toBe(false)
+    expect(r.inputPer1m).toBe(0)
+  })
+
+  it('gpt-4.1-nano ne pada na gpt-4 (tačka je deo imena)', () => {
+    seed([{ model: 'gpt-4', input: 30, output: 60 }])
+    expect(makePriceResolver()('gpt-4.1-nano').priced).toBe(false)
+  })
+
+  it('gpt-4o ne dobija cenu gpt-4o-mini kad egzaktan red ne postoji', () => {
+    seed([{ model: 'gpt-4o-mini', input: 0.15, output: 0.6 }])
+    expect(makePriceResolver()('gpt-4o').priced).toBe(false)
   })
 
   it('nepoznat model (Claude) → priced=false, cena 0', () => {
@@ -175,9 +185,11 @@ describe('normalizeMeter', () => {
     expect(normalizeMeter('llama-3 Input Tokens')).toBe(null)
   })
 
-  // [BUG P1-8.11 kontekst] Claude i drugi ne-GPT modeli nisu u CANONICAL
-  it('claude meter nije obuhvaćen (golden master)', () => {
-    expect(normalizeMeter('claude-sonnet Input Tokens')).toBe(null)
+  // [ISPRAVKA P1-8.11] Claude i drugi ne-GPT modeli su sada u CANONICAL
+  it('claude meteri su obuhvaćeni', () => {
+    expect(normalizeMeter('claude-sonnet Input Tokens')?.model).toBe('claude-sonnet')
+    expect(normalizeMeter('claude-sonnet-4.5 glbl Input Tokens')?.model).toBe('claude-sonnet-4.5')
+    expect(normalizeMeter('deepseek-r1 Output Tokens')?.model).toBe('deepseek-r1')
   })
 })
 

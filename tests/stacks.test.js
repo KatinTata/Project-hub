@@ -28,10 +28,14 @@ describe('remainingOf', () => {
   it('inprog → plan − spent', () => {
     expect(remainingOf('inprog', 10 * H, 3 * H)).toBe(7 * H)
   })
-  // [BUG P1-8.4] otvoren task koji je probio estimaciju daje 0 preostalog
-  it('inprog preko plana → 0 (golden master)', () => {
-    expect(remainingOf('inprog', 10 * H, 15 * H)).toBe(0)
-    expect(remainingOf('testing', 5 * H, 5 * H)).toBe(0)
+  // [ISPRAVKA P1-8.4] otvoren task preko plana zadržava rep od 10% estimacije
+  it('inprog preko plana → 10% plana kao minimalni preostali rad', () => {
+    expect(remainingOf('inprog', 10 * H, 15 * H)).toBe(1 * H)
+    expect(remainingOf('testing', 5 * H, 5 * H)).toBe(0.5 * H)
+  })
+
+  it('rep se ne primenjuje kad plana nema', () => {
+    expect(remainingOf('inprog', 0, 5 * H)).toBe(0)
   })
 })
 

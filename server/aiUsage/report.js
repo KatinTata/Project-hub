@@ -195,14 +195,21 @@ export async function buildReportData({ from, to, currency = 'EUR', userId, isAd
   const prevTotals = { ...prev.totals, cost: prev.totals.cost * f }
 
   // End-of-month projection (only meaningful when the range touches this month)
+  // Projekcija = (potrošnja u POKRIVENOM periodu / broj pokrivenih dana) × dana
+  // u mesecu (P1-8.9). Ranije se delilo sa rednim brojem dana u mesecu, pa je
+  // izveštaj za npr. 3 dana sredinom meseca projekciju potcenio 4-5x.
   const today = new Date()
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
   const monthDays = now.days.filter(d => new Date(d.date) >= monthStart)
-  const elapsed = Math.max(1, today.getDate())
+  // Pokriveni kalendarski dani = presek filtriranog perioda i tekućeg meseca
+  // (ne broj dana sa potrošnjom — prazni dani legitimno obaraju prosek).
+  const overlapStart = new Date(Math.max(new Date(fromDate).getTime(), monthStart.getTime()))
+  const overlapEnd = new Date(Math.min(new Date(toDate).getTime(), today.getTime()))
+  const covered = Math.max(1, Math.floor((overlapEnd - overlapStart) / 86400000) + 1)
   const monthSpend = monthDays.reduce((s, d) => s + d.cost, 0) * f
   const projection = monthDays.length
-    ? { month_spend: monthSpend, daily_avg: monthSpend / elapsed, projected_month: (monthSpend / elapsed) * daysInMonth, days_elapsed: elapsed, days_in_month: daysInMonth }
+    ? { month_spend: monthSpend, daily_avg: monthSpend / covered, projected_month: (monthSpend / covered) * daysInMonth, days_elapsed: covered, days_in_month: daysInMonth, is_estimate: true }
     : null
 
   // Budgets — internal: every tracked tenant; client: only their own.
@@ -245,6 +252,8 @@ export async function buildReportData({ from, to, currency = 'EUR', userId, isAd
     scopeName,
     currency: cur,
     rate_available: conv.rateAvailable,
+    rate_stale: conv.rateStale || false,
+    rate_age_days: conv.rateAgeDays ?? null,
     period: { from: day10(fromDate), to: day10(toDate) },
     prevPeriod: { from: day10(prevFrom.toISOString()), to: day10(prevTo.toISOString()) },
     totals, prevTotals,
@@ -344,7 +353,7 @@ export async function buildXlsx(d) {
   s1.getRow(1).height = 26; s1.getRow(2).height = 26; s1.getRow(3).height = 20
   s1.mergeCells('A4:H4')
   const meta = s1.getCell('A4')
-  meta.value = `Period: ${d.period.from} — ${d.period.to}   ·   Valuta: ${d.currency}${d.rate_available === false ? ' (kurs nedostupan → USD)' : ''}   ·   Prethodni period: ${d.prevPeriod.from} — ${d.prevPeriod.to}`
+  meta.value = `Period: ${d.period.from} — ${d.period.to}   ·   Valuta: ${d.currency}${d.rate_available === false ? ' (kurs nedostupan → USD)' : ''}${d.rate_stale ? ` (kurs star ${d.rate_age_days} dana — iznos okviran)` : ''}   ·   Prethodni period: ${d.prevPeriod.from} — ${d.prevPeriod.to}`
   meta.font = XF({ size: 10, color: { argb: A.muted } })
   meta.alignment = { indent: 1 }
 
@@ -527,7 +536,7 @@ export function buildReportHtml(d) {
     <div style="font-size:11px;letter-spacing:.16em;color:#38BDF8;margin-bottom:9px">INTELISALE — IZVEŠTAJ O AI POTROŠNJI${internal ? ' · INTERNO' : ''}</div>
     <div style="font-size:25px;font-weight:800;line-height:1.15">${esc(d.scopeName)}</div>
     <div style="font-size:12px;color:#9FB2C9;margin-top:9px">
-      Period: ${d.period.from} — ${d.period.to} · Valuta: ${d.currency}${d.rate_available === false ? ' (kurs nedostupan → USD)' : ''}
+      Period: ${d.period.from} — ${d.period.to} · Valuta: ${d.currency}${d.rate_available === false ? ' (kurs nedostupan → USD)' : ''}${d.rate_stale ? ` (kurs star ${d.rate_age_days} dana — iznos okviran)` : ''}
       · Poređenje sa: ${d.prevPeriod.from} — ${d.prevPeriod.to}
     </div>
   </div>

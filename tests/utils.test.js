@@ -45,10 +45,11 @@ describe('getStatusCategory', () => {
     expect(getStatusCategory(status)).toBe(cat)
   })
 
-  // [BUG P1-8.3] nepoznat status tiho pada u 'inprog'
-  it('nepoznat status pada u inprog (golden master)', () => {
-    expect(getStatusCategory('Blocked By Vendor')).toBe('inprog')
-    expect(getStatusCategory('')).toBe('inprog')
+  // [ISPRAVKA P1-8.3] nepoznat status ide u zasebnu kategoriju 'unknown'
+  it('nepoznat status ide u unknown, poznati in-progress statusi ostaju inprog', () => {
+    expect(getStatusCategory('Blocked By Vendor')).toBe('unknown')
+    expect(getStatusCategory('')).toBe('unknown')
+    expect(getStatusCategory('On Hold')).toBe('inprog')
   })
 })
 
@@ -81,18 +82,20 @@ describe('processEpicData — osnovni agregati', () => {
     expect(r.totalEst).toBe(1 * H)
   })
 
-  it('broji statusne kategorije', () => {
+  it('broji statusne kategorije — nepoznat status je zasebna grupa (P1-8.3)', () => {
     const r = processEpicData([
       parent('A-1', { status: 'Resolved' }),
       parent('A-2', { status: 'For Testing' }),
       parent('A-3', { status: 'To Do' }),
       parent('A-4', { status: 'In Progress' }),
-      parent('A-5', { status: 'Nepoznat Status' }), // [BUG P1-8.3] broji se kao inprog
+      parent('A-5', { status: 'Nepoznat Status' }),
     ], [])
     expect(r.done).toBe(1)
     expect(r.testing).toBe(1)
     expect(r.todo).toBe(1)
-    expect(r.inprog).toBe(2)
+    expect(r.inprog).toBe(1)
+    expect(r.unknown).toBe(1)
+    expect(r.unknownStatuses).toEqual(['Nepoznat Status'])
     expect(r.total).toBe(5)
   })
 })
@@ -235,13 +238,24 @@ describe('buildComponentData', () => {
     expect(rows.find(r => r.name === 'Frontend').totalSpent).toBe(4 * H)
   })
 
-  // [BUG P1-8.1] task sa više komponenti dodaje PUN iznos u svaku → imenilac naduvan
-  it('više komponenti: pun iznos u svaku, totalSpentAll naduvan (golden master)', () => {
+  // [ISPRAVKA P1-8.1] task sa više komponenti deli sate 1/N — imenilac odgovara stvarno logovanom
+  it('više komponenti: sati se dele 1/N, totalSpentAll = stvarno logovano', () => {
     const tasks = [{ key: 'A-1', spent: 10 * H, components: ['Backend', 'Frontend'], subtasks: [] }]
     const rows = buildComponentData(tasks)
-    expect(rows.find(r => r.name === 'Backend').totalSpent).toBe(10 * H)
-    expect(rows.find(r => r.name === 'Frontend').totalSpent).toBe(10 * H)
-    expect(rows[0].totalSpentAll).toBe(20 * H) // stvarno logovano: 10h
+    expect(rows.find(r => r.name === 'Backend').totalSpent).toBe(5 * H)
+    expect(rows.find(r => r.name === 'Frontend').totalSpent).toBe(5 * H)
+    expect(rows[0].totalSpentAll).toBe(10 * H)
+  })
+
+  it('subtask sa više komponenti takođe deli 1/N', () => {
+    const tasks = [{
+      key: 'A-1', spent: 6 * H, components: [],
+      subtasks: [{ timespent: 6 * H, components: ['Backend', 'Frontend', 'Testing'] }],
+    }]
+    const rows = buildComponentData(tasks)
+    expect(rows.find(r => r.name === 'Backend').totalSpent).toBe(2 * H)
+    expect(rows.find(r => r.name === 'Testing').totalSpent).toBe(2 * H)
+    expect(rows[0].totalSpentAll).toBe(6 * H)
   })
 
   it('bez komponente → "Bez komponente"', () => {

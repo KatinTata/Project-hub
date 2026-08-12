@@ -18,9 +18,10 @@ const CAP_STATUS = {
   tight: { bg: 'var(--amberTint)', fg: 'var(--amber)' },
   over: { bg: 'var(--redTint)', fg: 'var(--red)' },
   nostaff: { bg: 'var(--redTint)', fg: 'var(--red)' },
+  nocapacity: { bg: 'var(--amberTint)', fg: 'var(--amber)' },
 }
 const capChip = st => ({ fontFamily: "'Hanken Grotesk'", fontSize: 11, padding: '2px 8px', borderRadius: 6, background: (CAP_STATUS[st] || {}).bg || 'var(--surfaceAlt)', color: (CAP_STATUS[st] || {}).fg || 'var(--textMuted)', border: '1px solid var(--border)' })
-const capLabel = (c, t) => c.status === 'nostaff' ? t('pf.noStaff') : (c.load != null ? Math.round(c.load * 100) + '%' : '–')
+const capLabel = (c, t) => c.status === 'nostaff' ? t('pf.noStaff') : c.status === 'nocapacity' ? t('pf.noCapacity') : (c.load != null ? Math.round(c.load * 100) + '%' : '–')
 
 export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStackMap, canEditConfig }) {
   const t = useT()

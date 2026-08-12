@@ -506,6 +506,11 @@ function ReportView({ range, preset, setPreset, setRange }) {
               {t('ai2.report.rateUnavailable')}
             </div>
           )}
+          {report.rate_stale && (
+            <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
+              {t('ai2.rateStale', { n: report.rate_age_days })}
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
             <Kpi title={t('ai2.kpi.customer')} value={<span style={{ fontSize: 17 }}>{report.customer?.name}</span>} />
             <Kpi title={t('ai2.requests')} value={fmtNum(report.totals?.requests)} />
@@ -1029,6 +1034,11 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
               {data?.rate_available === false && (
                 <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
                   {t('ai2.client.rateUnavailable')}
+                </div>
+              )}
+              {data?.rate_stale && (
+                <div style={{ ...card, borderColor: 'var(--amber)', color: 'var(--amber)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
+                  {t('ai2.rateStale', { n: data.rate_age_days })}
                 </div>
               )}
 

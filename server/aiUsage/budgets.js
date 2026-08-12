@@ -6,13 +6,18 @@ import { getTenants, getUsageSummary, AdminApiNotConfiguredError } from './admin
 import { makePriceResolver, groupCost } from './pricing.js'
 import { usdConversion } from './fx.js'
 import { sendMail, budgetAlertHtml, mailConfigured } from './mailer.js'
+import { dayInBelgrade, startOfDayBelgrade, endOfDayBelgrade } from '../dates.js'
 
-export const currentMonthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+// "Mesec" znači kalendarski mesec u Europe/Belgrade (P1-8.7) — server na
+// Railway-u radi u UTC-u pa bi lokalne Date komponente pomerale granicu meseca.
+export const currentMonthKey = (d = new Date()) => String(dayInBelgrade(d)).slice(0, 7)
 
 export function monthRange(d = new Date()) {
-  const from = new Date(d.getFullYear(), d.getMonth(), 1)
-  const to = new Date(d.getFullYear(), d.getMonth() + 1, 0)
-  to.setHours(23, 59, 59, 999)
+  const [y, m] = String(dayInBelgrade(d)).split('-').map(Number)
+  const lastDay = new Date(y, m, 0).getDate()
+  const pad = n => String(n).padStart(2, '0')
+  const from = startOfDayBelgrade(`${y}-${pad(m)}-01`)
+  const to = endOfDayBelgrade(`${y}-${pad(m)}-${pad(lastDay)}`)
   return { fromDate: from.toISOString(), toDate: to.toISOString() }
 }
 
@@ -29,7 +34,7 @@ export async function tenantSpendEur(guids, fromDate, toDate) {
     tokens += data.totals?.totalTokens || 0
     for (const g of (data.groups || [])) if (g.modelName) usd += groupCost(resolve, g)
   }
-  return { eur: usd * conv.factor, usd, requests, tokens, currency: conv.currency, rateAvailable: conv.rateAvailable }
+  return { eur: usd * conv.factor, usd, requests, tokens, currency: conv.currency, rateAvailable: conv.rateAvailable, rateStale: conv.rateStale || false }
 }
 
 // Shared SELECT: budget row + tenant mapping + package. When a package is

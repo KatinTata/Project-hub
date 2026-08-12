@@ -4,24 +4,23 @@
 // (effort), and detect people booked across overlapping phase windows.
 
 import { buildStackMatrix, buildStackTeams, normalizeStack, remainingOf, STACKS } from './stacks.js'
+import { parseLocalDate } from './dates.js'
 
 const mondayIdx = d => (d.getDay() + 6) % 7
 const isWorking = (d, wdpw) => mondayIdx(d) < wdpw
 
 function countWorkingDays(startIso, dueIso, wdpw) {
   if (!startIso || !dueIso) return 0
-  const s = new Date(startIso); s.setHours(0, 0, 0, 0)
-  const e = new Date(dueIso); e.setHours(0, 0, 0, 0)
-  if (e < s) return 0
+  const s = parseLocalDate(startIso)
+  const e = parseLocalDate(dueIso)
+  if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime()) || e < s) return 0
   let n = 0, guard = 0
   const d = new Date(s)
   while (d <= e && guard++ < 4000) { if (isWorking(d, wdpw)) n++; d.setDate(d.getDate() + 1) }
   return n
 }
 
-const overlaps = (aS, aE, bS, bE) => !(new Date(aE) < new Date(bS) || new Date(bE) < new Date(aS))
-
-const STATUS_RANK = { over: 5, nostaff: 4, tight: 3, nowindow: 2, ok: 1, none: 0 }
+const STATUS_RANK = { over: 6, nocapacity: 5, nostaff: 4, tight: 3, nowindow: 2, ok: 1, none: 0 }
 function worstStatus(cells) {
   let w = 'none'
   for (const s of STACKS) if (STATUS_RANK[cells[s].status] > STATUS_RANK[w]) w = cells[s].status
@@ -54,6 +53,9 @@ export function buildCapacity(tasks, phases, config, opts = {}) {
       if (demand <= 0) status = 'none'
       else if (!hasWindow) status = 'nowindow'
       else if (people === 0) status = 'nostaff'
+      // Prozor bez ijednog radnog dana → capacity 0; demand/0 bi dao Infinity
+      // i lažni "over" bez broja (P1-8.5). Zaseban status sa jasnom porukom.
+      else if (capacity <= 0) status = 'nocapacity'
       else { const load = demand / capacity; status = load > 1 ? 'over' : load > 0.85 ? 'tight' : 'ok' }
       cells[s] = { demand, capacity, people, load: capacity > 0 ? demand / capacity : null, status }
     }
@@ -94,17 +96,22 @@ export function buildCapacity(tasks, phases, config, opts = {}) {
         return { pid, name: w.name, start: w.start, due: w.due, perDay: (dem / 3600) / days }
       })
       .filter(Boolean)
-    for (let i = 0; i < entries.length; i++) {
-      for (let j = i + 1; j < entries.length; j++) {
-        const a = entries[i], b = entries[j]
-        if (overlaps(a.start, a.due, b.start, b.due)) {
-          const perDay = a.perDay + b.perDay
-          if (perDay > wdh + 1e-6) {
-            warnings.push({ person: name, phases: [a.name, b.name], perDay, over: perDay - wdh })
-          }
-        }
+    if (entries.length < 2) continue
+    // Ukupno dnevno opterećenje preko SVIH aktivnih faza u datom trenutku,
+    // ne parno (P1-8.6): tri paralelne faze po 3h/dan = 9h/dan, a parovi bi
+    // dali 6h i propustili upozorenje. Svaki skup preklopljenih faza je
+    // aktivan na nekoj granici prozora, pa je dovoljno uzorkovati granice.
+    const bounds = [...new Set(entries.flatMap(e => [e.start, e.due]))].sort()
+    let worst = null
+    for (const b of bounds) {
+      const active = entries.filter(e => e.start <= b && b <= e.due)
+      if (active.length < 2) continue
+      const perDay = active.reduce((s, e) => s + e.perDay, 0)
+      if (perDay > wdh + 1e-6 && (!worst || perDay > worst.perDay)) {
+        worst = { person: name, phases: active.map(a => a.name), perDay, over: perDay - wdh }
       }
     }
+    if (worst) warnings.push(worst)
   }
   warnings.sort((a, b) => b.over - a.over)
 

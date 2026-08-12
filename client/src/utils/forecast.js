@@ -7,12 +7,16 @@
 // chained by their given order (Faza 2 starts when Faza 1 finishes). Stacks
 // within a phase run in parallel → phase duration = the longest stack.
 
+import { parseLocalDate } from './dates.js'
+
 // Monday-based weekday index: Mon=0 … Sun=6
 function mondayIdx(d) { return (d.getDay() + 6) % 7 }
 function isWorking(d, wdpw) { return mondayIdx(d) < wdpw }
 
 function snapForward(date, wdpw) {
-  const d = new Date(date)
+  // Date-only string se parsira u LOKALNU ponoć (P1-8.7) — `new Date(str)`
+  // bi dao ponoć u UTC-u i pomerio dan u zonama iza UTC-a.
+  const d = typeof date === 'string' ? parseLocalDate(date) : new Date(date)
   d.setHours(0, 0, 0, 0)
   let guard = 0
   while (!isWorking(d, wdpw) && guard++ < 14) d.setDate(d.getDate() + 1)
@@ -45,7 +49,7 @@ export function buildPhaseForecast(matrix, config, opts = {}) {
     const n = peopleMap ? peopleMap[s] : null
     return n > 0 ? n : fallbackPeople
   }
-  const today = opts.today ? new Date(opts.today) : new Date()
+  const today = opts.today || new Date() // string ide kroz parseLocalDate u snapForward
 
   const stacks = matrix?.stacks || []
   // Real phases only (skip the synthetic "Neraspoređeno" row), in given order.

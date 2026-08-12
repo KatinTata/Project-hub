@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import axios from 'axios'
+import { dayInBelgrade } from './dates.js'
 
 const ALGO = 'aes-256-cbc'
 
@@ -154,9 +155,12 @@ export async function fetchByJql(jiraUrl, jql, auth, fields = TASK_FIELDS) {
 // a dedicated paginated /worklog call. Entries are slimmed to what the client
 // needs so the payload stays small.
 
+// `started` stiže sa ofsetom zone autora (npr. "...T23:30:00.000+0500") —
+// sečenje stringa bi uzelo dan u TOJ zoni. Normalizujemo na Europe/Belgrade
+// da svi worklogovi padnu u isti kalendarski dan kao u našim izveštajima (P1-8.7).
 const slimWorklog = w => ({
   author: w.author?.displayName || null,
-  started: String(w.started || '').slice(0, 10),
+  started: dayInBelgrade(w.started) || String(w.started || '').slice(0, 10),
   seconds: w.timeSpentSeconds || 0,
 })
 

@@ -8,17 +8,23 @@
 
 export const STACKS = ['Backend', 'Frontend', 'Mobile', 'Database', 'Testing', 'Ostalo']
 
+// Otvoren posao koji je potrošio ceo plan ne znači 0 preostalog rada — bez
+// repa bi prognoza bila sistematski optimistična baš na najrizičnijim
+// (probijenim) taskovima (P1-8.4). Pretpostavka: dok se task ne zatvori,
+// ostaje mu još najmanje 10% originalne estimacije.
+export const OVERRUN_TAIL_PCT = 0.1
+
 // Status-aware remaining effort for one unit (task-own or subtask).
 // Completion is driven by Jira STATUS, not by burned hours:
 //   done            → 0 (gotovo, bez obzira na potrošeno)
 //   todo            → pun plan (posao nije počeo)
-//   inprog/testing  → max(0, plan − utrošeno), nikad ispod 0
-// Note: open work that is over budget contributes 0 here by design — the extra
-// overrun is unpredictable and is surfaced separately as a risk, not as ETA.
+//   inprog/testing  → max(plan − utrošeno, 10% plana) — nikad 0 dok je otvoren
 export function remainingOf(statusCat, plan, spent) {
   if (statusCat === 'done') return 0
   if (statusCat === 'todo') return plan
-  return Math.max(0, plan - spent)
+  const rem = Math.max(0, plan - spent)
+  if (rem === 0 && plan > 0) return plan * OVERRUN_TAIL_PCT
+  return rem
 }
 
 // Alias config — messy Jira component names → canonical stack.
@@ -32,6 +38,18 @@ export function normalizeStack(name) {
   if (clean.startsWith('data') || clean === 'db' || clean.startsWith('baza')) return 'Database'
   if (clean.startsWith('test') || clean === 'qa') return 'Testing'
   return 'Ostalo'
+}
+
+// Jedinstven izvor broja ljudi po steku (P1-8.8): ručno vođen tim projekta →
+// kompletna mapa preko SVIH stekova (nedostajući stek = 0, ne undefined).
+// Ranije je mapa pokrivala 4 od 6 stekova pa su forecast (fallback 1 osoba)
+// i capacity (fallback broj iz Jire) davali različite zaključke za istu fazu.
+export function buildRoster(team) {
+  if (!team || !team.length) return null
+  const m = {}
+  for (const s of STACKS) m[s] = 0
+  for (const mem of team) if (m[mem.stack] !== undefined) m[mem.stack]++
+  return m
 }
 
 export function buildStackMatrix(tasks, phases) {

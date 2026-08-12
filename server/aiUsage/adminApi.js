@@ -3,6 +3,7 @@
 
 import db from '../db.js'
 import { decryptToken } from '../jiraClient.js'
+import { startOfDayBelgrade, endOfDayBelgrade } from '../dates.js'
 
 const TIMEOUT_MS = 20000
 
@@ -58,13 +59,18 @@ export function resolveTenant(identityMap, tenantId) {
 
 // Normalize a date range: default last 30 days; date-only `to` → end of day
 // (critical for billing — the whole last day must be included, spec §7.0).
+// Date-only granice se tumače kao dani u Europe/Belgrade (P1-8.7) — ranije je
+// `new Date('YYYY-MM-DD')` davao ponoć u UTC-u pa je granica dana zavisila
+// od zone servera.
 export function normalizeRange(from, to) {
   const now = new Date()
   let fromD = from ? new Date(from) : new Date(now.getTime() - 30 * 86400000)
   let toD = to ? new Date(to) : now
+  if (typeof from === 'string' && from.length <= 10) {
+    fromD = startOfDayBelgrade(from) || fromD
+  }
   if (typeof to === 'string' && to.length <= 10) {
-    toD = new Date(to)
-    toD.setHours(23, 59, 59, 999)
+    toD = endOfDayBelgrade(to) || toD
   }
   return { fromDate: fromD.toISOString(), toDate: toD.toISOString() }
 }

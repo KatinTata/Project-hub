@@ -2,11 +2,16 @@ const DONE    = new Set(['Resolved', 'Closed', 'Done'])
 const TESTING = new Set(['For Testing', 'TESTING STARTED', 'On Hold - Testing'])
 const TODO    = new Set(['To Do', 'For Grooming', 'Estimated'])
 
+const INPROG = new Set(['In Progress', 'For Testing', 'TESTING STARTED', 'On Hold - Testing', 'Development', 'Review', 'On Hold'])
+
 export function getStatusCategory(statusName) {
   if (DONE.has(statusName)) return 'done'
   if (TESTING.has(statusName)) return 'testing'
   if (TODO.has(statusName)) return 'todo'
-  return 'inprog'
+  if (INPROG.has(statusName)) return 'inprog'
+  // Nov/nepoznat Jira status NE pada tiho u "u radu" (P1-8.3) — zasebna
+  // kategorija koja se u UI prikazuje kao siva grupa.
+  return 'unknown'
 }
 
 export function processEpicData(parents, subtasks, epicSelf = null) {
@@ -57,6 +62,15 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
   let inprog = 0
   let testing = 0
   let todo = 0
+  let unknown = 0
+  const unknownStatuses = new Set()
+  const countCat = (cat, statusName) => {
+    if (cat === 'done') done++
+    else if (cat === 'testing') testing++
+    else if (cat === 'todo') todo++
+    else if (cat === 'unknown') { unknown++; if (statusName) unknownStatuses.add(statusName) }
+    else inprog++
+  }
   const overTasks = []
 
   for (const parent of topLevel) {
@@ -107,10 +121,7 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
     totalEst += calcEst
     totalSpent += calcSpent
 
-    if (statusCat === 'done') done++
-    else if (statusCat === 'testing') testing++
-    else if (statusCat === 'todo') todo++
-    else inprog++
+    countCat(statusCat, statusName)
 
     if (over) overTasks.push(task)
   }
@@ -154,10 +165,7 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
     tasks.push(task)
     totalEst += est
     totalSpent += spent
-    if (statusCat === 'done') done++
-    else if (statusCat === 'testing') testing++
-    else if (statusCat === 'todo') todo++
-    else inprog++
+    countCat(statusCat, statusName)
     if (over) overTasks.push(task)
   }
 
@@ -185,15 +193,12 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
     })
     totalEst += epicSelf.timeoriginalestimate || 0
     totalSpent += epicSelf.timespent || 0
-    if (statusCat === 'done') done++
-    else if (statusCat === 'testing') testing++
-    else if (statusCat === 'todo') todo++
-    else inprog++
+    countCat(statusCat, epicSelf.status || '')
   }
 
   const total = tasks.length
 
-  return { tasks, totalEst, totalSpent, done, inprog, testing, todo, total, overTasks }
+  return { tasks, totalEst, totalSpent, done, inprog, testing, todo, unknown, unknownStatuses: [...unknownStatuses], total, overTasks }
 }
 
 // {name → seconds} for one task: hours go to the worklog author; the assignee
@@ -298,14 +303,15 @@ export function buildComponentData(tasks) {
     const parentOwnSpent = Math.max(0, task.spent - subSpentTotal)
     if (parentOwnSpent > 0) {
       const parentComps = task.components && task.components.length > 0 ? task.components : ['Bez komponente']
-      for (const comp of parentComps) add(comp, parentOwnSpent, task.key)
+      // 1/N po komponenti (kao moduli) — da zbir po komponentama = stvarno logovano
+      for (const comp of parentComps) add(comp, parentOwnSpent / parentComps.length, task.key)
     }
 
     // Subtask time → their component, or "Bez komponente" if none set
     for (const sub of subs) {
       if (!sub.timespent) continue
       const comps = sub.components && sub.components.length > 0 ? sub.components : ['Bez komponente']
-      for (const comp of comps) add(comp, sub.timespent, task.key)
+      for (const comp of comps) add(comp, sub.timespent / comps.length, task.key)
     }
   }
 

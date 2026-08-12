@@ -16,7 +16,7 @@ import PhaseForecast from './PhaseForecast.jsx'
 import ProjectEstimateSummary from './ProjectEstimateSummary.jsx'
 import TeamRoster from './TeamRoster.jsx'
 import ProjectTrend from './ProjectTrend.jsx'
-import { buildStackMatrix } from '../utils/stacks.js'
+import { buildStackMatrix, buildRoster } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 
@@ -293,12 +293,7 @@ export default function ProjectCard({
     setTeam(t => t.filter(m => m.id !== id))
     try { await api.removeTeamMember(project.id, id) } catch {}
   }
-  const peoplePerStackMap = useMemo(() => {
-    if (!team.length) return null
-    const m = { Backend: 0, Frontend: 0, Testing: 0, Ostalo: 0 }
-    for (const mem of team) if (m[mem.stack] !== undefined) m[mem.stack]++
-    return m
-  }, [team])
+  const peoplePerStackMap = useMemo(() => buildRoster(team), [team])
 
   if (loading) {
     return (
@@ -328,7 +323,7 @@ export default function ProjectCard({
     )
   }
 
-  const { tasks, totalEst, totalSpent, done, inprog, testing, todo, total, overTasks } = data
+  const { tasks, totalEst, totalSpent, done, inprog, testing, todo, unknown = 0, total, overTasks } = data
 
   // Build phase chart data from chartPhases + tasks
   const chartTaskPhaseMap = {}
@@ -360,6 +355,7 @@ export default function ProjectCard({
     { value: testing, color: 'var(--amber)',      label: t('metrics.testing')    },
     { value: inprog,  color: 'var(--accent)',     label: t('donut.label.inprog') },
     { value: todo,    color: 'var(--textSubtle)', label: t('donut.label.todo')   },
+    ...(unknown > 0 ? [{ value: unknown, color: 'var(--textMuted)', label: t('donut.label.unknown') }] : []),
   ]
 
   async function handleExportExcel() {
@@ -396,8 +392,11 @@ export default function ProjectCard({
   }
 
   const billableSpent    = tasks.reduce((s, t) => s + billableSecondsOf(t), 0)
-  const nonBillableSpent = totalSpent - billableSpent
-  const billablePct      = totalSpent > 0 ? Math.round((billableSpent / totalSpent) * 100) : 0
+  // "Hours to be billed" može biti veće od logovanog → bez ove ograde bi
+  // non-billable postao negativan i donut bi crtao besmislicu (P1-8.2).
+  const nonBillableSpent = Math.max(0, totalSpent - billableSpent)
+  const billableOverflow = totalSpent > 0 && billableSpent > totalSpent
+  const billablePct      = totalSpent > 0 ? Math.min(100, Math.round((billableSpent / totalSpent) * 100)) : 0
   const billableSegments = [
     { value: billableSpent,    displayValue: `${(billableSpent / 3600).toFixed(1)}h`,    color: 'var(--green)',      label: 'Billable'     },
     { value: nonBillableSpent, displayValue: `${(nonBillableSpent / 3600).toFixed(1)}h`, color: 'var(--textSubtle)', label: 'Non-billable' },
@@ -476,6 +475,7 @@ export default function ProjectCard({
                 { color: 'var(--amber)',      label: t('metrics.testing'),  count: testing },
                 { color: 'var(--accent)',     label: t('metrics.inprog'),   count: inprog  },
                 { color: 'var(--textSubtle)', label: t('metrics.todo'),     count: todo    },
+                ...(unknown > 0 ? [{ color: 'var(--textMuted)', label: t('donut.label.unknown'), count: unknown }] : []),
               ].map(s => (
                 <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
@@ -661,6 +661,11 @@ export default function ProjectCard({
                   </div>
                   <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{(nonBillableSpent / 3600).toFixed(1)}h</span>
                 </div>
+                {billableOverflow && (
+                  <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--amber)', marginTop: 4 }} title={t('pc.billableOverflowHint')}>
+                    {t('pc.billableOverflow')}
+                  </div>
+                )}
               </div>
             </div>
           )}

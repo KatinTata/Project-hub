@@ -7,25 +7,50 @@ export function getPricingConfig() {
   return db.prepare('SELECT * FROM ai_pricing_config WHERE id = 1').get()
 }
 
-// Fuzzy price resolution (§4.1): exact or substring either way; the most
-// specific (longest) model name wins so gpt-4o never swallows gpt-4o-mini.
-const priceStmt = () => db.prepare(`
+// Rezolucija cene (§4.1, pooštreno u P1-8.10): egzaktno ime ili ime modela
+// kao CEO SEGMENT unutar deployment imena (granice su -, _, razmak i sl.).
+// Goli substring je ranije naplaćivao gpt-4o po ceni gpt-4 bez upozorenja;
+// sada model bez svoje cene postaje priced=false (prikazan kao necenovan).
+// Tačka se tretira kao deo imena ('gpt-4' se NE poklapa sa 'gpt-4.1-nano').
+const WORD_CHAR = /[a-z0-9.]/
+
+function isBoundary(ch) {
+  return ch === undefined || !WORD_CHAR.test(ch)
+}
+
+// model kao segment unutar query-ja, npr. 'my-gpt-4o-prod' sadrži 'gpt-4o'
+function containsAsSegment(haystack, needle) {
+  let idx = haystack.indexOf(needle)
+  while (idx !== -1) {
+    if (isBoundary(haystack[idx - 1]) && isBoundary(haystack[idx + needle.length])) return true
+    idx = haystack.indexOf(needle, idx + 1)
+  }
+  return false
+}
+
+const activeRowsStmt = () => db.prepare(`
   SELECT m.model_name, m.input_price_per_1m, m.output_price_per_1m, m.model_markup_pct, c.global_markup_pct
   FROM ai_model_pricing m
   CROSS JOIN ai_pricing_config c
   WHERE m.is_active = 1
-    AND (m.model_name = ? OR ? LIKE '%' || m.model_name || '%' OR m.model_name LIKE '%' || ? || '%')
-  ORDER BY (m.model_name = ?) DESC, length(m.model_name) DESC
-  LIMIT 1
 `)
 
 export function makePriceResolver() {
   const memo = new Map()
-  const stmt = priceStmt()
+  const rows = activeRowsStmt().all()
   return function resolve(modelName) {
     const name = String(modelName || '').toLowerCase().trim()
     if (memo.has(name)) return memo.get(name)
-    const row = name ? stmt.get(name, name, name, name) : null
+    let row = null
+    if (name) {
+      for (const r of rows) {
+        const model = String(r.model_name || '').toLowerCase()
+        if (name === model) { row = r; break }
+        if (containsAsSegment(name, model)) {
+          if (!row || model.length > String(row.model_name).length) row = r
+        }
+      }
+    }
     const markup = row ? 1 + ((row.global_markup_pct || 0) + (row.model_markup_pct || 0)) / 100 : 1
     const out = {
       inputPer1m: row ? row.input_price_per_1m * markup : 0,
@@ -59,7 +84,23 @@ export function costModelGroups(groups) {
 // ── Azure Retail Prices sync (§5) ────────────────────────────────────────────
 
 const SKIP_RE = /batch|cached|cchd|realtime|audio|\baud\b|aud\d|tts|image|transcribe|tcrb|grader|grdr|\brt\b|\bft\b/i
-const CANONICAL = ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-4-32k', 'gpt-4.1-nano', 'gpt-4.1-mini', 'gpt-4.1', 'gpt-5-nano', 'gpt-5', 'gpt-4', 'o4-mini', 'o3-mini', 'o1-mini']
+// Najspecifičnije ime PRVO (loop vraća prvi pogodak). Prošireno u P1-8.11 da
+// obuhvati Anthropic i druge ne-GPT modele koji se pojavljuju u potrošnji —
+// ranije su se brojali u tokenima ali koštali 0. Modeli koje Azure Retail ne
+// pokriva cenom i dalje se unose ručno (source='manual') i prikazuju kao
+// necenovani dok se cena ne unese.
+const CANONICAL = [
+  // Anthropic
+  'claude-opus-4.1', 'claude-opus-4', 'claude-sonnet-4.5', 'claude-sonnet-4', 'claude-haiku-4.5',
+  'claude-3.7-sonnet', 'claude-3-7-sonnet', 'claude-3.5-sonnet', 'claude-3-5-sonnet',
+  'claude-3.5-haiku', 'claude-3-5-haiku', 'claude-opus', 'claude-sonnet', 'claude-haiku',
+  // OpenAI / Azure
+  'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-4-32k', 'gpt-4.1-nano', 'gpt-4.1-mini', 'gpt-4.1',
+  'gpt-5-nano', 'gpt-5-mini', 'gpt-5-chat', 'gpt-5.1', 'gpt-5', 'gpt-4',
+  'o4-mini', 'o3-mini', 'o1-mini',
+  // Ostali česti Foundry modeli
+  'deepseek-r1', 'deepseek-v3', 'mistral-large', 'mistral-small', 'llama-3.3', 'llama-3.1', 'grok-3',
+]
 
 export function normalizeMeter(meterName) {
   const raw = String(meterName || '')

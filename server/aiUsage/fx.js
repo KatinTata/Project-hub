@@ -29,34 +29,58 @@ export async function fetchTodaysRates() {
   return results
 }
 
+// Kurs stariji od ovoga se i dalje koristi (izveštaj se ne blokira), ali se
+// obeležava kao zastareo — "kurs star X dana, iznos okviran" (P1-8.12).
+export const RATE_STALE_DAYS = 7
+
 // Rate for a date: exact → nearest previous within 7 days → latest available.
-export function getRate(currencyFrom, dateIso) {
+// Vraća i datum kursa, da poziviac može da izračuna starost.
+function getRateInfo(currencyFrom, dateIso) {
   const date = String(dateIso).slice(0, 10)
-  const exact = db.prepare("SELECT rate FROM ap_exchange_rates WHERE currency_from = ? AND currency_to = 'RSD' AND rate_date = ?").get(currencyFrom, date)
-  if (exact?.rate > 0) return exact.rate
+  const exact = db.prepare("SELECT rate, rate_date FROM ap_exchange_rates WHERE currency_from = ? AND currency_to = 'RSD' AND rate_date = ?").get(currencyFrom, date)
+  if (exact?.rate > 0) return { rate: exact.rate, date: exact.rate_date }
   const prev = db.prepare(`
-    SELECT rate FROM ap_exchange_rates
+    SELECT rate, rate_date FROM ap_exchange_rates
     WHERE currency_from = ? AND currency_to = 'RSD' AND rate_date < ? AND rate_date >= date(?, '-7 days')
     ORDER BY rate_date DESC LIMIT 1
   `).get(currencyFrom, date, date)
-  if (prev?.rate > 0) return prev.rate
-  const latest = db.prepare("SELECT rate FROM ap_exchange_rates WHERE currency_from = ? AND currency_to = 'RSD' ORDER BY rate_date DESC LIMIT 1").get(currencyFrom)
-  return latest?.rate > 0 ? latest.rate : null
+  if (prev?.rate > 0) return { rate: prev.rate, date: prev.rate_date }
+  const latest = db.prepare("SELECT rate, rate_date FROM ap_exchange_rates WHERE currency_from = ? AND currency_to = 'RSD' ORDER BY rate_date DESC LIMIT 1").get(currencyFrom)
+  return latest?.rate > 0 ? { rate: latest.rate, date: latest.rate_date } : null
+}
+
+export function getRate(currencyFrom, dateIso) {
+  return getRateInfo(currencyFrom, dateIso)?.rate ?? null
+}
+
+const ageDays = (rateDate, dateIso) => {
+  const a = new Date(String(dateIso).slice(0, 10))
+  const b = new Date(String(rateDate).slice(0, 10))
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 0
+  return Math.max(0, Math.round((a - b) / 86400000))
 }
 
 // USD → target currency factor at a given date (cross via RSD). Never show a
 // wrong currency without a rate: fall back to USD with rate_available: false.
+// Ako je najsvežiji kurs stariji od RATE_STALE_DAYS, konverzija se radi ali
+// rezultat nosi rateStale/rateAgeDays da izveštaj prikaže upozorenje.
 export function usdConversion(currency, dateIso) {
   const cur = String(currency || 'USD').toUpperCase()
-  if (cur === 'USD') return { currency: 'USD', factor: 1, rateAvailable: true }
-  const usdRsd = getRate('USD', dateIso)
+  if (cur === 'USD') return { currency: 'USD', factor: 1, rateAvailable: true, rateStale: false, rateAgeDays: 0 }
+  const usd = getRateInfo('USD', dateIso)
+  const withStale = (out, ...infos) => {
+    const age = Math.max(...infos.map(i => ageDays(i.date, dateIso)))
+    return { ...out, rateStale: age > RATE_STALE_DAYS, rateAgeDays: age }
+  }
   if (cur === 'RSD') {
-    return usdRsd ? { currency: 'RSD', factor: usdRsd, rateAvailable: true } : { currency: 'USD', factor: 1, rateAvailable: false }
+    return usd
+      ? withStale({ currency: 'RSD', factor: usd.rate, rateAvailable: true }, usd)
+      : { currency: 'USD', factor: 1, rateAvailable: false, rateStale: false, rateAgeDays: null }
   }
   if (cur === 'EUR') {
-    const eurRsd = getRate('EUR', dateIso)
-    if (usdRsd && eurRsd) return { currency: 'EUR', factor: usdRsd / eurRsd, rateAvailable: true }
-    return { currency: 'USD', factor: 1, rateAvailable: false }
+    const eur = getRateInfo('EUR', dateIso)
+    if (usd && eur) return withStale({ currency: 'EUR', factor: usd.rate / eur.rate, rateAvailable: true }, usd, eur)
+    return { currency: 'USD', factor: 1, rateAvailable: false, rateStale: false, rateAgeDays: null }
   }
-  return { currency: 'USD', factor: 1, rateAvailable: false }
+  return { currency: 'USD', factor: 1, rateAvailable: false, rateStale: false, rateAgeDays: null }
 }

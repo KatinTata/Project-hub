@@ -300,6 +300,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
     if (filter === 'testing') return task.statusCategory === 'testing'
     if (filter === 'inprog') return task.statusCategory === 'inprog'
     if (filter === 'todo') return task.statusCategory === 'todo'
+    if (filter === 'unknown') return task.statusCategory === 'unknown'
     if (filter === 'over') return overKeys.has(task.key)
     if (filter === 'noest') return !task.est || task.est === 0
     if (filter === 'billable') return task.billable === true
@@ -312,6 +313,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
     testing: tasks.filter(task => task.statusCategory === 'testing').length,
     inprog:  tasks.filter(task => task.statusCategory === 'inprog').length,
     todo:    tasks.filter(task => task.statusCategory === 'todo').length,
+    unknown: tasks.filter(task => task.statusCategory === 'unknown').length,
     over:     overTasks.length,
     noest:    tasks.filter(task => !task.est || task.est === 0).length,
     billable: tasks.filter(task => task.billable === true).length,
@@ -323,6 +325,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
     { key: 'testing', label: t('table.filter.testing'), count: counts.testing, title: t('table.title.testing') },
     { key: 'inprog',  label: t('table.filter.inprog'),  count: counts.inprog,  title: t('table.title.inprog') },
     { key: 'todo',    label: t('table.filter.todo'),    count: counts.todo,    title: t('table.title.todo') },
+    ...(counts.unknown > 0 ? [{ key: 'unknown', label: t('table.filter.unknown'), count: counts.unknown, title: t('table.title.unknown') }] : []),
     ...(!isClient ? [{ key: 'over',     label: t('table.filter.over'),  count: counts.over,     title: t('table.tooltip.message') }] : []),
     ...(!isClient ? [{ key: 'noest',    label: t('table.filter.noest'), count: counts.noest,    title: t('table.title.noest') }] : []),
     ...(!isClient && hasBillableField ? [{ key: 'billable', label: '€ Billable', count: counts.billable, title: 'Taskovi sa billable = Yes u Jiri' }] : []),
