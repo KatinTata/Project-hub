@@ -1,0 +1,626 @@
+[
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Šta vidim na glavnoj stranici (Dashboard) i šta mi sve prikazuje?",
+  "keywords": "tabovi projekata metrički kartica donut grafikon bar grafikon tabela taskova jira automatski pregled",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Dashboard je centralna komandna tabla sa kompletnim pregledom vaših projekata. Čim se ulogujete, vidite:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Tabove projekata</span> — lista svih projekata kojima imate pristup u horizontalnom redu na vrhu</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">8 metričkih kartica</span> — ključni pokazatelji performansi: ukupan broj taskova, završeni, in progress, for grooming, estimacija u satima, utrošeno, razlika i prekoračenja</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Donut grafikon</span> — vizuelna distribucija taskova po statusu (zelena=završeno, žuta=u toku, siva=planiranje)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Bar grafikon</span> — poređenje estimacije i utrošenog vremena po taskovima</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Tabela taskova</span> — kompletna lista svih taskova sa filterima i pretragom</li></ul><div style=\"border-left:3px solid var(--green);background:var(--greenTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Svi podaci se automatski povlače iz Jire — ne morate ništa ručno unositi.</div>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Šta tačno znači svaka od 8 metričkih kartica?",
+  "keywords": "ukupno taskova završeno in progress for grooming estimacija utrošeno razlika prekoračenja KPI indikator",
+  "position": 1,
+  "answer": "<ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">UKUPNO TASKOVA</span> — ukupan broj roditeljskih taskova i subtaskova koji se prate za ovaj projekat</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">ZAVRŠENO</span> — taskovi u statusu Resolved, Closed ili Done, sa procentom od ukupnog broja</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">IN PROGRESS</span> — taskovi koji su trenutno aktivno u razvoju ili testiranju</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">FOR GROOMING</span> — taskovi koji još čekaju planiranje i estimaciju; visok broj znači puno neplanirane budućnosti</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">ESTIMACIJA</span> — ukupno originalno procenjeno vreme za sve taskove u satima</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">UTROŠENO</span> — ukupno logovano vreme rada u satima (direktno iz Jire)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">RAZLIKA</span> — razlika između estimacije i utrošenog. Zelena boja i negativan broj su dobra stvar (radimo unutar procene), crvena boja znači prekoračenje</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">PREKORAČENJA</span> — broj taskova koji su prekoračili estimaciju za više od 15%. Trebalo bi da bude 0 ili što manji</li></ul>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Šta znači crvena boja na nekom tasku u tabeli?",
+  "keywords": "crvena boja prekoračenje estimacija 15% procenat pozadina progress bar ID ključ",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Crvena boja na tasku znači da je taj task <span style=\"font-weight:600;color:var(--text)\">prekoračio originalnu estimaciju za više od 15%</span>. Konkretno vidite:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Crvenu pozadinu celog reda taska</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Crvenu boju Jira ključa (ID) taska</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Procenat prekoračenja ispod ključa (npr. &quot;+87% prekoračenje&quot;)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Crveni progress bar u koloni Napredak</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Crvenu vrednost u koloni Utrošeno</li></ul><div style=\"border-left:3px solid var(--amber);background:var(--amberTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Prekoračeni taskovi se prikazuju i u crvenom baneru iznad tabele, kao i u KPI kartici &quot;PREKORAČENJA&quot;.</div>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Kako mogu da filtriram taskove u tabeli?",
+  "keywords": "filter dugmadi pretraga search svi završeni in progress grooming prekoračenje kategorija tražiti",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Iznad tabele taskova se nalaze filter dugmadi sa brojevima:</p><div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">Svi (48)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Završeni (20)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--accentTint);color:var(--accent);border:1px solid var(--accent)\">In Progress (4)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">Grooming (24)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--redTint);color:var(--red);border:1px solid var(--red)\">Prekoračenje (3)</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Klik na bilo koji filter prikazuje samo taskove te kategorije. Filter &quot;Prekoračenje&quot; je posebno koristan za fokusiranje na problematične taskove. Pored filtera, na desnoj strani je <span style=\"font-weight:600;color:var(--text)\">polje za pretragu</span> koje filtrira taskove po nazivu u realnom vremenu dok kucate.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Kako da vidim subtaskove određenog taska?",
+  "keywords": "subtask expand klik razviti skupiti jira ključ komponenta status utrošeno uvučeni",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Kliknite na bilo koji red u tabeli taskova. Red će se razviti i prikazati sve subtaskove tog taska, uvučene sa manjim fontom. Za svaki subtask vidite: Jira ključ, komponentu, naziv, status i utrošeno vreme. Ponovnim klikom na red skupljate subtaskove.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Šta je donut grafikon i kako ga čitam?",
+  "keywords": "donut kružni grafikon segment status zelena žuta siva procenat završenosti progress bar vizuelno",
+  "position": 5,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Donut (kružni) grafikon prikazuje vizuelnu raspodelu svih taskova po statusu. Svaki segment ima boju:</p><div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Završeno</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--amberTint);color:var(--amber);border:1px solid var(--amber)\">In Progress / Testing</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">For Grooming / Todo</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Broj u centru grafika je <span style=\"font-weight:600;color:var(--text)\">procenat završenosti</span> projekta. Ispod grafika nalaze se tri progress bara sa tačnim brojevima: koliko taskova je u kojoj kategoriji od ukupnog.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Šta mi prikazuje stubičasti (bar) grafikon i šta znači kada su stubovi crveni?",
+  "keywords": "bar grafikon stub estimirano utrošeno plavi zeleni crveni prekoračenje hover tooltip poređenje",
+  "position": 6,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Bar grafikon prikazuje poređenje <span style=\"font-weight:600;color:var(--text)\">estimiranog i utrošenog vremena</span> za 12 taskova sa najvećom estimacijom:</p><div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--accentTint);color:var(--accent);border:1px solid var(--accent)\">Plavi stub — Estimirano vreme</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Zeleni stub — Utrošeno (OK)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--redTint);color:var(--red);border:1px solid var(--red)\">Crveni stub — Utrošeno (prekoračenje)</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Kada je stub utrošenog vremena <span style=\"font-weight:600;color:var(--text)\">viši od plavog stuba estimacije</span> i crvene boje — task je prekoračio procenu. Pređite mišem (hover) preko bilo kog stuba da vidite tooltip sa detaljima: ključ taska, estimirano, utrošeno i razlika.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Koliko se često osvežavaju podaci sa Jire?",
+  "keywords": "osvežavanje refresh automatski ručno ikonica kružna strelica podešavanja vreme dnevno promena novi taskovi",
+  "position": 7,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Podaci se osvežavaju na dva načina:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Ručno</span> — klikom na ikonicu osvežavanja na desnoj strani header-a projekta (kružna strelica)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Automatski</span> — administrator može da podesi vreme dnevnog automatskog osvežavanja u Podešavanjima (npr. &quot;09:00&quot; — platforma svaki dan u 9h automatski povlači nove podatke)</li></ul><div style=\"border-left:3px solid var(--accent);background:var(--accentTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Platforma pamti prethodne podatke i prikazuje vam šta se promenilo od poslednjeg osvežavanja: novi taskovi, promene statusa, promene estimacije.</div>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "sr",
+  "question": "Šta je progress bar na vrhu projekta i kako da ga čitam?",
+  "keywords": "progress bar zeleni žuti sivi trobojan vizuelno procenat završenosti legenda header",
+  "position": 8,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Horizontalni progress bar ispod naslova projekta prikazuje <span style=\"font-weight:600;color:var(--text)\">ukupan napredak projekta vizuelno u jednoj liniji</span>. Bar je trobojan:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--green)\">Zeleni deo</span> — procenat završenih taskova</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--amber)\">Žuti deo</span> — procenat taskova u toku (in progress)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Sivi deo</span> — preostali taskovi (grooming/todo)</li></ul><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Broj sa desne strane prikazuje ukupni procenat završenosti (zeleni + žuti deo). Ispod bara je legenda sa tačnim brojevima.</p>"
+ },
+ {
+  "category": "projekti",
+  "lang": "sr",
+  "question": "Zašto ne vidim projekat koji bi trebalo da postoji?",
+  "keywords": "ne vidim projekat pristup administrator arhiviran kreiran vidljivost",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Moguće je da:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Administrator još nije dodelio vama pristup tom projektu — kontaktirajte ga</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Projekat je arhiviran (privremeno sakriven)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Projekat još nije kreiran u sistemu</li></ul><div style=\"border-left:3px solid var(--amber);background:var(--amberTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Klijenti vide samo projekte koji su im eksplicitno dodeljeni. Administrator kontroliše vidljivost.</div>"
+ },
+ {
+  "category": "projekti",
+  "lang": "sr",
+  "question": "Šta znači status projekta (zelena / žuta tačka na tabu)?",
+  "keywords": "zelena žuta siva tačka tab status aktivan pauziran završen jira epic",
+  "position": 1,
+  "answer": "<div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Zelena — Aktivan projekat, u toku</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--amberTint);color:var(--amber);border:1px solid var(--amber)\">Žuta — Projekat je pauziran</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">Siva — Projekat je završen</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Status se određuje na osnovu statusa Jira epica i taskova unutar projekta.</p>"
+ },
+ {
+  "category": "projekti",
+  "lang": "sr",
+  "question": "Da li vidim Jira podatke u realnom vremenu ili su keširani?",
+  "keywords": "keširano keširanje realtime osvežavanje razlike prethodni podaci performanse brzina",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Podaci se <span style=\"font-weight:600;color:var(--text)\">keširaju</span> radi brzine i performansi. Pri svakom osvežavanju (ručnom ili automatskom), platforma povlači najsvežije podatke iz Jire i prikazuje razlike od prethodnog osvežavanja. Između osvežavanja prikazuju se poslednji preuzeti podaci.</p>"
+ },
+ {
+  "category": "projekti",
+  "lang": "sr",
+  "question": "Šta su Faze projekta i kako ih koristim?",
+  "keywords": "faze phases milestone etape isporuke boja napredak administrator backend frontend",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Faze (Phases) su opcioni milestone-ovi koji grupišu taskove u logičke etape isporuke (npr. &quot;Faza 1 — Backend&quot;, &quot;Faza 2 — Frontend&quot;). Svaka faza ima boju i prikazuje napredak u okviru te etape.</p><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Upravljanje fazama je u nadležnosti administratora. Klijenti mogu videti faze ako je to administrator konfigurisao.</p>"
+ },
+ {
+  "category": "projekti",
+  "lang": "sr",
+  "question": "Mogu li da pregledam listu svih taskova bez filtera?",
+  "keywords": "lista taskova bez filtera svi pretraga naziv pronađi",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Da. U tabeli taskova kliknite na filter <span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">Svi</span> (prvi filter s leva) da vidite sve taskove bez ograničenja. Možete koristiti polje za pretragu da brzo pronađete specifičan task po nazivu ili delu naziva.</p>"
+ },
+ {
+  "category": "release",
+  "lang": "sr",
+  "question": "Šta su Release Notes i kada se pojavljuju?",
+  "keywords": "release notes formalna obaveštenja funkcionalnosti ispravke greške promene verzija klijent",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Release Notes su formalna obaveštenja o novim funkcionalnostima, ispravkama grešaka i promenama u sistemu koji tim isporučuje. Prikazuju se u modulu <span style=\"font-weight:600;color:var(--text)\">Release Notes</span> u navigacionoj traci.</p><div style=\"border-left:3px solid var(--accent);background:var(--accentTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Vidite samo release notes koji su vam eksplicitno dodeljeni — svaki klijent vidi samo svoje relevantne informacije.</div>"
+ },
+ {
+  "category": "release",
+  "lang": "sr",
+  "question": "Kako da pristupim mojim Release Notes?",
+  "keywords": "pristup navigaciona traka lista datum direktan link email token bez prijavljivanja otvoriti",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Kliknite na <span style=\"font-weight:600;color:var(--text)\">Release Notes</span> u navigacionoj traci. Vidite listu svih release notes koji su vam dodeljeni, sortirane po datumu. Klik na bilo koji release notes otvara detaljan prikaz sadržaja.</p><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Administrator vam može poslati i <span style=\"font-weight:600;color:var(--text)\">direktan link</span> na release notes putem emaila — u tom slučaju možete pročitati sadržaj i bez prijavljivanja na platformu.</p>"
+ },
+ {
+  "category": "release",
+  "lang": "sr",
+  "question": "Koje informacije obično sadrže Release Notes?",
+  "keywords": "nove funkcionalnosti ispravke greške poboljšanja performansi tehničke promene datum isporuke sadržaj",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Release notes tipično sadrže:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Nove funkcionalnosti</span> — šta je novo isporučeno u ovoj verziji</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Ispravke grešaka</span> — problemi koji su rešeni</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Poboljšanja performansi</span> — optimizacije i unapređenja</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Tehničke promene</span> — promene koje mogu uticati na integracije</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Datum isporuke</span> — kada su promene primenjene</li></ul>"
+ },
+ {
+  "category": "release",
+  "lang": "sr",
+  "question": "Šta znači status \"Released\" na release notes?",
+  "keywords": "released status produkcija primenjeno draft vidljivo objavljen",
+  "position": 3,
+  "answer": "<div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Released</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">označava da su promene opisane u release notes već primenjene u produkcijskom sistemu i vidljive su vama. Suprotno od draft statusa (koji je vidljiv samo administratorima tokom kreiranja).</p>"
+ },
+ {
+  "category": "release",
+  "lang": "sr",
+  "question": "Mogu li da podelim Release Notes sa nekim ko nema nalog?",
+  "keywords": "javni link token bez naloga podeliti email jedinstven siguran pristup bez registracije",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Administrator može da generiše <span style=\"font-weight:600;color:var(--text)\">javni link</span> za svaki objavljeni release notes. Taj link možete podeliti sa bilo kim — osoba ne mora da ima nalog na platformi da bi pročitala sadržaj. Link je jedinstven i siguran (token-based).</p>"
+ },
+ {
+  "category": "dokumenta",
+  "lang": "sr",
+  "question": "Koje dokumente mogu da vidim na platformi?",
+  "keywords": "dokumenti deljeni sekcije folderi projektna dokumentacija specifikacije izveštaji ugovori klijent vidljivost",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Vidite samo dokumente koji su vam eksplicitno deljeni od strane administratora. Dokumenti su organizovani u <span style=\"font-weight:600;color:var(--text)\">sekcije</span> (foldere) kao što su: Projektna dokumentacija, Specifikacije, Izveštaji, Ugovori i sl.</p><div style=\"border-left:3px solid var(--green);background:var(--greenTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Dokumenti drugih klijenata su skriveni — privatnost podataka je garantovana.</div>"
+ },
+ {
+  "category": "dokumenta",
+  "lang": "sr",
+  "question": "Kako da preuzmem dokument?",
+  "keywords": "preuzimanje download ikonica fajl računar prijavljivanje PDF",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">U Dokumenta modulu, pronađite željeni dokument i kliknite na ikonicu <span style=\"font-weight:600;color:var(--text)\">preuzimanja (download)</span> pored naziva fajla. Fajl će se preuzeti na vaš računar. Prijavljivanje na platformu je obavezno za pristup dokumentima.</p>"
+ },
+ {
+  "category": "dokumenta",
+  "lang": "sr",
+  "question": "Mogu li da gledam PDF direktno na platformi bez preuzimanja?",
+  "keywords": "PDF thumbnail pregled stranica browser preuzimanje prikaz miniatura",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Da. PDF dokumenti prikazuju <span style=\"font-weight:600;color:var(--text)\">thumbnail prve stranice</span> direktno u listi, tako da možete videti o čemu se radi bez preuzimanja. Za kompletni pregled sadržaja koristite opciju preuzimanja ili pregledača u browseru.</p>"
+ },
+ {
+  "category": "dokumenta",
+  "lang": "sr",
+  "question": "Zašto ne vidim dokument koji mi je trebalo da bude poslat?",
+  "keywords": "ne vidim dokument pristup administrator sekcija osvežiti F5 poslat",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Nekoliko mogućih razloga:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Administrator još nije dodelio pristup vama specifično — obratite se administratoru</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Dokument je u sekciji kojoj nemate pristup</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Osvežite stranicu klikom na F5 u browseru da proverite da li se pojavio</li></ul>"
+ },
+ {
+  "category": "poruke",
+  "lang": "sr",
+  "question": "Kako da znam da imam novu poruku?",
+  "keywords": "nova poruka notifikacija zvono crvena tačka nepročitane 60 sekundi automatski provera",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Crvena tačka se pojavljuje na <span style=\"font-weight:600;color:var(--text)\">ikoni zvona</span> u navigacionoj traci na vrhu ekrana. Klik na zvono prikazuje poslednjih 5 nepročitanih poruka sa kratkim pregledom sadržaja. Odatle možete direktno otvoriti konverzaciju ili kliknuti &quot;Označi sve kao pročitano&quot;.</p><div style=\"border-left:3px solid var(--accent);background:var(--accentTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Platforma proverava nove poruke svakih 60 sekundi automatski — ne morate osvežavati stranicu.</div>"
+ },
+ {
+  "category": "poruke",
+  "lang": "sr",
+  "question": "Koje poruke mogu da vidim kao klijent? Da li vidim poruke za druge klijente?",
+  "keywords": "klijent vidljivost privatnost direktno sve korisnici izolacija drugi",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Kao klijent, vidite samo:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Poruke koje su vam <span style=\"font-weight:600;color:var(--text)\">direktno poslate</span></li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Poruke koje su poslate <span style=\"font-weight:600;color:var(--text)\">&quot;svima&quot;</span> na projektu</li></ul><div style=\"border-left:3px solid var(--green);background:var(--greenTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Ne možete videti poruke namenjene drugim klijentima — svaki klijent ima svoju privatnu komunikaciju sa timom.</div>"
+ },
+ {
+  "category": "poruke",
+  "lang": "sr",
+  "question": "Kako se šalje poruka vezana za određeni Jira task?",
+  "keywords": "slanje poruke jira task ključ hover ikona forma automatski naziv konverzacija tema",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Postoje dva načina:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Iz tabele taskova</span> — na desktop uređajima, kada pređete mišem (hover) preko reda taska, pojavljuje se ikona poruke. Klik automatski otvara formu sa popunjenim Jira ključem taska.</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Iz Poruka modula</span> — u polju za slanje poruke unesite Jira ključ taska u predviđeno polje (npr. <span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:13px;color:var(--accent);background:var(--accentTint);padding:1px 6px;border-radius:4px\">KNJAZ-101</span>). Sistem automatski pronalazi naziv taska.</li></ul><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Ovako poslate poruke grupišu se u konverzacije po temi/tasku, što olakšava praćenje komunikacije.</p>"
+ },
+ {
+  "category": "poruke",
+  "lang": "sr",
+  "question": "Da li mogu da odgovorim na poruku?",
+  "keywords": "odgovor reply konverzacija levi panel desni panel pošalji hronološki",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Da. Otvorite konverzaciju klikom na nju u levom panelu, a zatim unesite odgovor u polje na dnu desnog panela i kliknite Pošalji. Odgovor se odmah pojavljuje u konverzaciji hronološki.</p>"
+ },
+ {
+  "category": "poruke",
+  "lang": "sr",
+  "question": "Kako su organizovane konverzacije?",
+  "keywords": "konverzacije projekat tema leva strana lista organizacija jira task generalna panel",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Konverzacije su organizovane po <span style=\"font-weight:600;color:var(--text)\">projektu i temi</span>. U levom panelu birate projekat iz liste, a zatim vidite listu svih konverzacija za taj projekat. Svaka konverzacija može biti vezana za specifičan Jira task ili može biti generalna po temi. Klik na konverzaciju otvara sve poruke u desnom panelu.</p>"
+ },
+ {
+  "category": "poruke",
+  "lang": "sr",
+  "question": "Zašto ne mogu da vidim neke projekte u Porukama?",
+  "keywords": "ne mogu da vidim projekat pristup administrator arhiviran lista poruke",
+  "position": 5,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Vidite samo projekte kojima imate dodeljeni pristup. Ako projekat koji tražite nije u listi, obratite se administratoru da vam dodeli pristup. Moguće je i da je projekat arhiviran.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "sr",
+  "question": "Kako da promenim lozinku?",
+  "keywords": "promena lozinke avatar podešavanja profil stara nova sačuvaj dropdown",
+  "position": 0,
+  "answer": "<ol style=\"padding-left:20px;color:var(--text);font-size:14px;line-height:1.9;margin:4px 0\"><li>Kliknite na vaš avatar (inicijali) u gornjem desnom uglu</li><li>Izaberite <span style=\"font-weight:600;color:var(--text)\">Podešavanja</span> iz dropdown menija</li><li>U tabu <span style=\"font-weight:600;color:var(--text)\">Profil</span> pronađite sekciju za promenu lozinke</li><li>Unesite staru lozinku i dva puta novu lozinku</li><li>Kliknite <span style=\"font-weight:600;color:var(--text)\">Sačuvaj</span></li></ol>"
+ },
+ {
+  "category": "nalog",
+  "lang": "sr",
+  "question": "Kako da promenim temu (tamna / svetla)?",
+  "keywords": "tema tamna svetla sistemska toggle ikonica navigacija podešavanja tab sunce mesec",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Postoje dva načina:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Brzo</span> — kliknite na ikonicu sunca/meseca u gornjoj navigacionoj traci, tema se menja odmah</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Detaljno</span> — idite u Podešavanja → tab Tema, gde možete izabrati Tamnu, Svetlu ili Sistemsku temu (prati podešavanja vašeg uređaja)</li></ul><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Izbor se pamti i primenjuje pri svakom ponovnom otvaranju platforme.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "sr",
+  "question": "Zaboravio/la sam lozinku — šta da radim?",
+  "keywords": "zaboravljena lozinka reset email administrator privremena samoreset",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Platforma trenutno ne podržava samoreset lozinke putem emaila. <span style=\"font-weight:600;color:var(--text)\">Obratite se svom administratoru</span> koji može resetovati vašu lozinku iz sistema za upravljanje korisnicima. Dobićete novu privremenu lozinku koju zatim možete promeniti u Podešavanjima.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "sr",
+  "question": "Koliko dugo ostajem prijavljen/a?",
+  "keywords": "sesija 7 dana jwt token istekne sigurnost kredencijali prijaviti",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Sesija traje <span style=\"font-weight:600;color:var(--text)\">7 dana</span> od poslednje prijave. Nakon toga, biće vam prikazana login stranica i moraćete ponovo da unesete kredencijale. Ovo je standardna sigurnosna mera.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "sr",
+  "question": "Kako da se odjavim?",
+  "keywords": "odjava logout avatar meni navigaciona traka preusmeriti login",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Kliknite na vaš avatar (inicijali) u gornjem desnom uglu navigacione trake, a zatim izaberite <span style=\"font-weight:600;color:var(--text)\">Odjava</span> iz menija. Bićete odmah odjavljeni i preusmereni na login stranicu.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "sr",
+  "question": "Mogu li da promenim jezik interfejsa?",
+  "keywords": "jezik srpski engleski prevod interfejs podešavanja tab tema odmah",
+  "position": 5,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Da. Idite u Podešavanja → tab Tema i jezik, gde možete prebaciti između Srpskog i Engleskog jezika. Promena se odmah primenjuje na sve tekste u interfejsu.</p>"
+ },
+ {
+  "category": "sigurnost",
+  "lang": "sr",
+  "question": "Da li su moji podaci sigurni na platformi?",
+  "keywords": "sigurnost bezbednost lozinka hash bcrypt api token enkriptovan AES JWT sesija rate limiting zaštita",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Da. Platforma koristi više slojeva zaštite:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Lozinke</span> — nikad se ne čuvaju u originalnom obliku, uvek kao hash (bcrypt)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">API tokeni</span> — enkriptovani AES-256 algoritmom pre čuvanja u bazi</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Sesije</span> — JWT tokeni sa rokom trajanja od 7 dana</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Izolacija podataka</span> — svaki klijent vidi samo svoje podatke</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Rate limiting</span> — ograničen broj pokušaja prijave (zaštita od napada)</li></ul>"
+ },
+ {
+  "category": "sigurnost",
+  "lang": "sr",
+  "question": "Da li drugi klijenti mogu da vide moje projekte ili poruke?",
+  "keywords": "privatnost izolacija projekti poruke release notes dokumenti drugi klijenti striktna",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Ne. Sistem je dizajniran sa <span style=\"font-weight:600;color:var(--text)\">striktnom izolacijom podataka po korisniku</span>:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Vidite samo projekte dodeljene vama</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Vidite samo poruke upućene vama ili svima</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Vidite samo release notes dodeljene vama</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Vidite samo dokumente u sekcijama kojima imate pristup</li></ul>"
+ },
+ {
+  "category": "sigurnost",
+  "lang": "sr",
+  "question": "Šta se dešava kada istekne moja sesija?",
+  "keywords": "sesija istekne 7 dana login stranica preusmereni email lozinka sigurnosna mera",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Posle 7 dana od poslednje prijave, vaša sesija automatski istekne. Sledeći put kada pokušate da koristite platformu, bićete preusmereni na login stranicu i moraćete uneti email i lozinku ponovo. Ovo je sigurnosna mera koja sprečava neovlašćen pristup.</p>"
+ },
+ {
+  "category": "sigurnost",
+  "lang": "sr",
+  "question": "Mogu li da pristupim platformi sa više uređaja istovremeno?",
+  "keywords": "više uređaja kompjuter laptop tablet telefon responsive sesija istovremeno nezavisno",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Da. Možete se prijaviti sa kompjutera, laptopa, tableta i telefona istovremeno. Svaki uređaj ima svoju sesiju nezavisno od ostalih. Platforma je responsive i prilagođena za korišćenje na svim uređajima.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "What do I see on the main page (Dashboard) and what does it show me?",
+  "keywords": "tabovi projekata metrički kartica donut grafikon bar grafikon tabela taskova jira automatski pregled",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The Dashboard is a central control panel with a complete overview of your projects. As soon as you log in, you see:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Project tabs</span> — a list of all projects you have access to, in a horizontal row at the top</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">8 metric cards</span> — key performance indicators: total number of tasks, done, in progress, for grooming, estimate in hours, spent, difference and overruns</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Donut chart</span> — a visual distribution of tasks by status (green=done, amber=in progress, gray=planning)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Bar chart</span> — a comparison of the estimate and time spent per task</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Task table</span> — a complete list of all tasks with filters and search</li></ul><div style=\"border-left:3px solid var(--green);background:var(--greenTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">All data is pulled automatically from Jira — you do not need to enter anything manually.</div>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "What exactly does each of the 8 metric cards mean?",
+  "keywords": "ukupno taskova završeno in progress for grooming estimacija utrošeno razlika prekoračenja KPI indikator",
+  "position": 1,
+  "answer": "<ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">TOTAL TASKS</span> — the total number of parent tasks and subtasks tracked for this project</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">DONE</span> — tasks in status Resolved, Closed or Done, with a percentage of the total</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">IN PROGRESS</span> — tasks currently actively in development or testing</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">FOR GROOMING</span> — tasks still awaiting planning and estimation; a high number means a lot of unplanned future work</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">ESTIMATE</span> — the total original estimated time for all tasks, in hours</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">SPENT</span> — the total logged working time in hours (directly from Jira)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">DIFFERENCE</span> — the difference between the estimate and time spent. A green color and a negative number are a good thing (we are working within the estimate); a red color means an overrun</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">OVERRUNS</span> — the number of tasks that have exceeded the estimate by more than 15%. It should be 0 or as low as possible</li></ul>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "What does the red color on a task in the table mean?",
+  "keywords": "crvena boja prekoračenje estimacija 15% procenat pozadina progress bar ID ključ",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">A red color on a task means that the task has <span style=\"font-weight:600;color:var(--text)\">exceeded the original estimate by more than 15%</span>. Specifically, you see:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>A red background for the entire task row</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>A red color on the task&#x27;s Jira key (ID)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>The overrun percentage below the key (e.g. &quot;+87% overrun&quot;)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>A red progress bar in the Progress column</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>A red value in the Spent column</li></ul><div style=\"border-left:3px solid var(--amber);background:var(--amberTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Overrun tasks are also shown in the red banner above the table, as well as in the &quot;OVERRUNS&quot; KPI card.</div>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "How can I filter the tasks in the table?",
+  "keywords": "filter dugmadi pretraga search svi završeni in progress grooming prekoračenje kategorija tražiti",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Above the task table there are filter buttons with counts:</p><div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">All (48)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Done (20)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--accentTint);color:var(--accent);border:1px solid var(--accent)\">In Progress (4)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">Grooming (24)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--redTint);color:var(--red);border:1px solid var(--red)\">Overrun (3)</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Clicking any filter shows only the tasks in that category. The &quot;Overrun&quot; filter is especially useful for focusing on problematic tasks. Next to the filters, on the right side, is a <span style=\"font-weight:600;color:var(--text)\">search field</span> that filters tasks by name in real time as you type.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "How do I view the subtasks of a specific task?",
+  "keywords": "subtask expand klik razviti skupiti jira ključ komponenta status utrošeno uvučeni",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Click any row in the task table. The row will expand and show all subtasks of that task, indented with a smaller font. For each subtask you see: the Jira key, component, name, status and time spent. Clicking the row again collapses the subtasks.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "What is the donut chart and how do I read it?",
+  "keywords": "donut kružni grafikon segment status zelena žuta siva procenat završenosti progress bar vizuelno",
+  "position": 5,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The donut (ring) chart shows a visual distribution of all tasks by status. Each segment has a color:</p><div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Done</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--amberTint);color:var(--amber);border:1px solid var(--amber)\">In Progress / Testing</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">For Grooming / Todo</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The number in the center of the chart is the <span style=\"font-weight:600;color:var(--text)\">completion percentage</span> of the project. Below the chart there are three progress bars with exact numbers: how many tasks are in each category out of the total.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "What does the bar chart show me and what does it mean when the bars are red?",
+  "keywords": "bar grafikon stub estimirano utrošeno plavi zeleni crveni prekoračenje hover tooltip poređenje",
+  "position": 6,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The bar chart shows a comparison of the <span style=\"font-weight:600;color:var(--text)\">estimated and spent time</span> for the 12 tasks with the largest estimate:</p><div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--accentTint);color:var(--accent);border:1px solid var(--accent)\">Blue bar — Estimated time</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Green bar — Spent (OK)</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--redTint);color:var(--red);border:1px solid var(--red)\">Red bar — Spent (overrun)</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">When the spent-time bar is <span style=\"font-weight:600;color:var(--text)\">higher than the blue estimate bar</span> and red — the task has exceeded its estimate. Hover over any bar to see a tooltip with details: the task key, estimated, spent and difference.</p>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "How often is the data refreshed from Jira?",
+  "keywords": "osvežavanje refresh automatski ručno ikonica kružna strelica podešavanja vreme dnevno promena novi taskovi",
+  "position": 7,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The data is refreshed in two ways:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Manually</span> — by clicking the refresh icon on the right side of the project header (the circular arrow)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Automatically</span> — an administrator can set a daily automatic refresh time in Settings (e.g. &quot;09:00&quot; — every day at 9 AM the platform automatically pulls new data)</li></ul><div style=\"border-left:3px solid var(--accent);background:var(--accentTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">The platform remembers previous data and shows you what has changed since the last refresh: new tasks, status changes, estimate changes.</div>"
+ },
+ {
+  "category": "dashboard",
+  "lang": "en",
+  "question": "What is the progress bar at the top of the project and how do I read it?",
+  "keywords": "progress bar zeleni žuti sivi trobojan vizuelno procenat završenosti legenda header",
+  "position": 8,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The horizontal progress bar below the project title shows the <span style=\"font-weight:600;color:var(--text)\">project&#x27;s overall progress visually in a single line</span>. The bar has three colors:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--green)\">Green part</span> — the percentage of completed tasks</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--amber)\">Amber part</span> — the percentage of tasks in progress</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Gray part</span> — the remaining tasks (grooming/todo)</li></ul><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The number on the right shows the overall completion percentage (green + amber part). Below the bar is a legend with exact numbers.</p>"
+ },
+ {
+  "category": "projekti",
+  "lang": "en",
+  "question": "Why don't I see a project that should exist?",
+  "keywords": "ne vidim projekat pristup administrator arhiviran kreiran vidljivost",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">It is possible that:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>The administrator has not yet granted you access to that project — contact them</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>The project has been archived (temporarily hidden)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>The project has not yet been created in the system</li></ul><div style=\"border-left:3px solid var(--amber);background:var(--amberTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Clients only see projects that have been explicitly assigned to them. The administrator controls visibility.</div>"
+ },
+ {
+  "category": "projekti",
+  "lang": "en",
+  "question": "What does the project status mean (green / amber dot on the tab)?",
+  "keywords": "zelena žuta siva tačka tab status aktivan pauziran završen jira epic",
+  "position": 1,
+  "answer": "<div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Green — Active project, in progress</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--amberTint);color:var(--amber);border:1px solid var(--amber)\">Amber — Project is paused</span><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">Gray — Project is completed</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The status is determined based on the status of the Jira epic and the tasks within the project.</p>"
+ },
+ {
+  "category": "projekti",
+  "lang": "en",
+  "question": "Do I see Jira data in real time or is it cached?",
+  "keywords": "keširano keširanje realtime osvežavanje razlike prethodni podaci performanse brzina",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The data is <span style=\"font-weight:600;color:var(--text)\">cached</span> for speed and performance. On each refresh (manual or automatic), the platform pulls the freshest data from Jira and shows the differences from the previous refresh. Between refreshes, the last retrieved data is shown.</p>"
+ },
+ {
+  "category": "projekti",
+  "lang": "en",
+  "question": "What are project Phases and how do I use them?",
+  "keywords": "faze phases milestone etape isporuke boja napredak administrator backend frontend",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Phases are optional milestones that group tasks into logical delivery stages (e.g. &quot;Phase 1 — Backend&quot;, &quot;Phase 2 — Frontend&quot;). Each phase has a color and shows the progress within that stage.</p><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Phase management is the administrator&#x27;s responsibility. Clients can see phases if the administrator has configured them.</p>"
+ },
+ {
+  "category": "projekti",
+  "lang": "en",
+  "question": "Can I view the list of all tasks without a filter?",
+  "keywords": "lista taskova bez filtera svi pretraga naziv pronađi",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Yes. In the task table, click the <span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--surfaceAlt);color:var(--textMuted);border:1px solid var(--border)\">All</span> filter (the first filter from the left) to see all tasks without restriction. You can use the search field to quickly find a specific task by name or part of the name.</p>"
+ },
+ {
+  "category": "release",
+  "lang": "en",
+  "question": "What are Release Notes and when do they appear?",
+  "keywords": "release notes formalna obaveštenja funkcionalnosti ispravke greške promene verzija klijent",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Release Notes are formal notifications about new features, bug fixes and system changes that the team delivers. They are shown in the <span style=\"font-weight:600;color:var(--text)\">Release Notes</span> module in the navigation bar.</p><div style=\"border-left:3px solid var(--accent);background:var(--accentTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">You only see release notes that have been explicitly assigned to you — each client sees only their own relevant information.</div>"
+ },
+ {
+  "category": "release",
+  "lang": "en",
+  "question": "How do I access my Release Notes?",
+  "keywords": "pristup navigaciona traka lista datum direktan link email token bez prijavljivanja otvoriti",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Click <span style=\"font-weight:600;color:var(--text)\">Release Notes</span> in the navigation bar. You see a list of all release notes assigned to you, sorted by date. Clicking any release notes opens a detailed view of the content.</p><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The administrator can also send you a <span style=\"font-weight:600;color:var(--text)\">direct link</span> to a release notes via email — in that case you can read the content even without logging in to the platform.</p>"
+ },
+ {
+  "category": "release",
+  "lang": "en",
+  "question": "What information do Release Notes usually contain?",
+  "keywords": "nove funkcionalnosti ispravke greške poboljšanja performansi tehničke promene datum isporuke sadržaj",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Release notes typically contain:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">New features</span> — what has been newly delivered in this version</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Bug fixes</span> — problems that have been resolved</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Performance improvements</span> — optimizations and enhancements</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Technical changes</span> — changes that may affect integrations</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Delivery date</span> — when the changes were applied</li></ul>"
+ },
+ {
+  "category": "release",
+  "lang": "en",
+  "question": "What does the \"Released\" status on release notes mean?",
+  "keywords": "released status produkcija primenjeno draft vidljivo objavljen",
+  "position": 3,
+  "answer": "<div style=\"display:flex;flex-wrap:wrap;gap:8px;margin:10px 0\"><span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--greenTint);color:var(--green);border:1px solid var(--green)\">Released</span></div><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">indicates that the changes described in the release notes have already been applied in the production system and are visible to you. The opposite of the draft status (which is visible only to administrators during creation).</p>"
+ },
+ {
+  "category": "release",
+  "lang": "en",
+  "question": "Can I share Release Notes with someone who does not have an account?",
+  "keywords": "javni link token bez naloga podeliti email jedinstven siguran pristup bez registracije",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The administrator can generate a <span style=\"font-weight:600;color:var(--text)\">public link</span> for each published release notes. You can share that link with anyone — the person does not need an account on the platform to read the content. The link is unique and secure (token-based).</p>"
+ },
+ {
+  "category": "dokumenta",
+  "lang": "en",
+  "question": "Which documents can I see on the platform?",
+  "keywords": "dokumenti deljeni sekcije folderi projektna dokumentacija specifikacije izveštaji ugovori klijent vidljivost",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">You only see documents that have been explicitly shared with you by the administrator. Documents are organized into <span style=\"font-weight:600;color:var(--text)\">sections</span> (folders) such as: Project documentation, Specifications, Reports, Contracts, etc.</p><div style=\"border-left:3px solid var(--green);background:var(--greenTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">Other clients&#x27; documents are hidden — data privacy is guaranteed.</div>"
+ },
+ {
+  "category": "dokumenta",
+  "lang": "en",
+  "question": "How do I download a document?",
+  "keywords": "preuzimanje download ikonica fajl računar prijavljivanje PDF",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">In the Documents module, find the document you want and click the <span style=\"font-weight:600;color:var(--text)\">download</span> icon next to the file name. The file will be downloaded to your computer. Logging in to the platform is required to access documents.</p>"
+ },
+ {
+  "category": "dokumenta",
+  "lang": "en",
+  "question": "Can I view a PDF directly on the platform without downloading?",
+  "keywords": "PDF thumbnail pregled stranica browser preuzimanje prikaz miniatura",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Yes. PDF documents show a <span style=\"font-weight:600;color:var(--text)\">thumbnail of the first page</span> directly in the list, so you can see what it is about without downloading. For a full view of the content, use the download option or the browser viewer.</p>"
+ },
+ {
+  "category": "dokumenta",
+  "lang": "en",
+  "question": "Why don't I see a document that should have been sent to me?",
+  "keywords": "ne vidim dokument pristup administrator sekcija osvežiti F5 poslat",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">A few possible reasons:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>The administrator has not yet granted access to you specifically — contact the administrator</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>The document is in a section you do not have access to</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Refresh the page by pressing F5 in the browser to check whether it has appeared</li></ul>"
+ },
+ {
+  "category": "poruke",
+  "lang": "en",
+  "question": "How do I know I have a new message?",
+  "keywords": "nova poruka notifikacija zvono crvena tačka nepročitane 60 sekundi automatski provera",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">A red dot appears on the <span style=\"font-weight:600;color:var(--text)\">bell icon</span> in the navigation bar at the top of the screen. Clicking the bell shows the last 5 unread messages with a short preview. From there you can open a conversation directly or click &quot;Mark all as read&quot;.</p><div style=\"border-left:3px solid var(--accent);background:var(--accentTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">The platform checks for new messages every 60 seconds automatically — you do not need to refresh the page.</div>"
+ },
+ {
+  "category": "poruke",
+  "lang": "en",
+  "question": "Which messages can I see as a client? Can I see messages for other clients?",
+  "keywords": "klijent vidljivost privatnost direktno sve korisnici izolacija drugi",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">As a client, you only see:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Messages sent <span style=\"font-weight:600;color:var(--text)\">directly to you</span></li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>Messages sent to <span style=\"font-weight:600;color:var(--text)\">&quot;everyone&quot;</span> on the project</li></ul><div style=\"border-left:3px solid var(--green);background:var(--greenTint);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--textMuted);line-height:1.6\">You cannot see messages intended for other clients — each client has their own private communication with the team.</div>"
+ },
+ {
+  "category": "poruke",
+  "lang": "en",
+  "question": "How do I send a message related to a specific Jira task?",
+  "keywords": "slanje poruke jira task ključ hover ikona forma automatski naziv konverzacija tema",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">There are two ways:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">From the task table</span> — on desktop devices, when you hover over a task row, a message icon appears. Clicking it automatically opens a form with the task&#x27;s Jira key already filled in.</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">From the Messages module</span> — in the message field, enter the task&#x27;s Jira key in the designated field (e.g. <span style=\"font-family:&#x27;Hanken Grotesk&#x27;, sans-serif;font-size:13px;color:var(--accent);background:var(--accentTint);padding:1px 6px;border-radius:4px\">KNJAZ-101</span>). The system automatically finds the task name.</li></ul><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Messages sent this way are grouped into conversations by topic/task, which makes it easier to track communication.</p>"
+ },
+ {
+  "category": "poruke",
+  "lang": "en",
+  "question": "Can I reply to a message?",
+  "keywords": "odgovor reply konverzacija levi panel desni panel pošalji hronološki",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Yes. Open a conversation by clicking it in the left panel, then enter your reply in the field at the bottom of the right panel and click Send. The reply appears in the conversation immediately, in chronological order.</p>"
+ },
+ {
+  "category": "poruke",
+  "lang": "en",
+  "question": "How are conversations organized?",
+  "keywords": "konverzacije projekat tema leva strana lista organizacija jira task generalna panel",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Conversations are organized by <span style=\"font-weight:600;color:var(--text)\">project and topic</span>. In the left panel you select a project from the list, and then you see a list of all conversations for that project. Each conversation can be tied to a specific Jira task or can be general by topic. Clicking a conversation opens all messages in the right panel.</p>"
+ },
+ {
+  "category": "poruke",
+  "lang": "en",
+  "question": "Why can't I see some projects in Messages?",
+  "keywords": "ne mogu da vidim projekat pristup administrator arhiviran lista poruke",
+  "position": 5,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">You only see projects you have been granted access to. If the project you are looking for is not in the list, contact the administrator to grant you access. It is also possible that the project has been archived.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "en",
+  "question": "How do I change my password?",
+  "keywords": "promena lozinke avatar podešavanja profil stara nova sačuvaj dropdown",
+  "position": 0,
+  "answer": "<ol style=\"padding-left:20px;color:var(--text);font-size:14px;line-height:1.9;margin:4px 0\"><li>Click your avatar (initials) in the top right corner</li><li>Select <span style=\"font-weight:600;color:var(--text)\">Settings</span> from the dropdown menu</li><li>In the <span style=\"font-weight:600;color:var(--text)\">Profile</span> tab, find the password change section</li><li>Enter your old password and the new password twice</li><li>Click <span style=\"font-weight:600;color:var(--text)\">Save</span></li></ol>"
+ },
+ {
+  "category": "nalog",
+  "lang": "en",
+  "question": "How do I change the theme (dark / light)?",
+  "keywords": "tema tamna svetla sistemska toggle ikonica navigacija podešavanja tab sunce mesec",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">There are two ways:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Quick</span> — click the sun/moon icon in the top navigation bar; the theme changes immediately</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Detailed</span> — go to Settings → Theme tab, where you can choose Dark, Light or System theme (follows your device settings)</li></ul><p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Your choice is remembered and applied every time you reopen the platform.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "en",
+  "question": "I forgot my password — what should I do?",
+  "keywords": "zaboravljena lozinka reset email administrator privremena samoreset",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">The platform currently does not support self-service password reset via email. <span style=\"font-weight:600;color:var(--text)\">Contact your administrator</span> who can reset your password from the user management system. You will receive a new temporary password, which you can then change in Settings.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "en",
+  "question": "How long do I stay logged in?",
+  "keywords": "sesija 7 dana jwt token istekne sigurnost kredencijali prijaviti",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">A session lasts <span style=\"font-weight:600;color:var(--text)\">7 days</span> from your last login. After that, the login page is shown and you will need to enter your credentials again. This is a standard security measure.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "en",
+  "question": "How do I log out?",
+  "keywords": "odjava logout avatar meni navigaciona traka preusmeriti login",
+  "position": 4,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Click your avatar (initials) in the top right corner of the navigation bar, then select <span style=\"font-weight:600;color:var(--text)\">Logout</span> from the menu. You will be logged out immediately and redirected to the login page.</p>"
+ },
+ {
+  "category": "nalog",
+  "lang": "en",
+  "question": "Can I change the interface language?",
+  "keywords": "jezik srpski engleski prevod interfejs podešavanja tab tema odmah",
+  "position": 5,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Yes. Go to Settings → Theme and language tab, where you can switch between Serbian and English. The change is applied immediately to all texts in the interface.</p>"
+ },
+ {
+  "category": "sigurnost",
+  "lang": "en",
+  "question": "Is my data safe on the platform?",
+  "keywords": "sigurnost bezbednost lozinka hash bcrypt api token enkriptovan AES JWT sesija rate limiting zaštita",
+  "position": 0,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Yes. The platform uses several layers of protection:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Passwords</span> — are never stored in their original form, always as a hash (bcrypt)</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">API tokens</span> — are encrypted with the AES-256 algorithm before being stored in the database</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Sessions</span> — JWT tokens with a validity period of 7 days</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Data isolation</span> — each client sees only their own data</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span><span style=\"font-weight:600;color:var(--text)\">Rate limiting</span> — a limited number of login attempts (protection against attacks)</li></ul>"
+ },
+ {
+  "category": "sigurnost",
+  "lang": "en",
+  "question": "Can other clients see my projects or messages?",
+  "keywords": "privatnost izolacija projekti poruke release notes dokumenti drugi klijenti striktna",
+  "position": 1,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">No. The system is designed with <span style=\"font-weight:600;color:var(--text)\">strict per-user data isolation</span>:</p><ul style=\"list-style:none;padding:0;margin:8px 0\"><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>You only see projects assigned to you</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>You only see messages addressed to you or to everyone</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>You only see release notes assigned to you</li><li style=\"padding:4px 0 4px 20px;position:relative;font-size:14px;color:var(--text);line-height:1.6\"><span style=\"position:absolute;left:0;color:var(--accent);font-size:11px;top:6px;line-height:1\">▸</span>You only see documents in sections you have access to</li></ul>"
+ },
+ {
+  "category": "sigurnost",
+  "lang": "en",
+  "question": "What happens when my session expires?",
+  "keywords": "sesija istekne 7 dana login stranica preusmereni email lozinka sigurnosna mera",
+  "position": 2,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">After 7 days from your last login, your session expires automatically. The next time you try to use the platform, you will be redirected to the login page and will need to enter your email and password again. This is a security measure that prevents unauthorized access.</p>"
+ },
+ {
+  "category": "sigurnost",
+  "lang": "en",
+  "question": "Can I access the platform from multiple devices at the same time?",
+  "keywords": "više uređaja kompjuter laptop tablet telefon responsive sesija istovremeno nezavisno",
+  "position": 3,
+  "answer": "<p style=\"margin-bottom:10px;font-size:14px;color:var(--textMuted);line-height:1.7\">Yes. You can log in from a desktop, laptop, tablet and phone at the same time. Each device has its own session, independent of the others. The platform is responsive and adapted for use on all devices.</p>"
+ }
+]

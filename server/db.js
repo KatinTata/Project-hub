@@ -476,6 +476,21 @@ db.exec(`
   )
 `)
 
+// FAQ iz baze (P2-E1) — QAPage čita kroz API, admin menja bez deploya.
+// answer je sanitizovan HTML (upis kroz /api/faq prolazi sanitize-html).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS faq (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    category   TEXT NOT NULL,
+    lang       TEXT NOT NULL DEFAULT 'sr',
+    question   TEXT NOT NULL,
+    answer     TEXT NOT NULL,
+    keywords   TEXT DEFAULT '',
+    position   INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
 // ── Indeksi (P1-13, aditivno) ────────────────────────────────────────────────
 // Najčešći filteri/spajanja bez pokrivajućeg indeksa. UNIQUE ograničenja već
 // pokrivaju: message_reads(message_id, user_id) PK — ali ne i upit samo po
@@ -492,6 +507,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_published_notes_project ON published_notes(project_id);
   CREATE INDEX IF NOT EXISTS idx_ap_exchange_rates_lookup ON ap_exchange_rates(currency_from, currency_to, rate_date);
   CREATE INDEX IF NOT EXISTS idx_ai_usage_alerts_month ON ai_usage_alerts(month);
+  CREATE INDEX IF NOT EXISTS idx_faq_lang_cat ON faq(lang, category, position);
 `)
 
 export default db

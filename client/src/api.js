@@ -233,6 +233,12 @@ export const api = {
 
   // App settings — working-calendar config (PUT is super_admin only)
   getAppSettings: () => request('GET', '/settings'),
+
+  // FAQ (P2-E1)
+  getFaq: lang => request('GET', `/faq?lang=${encodeURIComponent(lang || 'sr')}`),
+  createFaq: body => request('POST', '/faq', body),
+  updateFaq: (id, body) => request('PUT', `/faq/${id}`, body),
+  deleteFaq: id => request('DELETE', `/faq/${id}`),
   updateAppSettings: (body) => request('PUT', '/settings', body),
 
   // Organizations (super admin only for write)
