@@ -4,6 +4,7 @@ import { applyTheme } from './theme.js'
 import { LangProvider } from './lang.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { ToastProvider } from './ui/Toast.jsx'
+import { ConfirmProvider } from './ui/Confirm.jsx'
 import App from './App.jsx'
 
 // Apply initial theme before render to avoid flash
@@ -22,9 +23,11 @@ createRoot(document.getElementById('root')).render(
     <LangProvider>
       <ErrorBoundary>
         <ToastProvider>
-          <Suspense fallback={Loading}>
-            <App />
-          </Suspense>
+          <ConfirmProvider>
+            <Suspense fallback={Loading}>
+              <App />
+            </Suspense>
+          </ConfirmProvider>
         </ToastProvider>
       </ErrorBoundary>
     </LangProvider>
