@@ -4,6 +4,7 @@ import Topbar from '../components/Topbar.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
+import { fmtDateLong } from '../utils/format.js'
 
 export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboard, onGoToEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat }) {
   const t = useT()
@@ -181,10 +182,7 @@ function extractName(title, version) {
   return title.replace(version, '').trim() || title
 }
 
-function fmtDate(str) {
-  if (!str) return null
-  return new Date(str).toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'long', year: 'numeric' })
-}
+const fmtDate = str => fmtDateLong(str)
 
 // ── NotesByProject ────────────────────────────────────────────────────────────
 

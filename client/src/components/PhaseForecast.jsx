@@ -5,12 +5,8 @@ import { buildStackMatrix } from '../utils/stacks.js'
 import { buildPhaseForecast } from '../utils/forecast.js'
 import { buildCapacity } from '../utils/capacity.js'
 import { setCalcConfig } from '../utils/calcConfig.js'
+import { fmtDateIso as fmtDate } from '../utils/format.js'
 
-function fmtDate(iso) {
-  if (!iso) return '—'
-  const [y, m, d] = iso.split('-')
-  return `${d}.${m}.${y}.`
-}
 const fmtDays = n => (Math.round(n * 10) / 10).toFixed(1)
 
 const STACK_COLORS = { Backend: 'var(--accent)', Frontend: '#8B5CF6', Mobile: '#10B981', Database: '#0EA5E9', Testing: 'var(--amber)', Ostalo: 'var(--textSubtle)' }

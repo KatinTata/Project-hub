@@ -5,15 +5,9 @@ import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
+import { fmtRelativeTime } from '../utils/format.js'
 
-function fmtTime(dateStr, t) {
-  const d = new Date(dateStr)
-  const diff = Math.floor((Date.now() - d) / 1000)
-  if (diff < 60) return t('time.justNow')
-  if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) })
-  if (diff < 86400) return t('time.hoursAgo', { n: Math.floor(diff / 3600) })
-  return d.toLocaleDateString('sr-RS', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
-}
+const fmtTime = (dateStr, t) => fmtRelativeTime(dateStr, t, { absoluteAfterDay: true })
 
 const TASK_KEY_RE = /^[A-Z][A-Z0-9]*-\d+$/
 function looksLikeTaskKey(val) { return TASK_KEY_RE.test(val.trim().toUpperCase()) }

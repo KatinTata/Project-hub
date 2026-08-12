@@ -3,11 +3,7 @@ import { api } from '../api.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 
-function fmtDate(iso) {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  return d.toLocaleDateString('sr-Latn', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
+import { fmtDateNumericLocale as fmtDate } from '../utils/format.js'
 
 export default function ArchiveModal({ onClose, onRestore }) {
   const [projects, setProjects] = useState([])

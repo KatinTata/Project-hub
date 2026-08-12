@@ -1,13 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useT } from '../lang.jsx'
 
-function fmtTime(dateStr, t) {
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000)
-  if (diff < 60) return t('time.justNow')
-  if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) })
-  if (diff < 86400) return t('time.hoursAgo', { n: Math.floor(diff / 3600) })
-  return t('time.daysAgo', { n: Math.floor(diff / 86400) })
-}
+import { fmtRelativeTime as fmtTime } from '../utils/format.js'
 
 export default function NotificationBell({ unreadCount = 0, notifications = [], onMarkAllRead, onNotificationClick }) {
   const [open, setOpen] = useState(false)

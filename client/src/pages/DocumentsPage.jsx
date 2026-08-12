@@ -6,6 +6,7 @@ import * as pdfjsLib from 'pdfjs-dist'
 import { useT } from '../lang.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { isClientRole } from '../utils/roles.js'
+import { fmtDateNumericLocale } from '../utils/format.js'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -63,11 +64,7 @@ function fmtFileSize(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function fmtDate(str) {
-  if (!str) return ''
-  const d = new Date(str)
-  return d.toLocaleDateString('sr-Latn-RS', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
+const fmtDate = str => fmtDateNumericLocale(str, '')
 
 async function downloadDoc(id, filename, t) {
   const token = localStorage.getItem('jt_token')

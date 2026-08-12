@@ -3,18 +3,7 @@ import { api } from '../api.js'
 import { buildStackMatrix, STACKS } from '../utils/stacks.js'
 import { buildPhaseForecast } from '../utils/forecast.js'
 
-function fmtDate(iso) {
-  if (!iso) return '—'
-  const [y, m, d] = iso.split('-')
-  return `${d}.${m}.${y}.`
-}
-function fmtDateAny(v) {
-  if (!v) return '—'
-  const d = new Date(v)
-  if (isNaN(d)) return '—'
-  const p = n => String(n).padStart(2, '0')
-  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}.`
-}
+import { fmtDateIso as fmtDate, fmtDateAny } from '../utils/format.js'
 const fmtDays = n => (Math.round(n * 10) / 10).toFixed(1)
 const STACK_SHORT = { Backend: 'BE', Frontend: 'FE', Mobile: 'MOB', Database: 'DB', Testing: 'QA', Ostalo: 'Ost' }
 
