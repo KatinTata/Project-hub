@@ -61,7 +61,7 @@ export function costModelGroups(groups) {
 const SKIP_RE = /batch|cached|cchd|realtime|audio|\baud\b|aud\d|tts|image|transcribe|tcrb|grader|grdr|\brt\b|\bft\b/i
 const CANONICAL = ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-4-32k', 'gpt-4.1-nano', 'gpt-4.1-mini', 'gpt-4.1', 'gpt-5-nano', 'gpt-5', 'gpt-4', 'o4-mini', 'o3-mini', 'o1-mini']
 
-function normalizeMeter(meterName) {
+export function normalizeMeter(meterName) {
   const raw = String(meterName || '')
   if (SKIP_RE.test(raw)) return null
   let dir = null
