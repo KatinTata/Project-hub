@@ -20,6 +20,22 @@ function isAdminRole(role) {
   return role === 'admin' || role === 'super_admin'
 }
 
+// Klijent (rola 'user') nema svoje Jira kredencijale — fallback lanac bi ga
+// odveo na super_admin kredencijale, pa interne rute moraju biti zatvorene.
+function requireInternal(req, res, next) {
+  const role = req.userRole || getUserRole(req.userId)
+  if (!isAdminRole(role)) {
+    return res.status(403).json({ error: 'Forbidden' })
+  }
+  next()
+}
+
+const JIRA_KEY_RE = /^[A-Z][A-Z0-9_]*-\d+$/
+
+function isValidJiraKey(key) {
+  return typeof key === 'string' && JIRA_KEY_RE.test(key)
+}
+
 function getSuperAdminJira() {
   const sa = db.prepare("SELECT jira_url, jira_email, jira_token FROM users WHERE role = 'super_admin' AND jira_url IS NOT NULL AND jira_token IS NOT NULL LIMIT 1").get()
   if (!sa) return null
@@ -60,12 +76,13 @@ function getClientOwnerJiraByProjectId(clientUserId, projectId) {
 
 router.get('/epic/:epicKey', async (req, res) => {
   try {
+    if (!isValidJiraKey(req.params.epicKey)) return res.status(400).json({ error: 'Nevalidan Jira ključ' })
     const role = getUserRole(req.userId)
     const jira = role === 'user'
       ? getClientOwnerJira(req.userId, req.params.epicKey)
       : getUserJira(req.userId) || getSuperAdminJira()
     if (!jira) return res.status(400).json({ error: 'Jira nije konfigurisan' })
-    const data = await jiraGet(jira.jiraUrl, `/issue/${req.params.epicKey}`, jira.auth)
+    const data = await jiraGet(jira.jiraUrl, `/issue/${encodeURIComponent(req.params.epicKey)}`, jira.auth)
     res.json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -75,14 +92,31 @@ router.get('/epic/:epicKey', async (req, res) => {
 // POST /api/jira/tasks — supports epic, jql, combined filter types
 router.post('/tasks', async (req, res) => {
   try {
-    const { filterType = 'epic', epicKey, jql, projectId } = req.body
+    let { filterType = 'epic', epicKey, jql, projectId } = req.body
     const role = getUserRole(req.userId)
 
     let jira
     if (role === 'user') {
-      jira = projectId
-        ? getClientOwnerJiraByProjectId(req.userId, projectId)
-        : getClientOwnerJira(req.userId, epicKey)
+      // Klijent: filter dolazi ISKLJUČIVO iz baze za projekat na koji je dodeljen,
+      // nikad iz tela zahteva (sprečava proizvoljan JQL preko tuđih kredencijala).
+      const project = projectId
+        ? db.prepare(`
+            SELECT p.* FROM projects p
+            JOIN project_clients pc ON pc.project_id = p.id
+            WHERE pc.client_user_id = ? AND p.id = ?
+          `).get(req.userId, projectId)
+        : db.prepare(`
+            SELECT p.* FROM projects p
+            JOIN project_clients pc ON pc.project_id = p.id
+            WHERE pc.client_user_id = ? AND p.epic_key = ?
+          `).get(req.userId, epicKey)
+      if (!project) return res.status(403).json({ error: 'Forbidden' })
+
+      filterType = project.filter_type || 'epic'
+      epicKey = project.epic_key
+      jql = project.filter_jql
+
+      jira = getClientOwnerJiraByProjectId(req.userId, project.id)
     } else {
       jira = getUserJira(req.userId) || getSuperAdminJira()
     }
@@ -90,6 +124,7 @@ router.post('/tasks', async (req, res) => {
 
     let resolvedJql
     if (filterType === 'epic') {
+      if (!isValidJiraKey(epicKey)) return res.status(400).json({ error: 'Nevalidan Jira ključ' })
       resolvedJql = `parent = ${epicKey} ORDER BY created ASC`
     } else {
       resolvedJql = jql
@@ -156,7 +191,7 @@ router.post('/tasks', async (req, res) => {
     let epicSelf = null
     if (filterType === 'epic' && epicKey) {
       try {
-        const epic = await jiraGet(jira.jiraUrl, `/issue/${epicKey}?fields=summary,status,timespent,timeoriginalestimate,assignee,worklog`, jira.auth)
+        const epic = await jiraGet(jira.jiraUrl, `/issue/${encodeURIComponent(epicKey)}?fields=summary,status,timespent,timeoriginalestimate,assignee,worklog`, jira.auth)
         if ((epic.fields?.timespent || 0) > 0) {
           await attachWorklogs(jira.jiraUrl, [epic], jira.auth)
           epicSelf = {
@@ -179,7 +214,7 @@ router.post('/tasks', async (req, res) => {
 })
 
 // POST /api/jira/test-jql — test a JQL query and return count + preview
-router.post('/test-jql', async (req, res) => {
+router.post('/test-jql', requireInternal, async (req, res) => {
   try {
     const { jql } = req.body
     if (!jql?.trim()) return res.status(400).json({ error: 'JQL je obavezan' })
@@ -223,7 +258,7 @@ router.post('/test-jql', async (req, res) => {
 })
 
 // GET /api/jira/jql-fields — returns list of JQL field names for autocomplete
-router.get('/jql-fields', async (req, res) => {
+router.get('/jql-fields', requireInternal, async (req, res) => {
   try {
     const jira = getUserJira(req.userId) || getSuperAdminJira()
     if (!jira) return res.json([])
@@ -241,7 +276,7 @@ router.get('/jql-fields', async (req, res) => {
 })
 
 // GET /api/jira/jql-suggestions?fieldName=X&fieldValue=Y — returns value suggestions
-router.get('/jql-suggestions', async (req, res) => {
+router.get('/jql-suggestions', requireInternal, async (req, res) => {
   try {
     const { fieldName, fieldValue = '' } = req.query
     if (!fieldName) return res.json([])
@@ -265,25 +300,38 @@ router.get('/jql-suggestions', async (req, res) => {
 // GET /api/jira/task-info/:key — fetch task summary for chat linking (label only, no Jira write)
 router.get('/task-info/:key', async (req, res) => {
   try {
+    if (!isValidJiraKey(req.params.key)) return res.status(400).json({ error: 'Nevalidan Jira ključ' })
     const role = getUserRole(req.userId)
+    if (role === 'user') {
+      // Klijent sme da vidi naslov SAMO za taskove već referencirane u porukama
+      // projekata na koje je dodeljen — ne za proizvoljan ključ.
+      const allowed = db.prepare(`
+        SELECT 1 FROM messages m
+        JOIN project_clients pc ON pc.project_id = m.project_id
+        WHERE pc.client_user_id = ? AND m.task_key = ?
+        LIMIT 1
+      `).get(req.userId, req.params.key)
+      if (!allowed) return res.status(403).json({ error: 'Forbidden' })
+    }
     const jira = role === 'user'
       ? getAnyJiraForClient(req.userId)
       : getUserJira(req.userId) || getSuperAdminJira()
     if (!jira) return res.status(400).json({ error: 'Jira nije konfigurisan' })
 
-    const data = await jiraGet(jira.jiraUrl, `/issue/${req.params.key}?fields=summary`, jira.auth)
+    const data = await jiraGet(jira.jiraUrl, `/issue/${encodeURIComponent(req.params.key)}?fields=summary`, jira.auth)
     res.json({ key: req.params.key, summary: data.fields?.summary || '' })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 })
 
-router.get('/changelog/:key', async (req, res) => {
+router.get('/changelog/:key', requireInternal, async (req, res) => {
   try {
+    if (!isValidJiraKey(req.params.key)) return res.status(400).json({ error: 'Nevalidan Jira ključ' })
     const jira = getUserJira(req.userId)
     if (!jira) return res.status(400).json({ error: 'Jira nije konfigurisan' })
 
-    const data = await jiraGet(jira.jiraUrl, `/issue/${req.params.key}?fields=reporter,assignee&expand=changelog`, jira.auth)
+    const data = await jiraGet(jira.jiraUrl, `/issue/${encodeURIComponent(req.params.key)}?fields=reporter,assignee&expand=changelog`, jira.auth)
 
     // Jira returns histories oldest-first; reverse to get newest first
     const histories = [...(data.changelog?.histories || [])].reverse()
