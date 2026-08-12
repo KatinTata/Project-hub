@@ -99,6 +99,7 @@ export const api = {
   getProjectClients: (projectId) => request('GET', `/messages/${projectId}/clients`),
   getTaskInfo: (key) => request('GET', `/jira/task-info/${key}`),
   getChangelog: (key) => request('GET', `/jira/changelog/${key}`),
+  getChangelogs: (keys) => request('POST', '/jira/changelogs', { keys }),
 
   // Release Notes
   getReleaseNoteSections: () => request('GET', '/release-notes/sections'),

@@ -317,6 +317,38 @@ router.get('/task-info/:key', async (req, res) => {
   }
 })
 
+// POST /api/jira/changelogs — batch varijanta (P2-B3): feed promena je slao
+// po jedan zahtev po tasku (N+1); ovde jedna runda vraća sve odjednom
+// (paralelnost ograničava globalni semafor u jiraClient-u).
+router.post('/changelogs', requireInternal, async (req, res) => {
+  try {
+    const keys = Array.isArray(req.body?.keys) ? req.body.keys.filter(isValidJiraKey).slice(0, 100) : []
+    if (!keys.length) return res.json({})
+    const jira = getUserJira(req.userId)
+    if (!jira) return res.status(400).json({ error: 'Jira nije konfigurisan' })
+
+    const out = {}
+    await Promise.all(keys.map(async key => {
+      try {
+        const data = await jiraGet(jira.jiraUrl, `/issue/${encodeURIComponent(key)}?fields=reporter,assignee&expand=changelog`, jira.auth)
+        const histories = [...(data.changelog?.histories || [])].reverse()
+        out[key] = {
+          reporter: data.fields?.reporter?.displayName || null,
+          assignee: data.fields?.assignee?.displayName || null,
+          changelog: histories.map(h => ({
+            author: h.author?.displayName || h.author?.emailAddress || null,
+            created: h.created,
+            items: h.items.map(i => ({ field: i.field, from: i.fromString, to: i.toString })),
+          })),
+        }
+      } catch { /* pojedinačan pad ne ruši batch */ }
+    }))
+    res.json(out)
+  } catch (err) {
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
+  }
+})
+
 router.get('/changelog/:key', requireInternal, async (req, res) => {
   try {
     if (!isValidJiraKey(req.params.key)) return res.status(400).json({ error: 'Nevalidan Jira ključ' })

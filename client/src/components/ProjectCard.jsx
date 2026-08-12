@@ -156,13 +156,20 @@ function ChangesFeed({ data, previousData, previousTime, jiraUrl, projectId }) {
     if (fetchedRef.current === cacheKey) return
     fetchedRef.current = cacheKey
 
-    stored.changes.forEach(async (c) => {
+    // Jedan batch poziv umesto po jednog po tasku (P2-B3)
+    ;(async () => {
       try {
-        const { changelog, reporter, assignee } = await api.getChangelog(c.key)
-        const author = findAuthor(changelog, reporter, assignee, c.type)
-        if (author) setAuthorMap(prev => ({ ...prev, [c.key + c.type]: author }))
+        const byKey = await api.getChangelogs([...new Set(stored.changes.map(c => c.key))])
+        const next = {}
+        for (const c of stored.changes) {
+          const entry = byKey[c.key]
+          if (!entry) continue
+          const author = findAuthor(entry.changelog, entry.reporter, entry.assignee, c.type)
+          if (author) next[c.key + c.type] = author
+        }
+        if (Object.keys(next).length) setAuthorMap(prev => ({ ...prev, ...next }))
       } catch {}
-    })
+    })()
   }, [stored])
 
   // Never refreshed yet — don't show anything

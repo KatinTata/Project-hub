@@ -191,7 +191,33 @@ export async function fetchEpicTasks(jiraUrl, epicKey, auth) {
   return fetchByJql(jiraUrl, `parent = ${epicKey} ORDER BY created ASC`, auth)
 }
 
+// Kratak TTL keš JQL pretraga (P2-B3): dva korisnika koji otvore isti projekat
+// u minutu (ili batch changelog odmah posle učitavanja) ne pogađaju Jiru
+// dvaput istim upitom. Kratko trajanje da refresh ostane "svež".
+const JQL_CACHE_TTL_MS = 90 * 1000
+const JQL_CACHE_MAX = 50
+const jqlCache = new Map() // key → { at, results }
+
+function jqlCacheGet(key) {
+  const hit = jqlCache.get(key)
+  if (!hit) return null
+  if (Date.now() - hit.at > JQL_CACHE_TTL_MS) { jqlCache.delete(key); return null }
+  return hit.results
+}
+
+function jqlCacheSet(key, results) {
+  if (jqlCache.size >= JQL_CACHE_MAX) {
+    // izbaci najstariji unos (Map čuva redosled ubacivanja)
+    jqlCache.delete(jqlCache.keys().next().value)
+  }
+  jqlCache.set(key, { at: Date.now(), results })
+}
+
 export async function fetchByJql(jiraUrl, jql, auth, fields = TASK_FIELDS) {
+  const cacheKey = `${jiraUrl}|${jql}|${[...fields].sort().join(',')}`
+  const cached = jqlCacheGet(cacheKey)
+  if (cached) return structuredClone(cached) // pozivaoci mutiraju issue.fields (normalizacija billable/modula)
+
   const seen = new Set()
   const results = []
   let token = null
@@ -211,6 +237,7 @@ export async function fetchByJql(jiraUrl, jql, auth, fields = TASK_FIELDS) {
     // Safety: stop if token doesn't change (loop) or exceeded 100 pages
     if (pages >= 100) break
   } while (token)
+  jqlCacheSet(cacheKey, structuredClone(results))
   return results
 }
 
