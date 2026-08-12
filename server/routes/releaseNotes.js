@@ -8,7 +8,7 @@ import { getRole, isAdminRole } from '../rbac.js'
 import { logAudit } from '../audit.js'
 import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-  WidthType, BorderStyle, AlignmentType, HeadingLevel, ShadingType,
+  WidthType, BorderStyle, AlignmentType, HeadingLevel,
 } from 'docx'
 import Anthropic from '@anthropic-ai/sdk'
 import ExcelJS from 'exceljs'
@@ -160,7 +160,6 @@ router.post('/task-detail', async (req, res) => {
     if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
 
     const { jiraGet } = await import('../jiraClient.js')
-    const baseUrl = jira.jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')
     const data = await jiraGet(
       jira.jiraUrl,
       `/issue/${taskKey}?fields=summary,description,comment`,

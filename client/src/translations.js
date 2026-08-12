@@ -374,7 +374,6 @@ export const translations = {
     'docs.upload': 'Upload',
     'docs.uploading': 'Uploading...',
     'docs.uploadFailed': 'Upload nije uspeo',
-    'docs.downloadFailed': 'Download nije uspeo',
     'docs.onProject': 'Dokumenti na projektu',
 
     // EpicViewer page
@@ -1414,7 +1413,6 @@ export const translations = {
     'docs.upload': 'Upload',
     'docs.uploading': 'Uploading...',
     'docs.uploadFailed': 'Upload failed',
-    'docs.downloadFailed': 'Download failed',
     'docs.onProject': 'Documents on project',
 
     // EpicViewer page

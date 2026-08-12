@@ -2,7 +2,7 @@ import { Router } from 'express'
 import bcrypt from 'bcrypt'
 import db from '../db.js'
 import { logAudit } from '../audit.js'
-import { getRole as getUserRole, requireAdmin, requireSuperAdmin } from '../rbac.js'
+import { getRole as getUserRole, requireAdmin } from '../rbac.js'
 
 const router = Router()
 

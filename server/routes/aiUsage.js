@@ -15,6 +15,7 @@ import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey, listAl
 import { mailConfigured } from '../aiUsage/mailer.js'
 import { buildReportData, buildXlsx, buildReportHtml } from '../aiUsage/report.js'
 import { getRole, isAdminRole } from '../rbac.js'
+import { logger } from '../logger.js'
 
 const router = Router()
 const MAX_APP_FILTERS = 40
@@ -36,8 +37,8 @@ function handleErr(res, err, emptyPayload) {
   if (err instanceof AdminApiNotConfiguredError) {
     return res.json({ ...emptyPayload, not_configured: true, cost_basis: 'none' })
   }
-  console.error('[ai-usage]', err)
-  { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
+  logger.error({ err }, '[ai-usage]')
+  res.status(500).json({ error: 'Greška servera' })
 }
 
 // ── Dashboard KPI (§7.1) ──────────────────────────────────────────────────────

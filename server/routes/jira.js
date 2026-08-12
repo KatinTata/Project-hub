@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import db from '../db.js'
-import { decryptToken, makeJiraAuth, jiraGet, jiraPost, fetchEpicTasks, fetchByJql, fetchSubtasks, attachWorklogs, TASK_FIELDS, detectBillableField, parseBillableValue, detectModuleField, detectHoursToBillField } from '../jiraClient.js'
+import { decryptToken, makeJiraAuth, jiraGet, jiraPost, fetchByJql, fetchSubtasks, attachWorklogs, TASK_FIELDS, detectBillableField, parseBillableValue, detectModuleField, detectHoursToBillField } from '../jiraClient.js'
 import { getRole as getUserRole, isAdminRole, roleFrom } from '../rbac.js'
 
 const router = Router()
