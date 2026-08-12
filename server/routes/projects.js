@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import db from '../db.js'
 import { getRole as getUserRole, isAdminRole } from '../rbac.js'
+import { dayInBelgrade } from '../dates.js'
 
 const router = Router()
 
@@ -209,7 +210,7 @@ router.post('/:id/snapshot', (req, res) => {
   if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
   const payload = req.body?.payload
   if (!payload || typeof payload !== 'object') return res.status(400).json({ error: 'payload je obavezan' })
-  const day = new Date().toISOString().slice(0, 10)
+  const day = dayInBelgrade(new Date()) // ista konvencija dana kao serverski snapshot job (P2-E3)
   db.prepare('INSERT INTO project_snapshots (project_id, day, payload) VALUES (?, ?, ?) ON CONFLICT(project_id, day) DO UPDATE SET payload = excluded.payload, created_at = CURRENT_TIMESTAMP')
     .run(req.params.id, day, JSON.stringify(payload))
   res.json({ ok: true, day })

@@ -6,6 +6,7 @@ import { syncAzurePrices } from './pricing.js'
 import { fetchTodaysRates } from './fx.js'
 import { checkBudgets } from './budgets.js'
 import { runBackup } from '../backup.js'
+import { runDailySnapshots } from '../snapshots.js'
 
 function belgradeNow() {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -19,6 +20,7 @@ let lastPriceRun = ''
 let lastFxRun = ''
 let lastBudgetRun = ''
 let lastBackupRun = ''
+let lastSnapshotRun = ''
 
 export function startAiUsageScheduler() {
   setInterval(async () => {
@@ -45,6 +47,17 @@ export function startAiUsageScheduler() {
       lastFxRun = today
       try { await fetchTodaysRates(); console.log('[ai-usage] fx rates OK') }
       catch (e) { console.error('[ai-usage] fx rates failed:', e.message) }
+    }
+
+    // Od 22:00 daily — snapshot svih aktivnih projekata (P2-E3). Prozor umesto
+    // tačnog minuta: ako je proces bio ugašen u 22:00, nadoknada do ponoći.
+    // DO NOTHING u insertu čuva klijentski snapshot istog dana.
+    if (hhmm >= '22:00' && lastSnapshotRun !== today) {
+      lastSnapshotRun = today
+      try {
+        const r = await runDailySnapshots()
+        console.log(`[snapshot] ${r.day}: ${r.ok} novih, ${r.skipped} preskočeno, ${r.failed} palo (${r.total} projekata)`)
+      } catch (e) { console.error('[snapshot] failed:', e.message) }
     }
 
     // 09:30 daily — budget warning / limit emails (once per month per threshold)
