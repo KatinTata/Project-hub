@@ -28,10 +28,17 @@ export function startAiUsageScheduler() {
     const { hhmm, weekday } = belgradeNow()
     const today = new Date().toISOString().slice(0, 10)
 
-    // 03:00 daily — SQLite backup (retention handled inside) + audit retencija
-    if (hhmm === '03:00' && lastBackupRun !== today) {
+    // Od 03:00 daily — SQLite backup (retention handled inside) + audit
+    // retencija. Prozor umesto tačnog minuta (P2-D2): ako je proces bio ugašen
+    // u 03:00, propušten backup se nadoknađuje pri prvom sledećem tiku.
+    if (hhmm >= '03:00' && lastBackupRun !== today) {
       lastBackupRun = today
-      try { const r = await runBackup(); console.log('[backup] OK ->', r.dest, `(cuva ${r.kept})`) }
+      try {
+        const r = await runBackup()
+        console.log('[backup] OK ->', r.dest, `(cuva ${r.kept})`)
+        if (r.offsite) console.log(`[backup] off-site OK -> ${r.offsite.objectKey} (${r.offsite.bytes} B)`)
+        if (r.offsiteError) console.error('[backup] off-site FAILED:', r.offsiteError)
+      }
       catch (e) { console.error('[backup] failed:', e.message) }
       const pruned = pruneAuditLog()
       if (pruned > 0) console.log(`[audit] retencija: obrisano ${pruned} zapisa starijih od godinu dana`)
