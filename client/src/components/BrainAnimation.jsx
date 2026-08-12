@@ -38,6 +38,12 @@ export default function BrainAnimation({ opacity = 0.35, fullscreen = false }) {
           0%   { opacity: 0.3; transform: scale(0.9); }
           100% { opacity: 0.8; transform: scale(1.1); }
         }
+        /* P2-C7: korisnici sa reduced-motion ne dobijaju trajnu fullscreen
+           animaciju — linije ostaju iscrtane, pulsiranje se gasi. */
+        @media (prefers-reduced-motion: reduce) {
+          .brain-network-lines { animation: none; stroke-dashoffset: 0; opacity: 0.6; }
+          .brain-nodes circle { animation: none; opacity: 0.5; }
+        }
         @media (prefers-reduced-motion: reduce) {
           .brain-network-lines, .brain-nodes circle, .brain-particle {
             animation: none !important;
