@@ -81,7 +81,7 @@ export default function SettingsView() {
           </span>
         }
       >
-        <div style={{ overflowX: 'auto' }}>
+        <div className="ui-scroll-x">
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 780 }}>
             <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
               <th style={thStyle}>{t('ai2.model')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.settings.col.baseIn')}</th><th style={{ ...thStyle, textAlign: 'right' }}>{t('ai2.settings.col.baseOut')}</th>

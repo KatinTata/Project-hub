@@ -52,7 +52,7 @@ export default function BudgetsCard() {
       hint={data ? t('ai2.budgets.hint', { month: data.month, smtp: data.mail_configured ? t('ai2.budgets.smtpOn') : t('ai2.budgets.smtpOff') }) : ''}
       right={<button onClick={runCheck} disabled={busy} style={btnS}>{t('ai2.budgets.checkNow')}</button>}
     >
-      <div style={{ overflowX: 'auto' }}>
+      <div className="ui-scroll-x">
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1050 }}>
           <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
             <th style={thStyle}>{t('ai2.tenant')}</th>

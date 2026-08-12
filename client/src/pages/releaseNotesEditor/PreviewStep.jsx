@@ -1,57 +1,102 @@
+import { DndContext, pointerWithin, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core'
 import { useT } from '../../lang.jsx'
 import { GROUP_CONFIG } from '../../lib/renderReleaseNoteHtml.js'
 import { smallBtnStyle } from './uiHelpers.js'
 
+// Red u reorder listi: draggable ručica + droppable meta (ubacivanje ispred).
+function ReorderRow({ task, edit, prefix, cfgColor, isTarget, t }) {
+  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
+    id: `t-${task.id}`,
+    data: { taskId: task.id, prefix },
+  })
+  const { setNodeRef: setDropRef } = useDroppable({
+    id: `d-${task.id}`,
+    data: { type: 'task', taskId: task.id, prefix },
+  })
+  return (
+    <div ref={setDropRef}>
+      {isTarget && <div style={{ height: 2, background: cfgColor, margin: '2px 6px', borderRadius: 2 }} />}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 4, opacity: isDragging ? 0.45 : 1 }}>
+        <span ref={setDragRef} {...listeners} {...attributes}
+          title={t('rne.dragReorderTitle')}
+          style={{ cursor: 'grab', color: 'var(--textSubtle)', letterSpacing: 2, userSelect: 'none', flexShrink: 0, touchAction: 'none' }}>⠿</span>
+        <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{task.key}</span>
+        <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{edit.name || task.fields?.summary || ''}</span>
+      </div>
+    </div>
+  )
+}
+
+// Sekcija kao droppable (prevlačenje na sekciju = dodaj na kraj te sekcije).
+function ReorderSection({ prefix, label, color, children }) {
+  const { setNodeRef } = useDroppable({ id: `s-${prefix}`, data: { type: 'section', prefix } })
+  return (
+    <div ref={setNodeRef} style={{ marginBottom: 6 }}>
+      <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color, padding: '4px 6px' }}>{label}</div>
+      {children}
+    </div>
+  )
+}
+
 // Compact reorder list for the Pregled step — small rows make drag reliable.
+// dnd-kit (Pointer + Touch senzori, P2-C6) pa prevlačenje radi i na dodir.
 // Mutations flow into sectionOverrides/sectionTaskOrders, so the preview/PDF/
 // publish all reflect the current order immediately.
 function ReorderList({ t, source, edits, sections }) {
   const { tasks, selectedIds } = source
   const { taskEdits } = edits
   const {
-    dragOverPrefix, setDragOverPrefix, dragOverTaskId, setDragOverTaskId,
+    setDragOverPrefix, dragOverTaskId, setDragOverTaskId,
     dragTaskId, dragFromPrefix, buildGroups, applyDrop, getSectionLabel,
   } = sections
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
+  )
   const selTasks = tasks.filter(t => selectedIds.has(t.id))
   const { groups, groupOrder } = buildGroups(selTasks)
+
+  function handleDragStart({ active }) {
+    dragTaskId.current = active.data.current.taskId
+    dragFromPrefix.current = active.data.current.prefix
+  }
+  function handleDragOver({ over }) {
+    const d = over?.data?.current
+    setDragOverTaskId(d?.type === 'task' ? d.taskId : null)
+    setDragOverPrefix(d?.prefix ?? null)
+  }
+  function handleDragEnd({ over }) {
+    const d = over?.data?.current
+    if (d) applyDrop(d.prefix, d.type === 'task' ? d.taskId : null)
+    else { dragTaskId.current = null; dragFromPrefix.current = null; setDragOverPrefix(null); setDragOverTaskId(null) }
+  }
+
   return (
     <div style={{ marginBottom: 16, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
         {t('rne.order')} <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 400, fontSize: 12, color: 'var(--textMuted)' }}>{t('rne.orderHintPre')}<span style={{ letterSpacing: 2 }}>⠿</span>{t('rne.orderHintPost')}</span>
       </div>
       <div style={{ padding: 8 }}>
-        {groupOrder.map(prefix => {
-          const cfg = { ...(GROUP_CONFIG[prefix] || { label: prefix, color: '#8B99B5' }), label: getSectionLabel(prefix) }
-          return (
-            <div key={prefix}
-              onDragOver={e => { e.preventDefault(); if (dragOverPrefix !== prefix) setDragOverPrefix(prefix) }}
-              onDrop={e => { e.preventDefault(); applyDrop(prefix, null) }}
-              style={{ marginBottom: 6 }}>
-              <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: cfg.color, padding: '4px 6px' }}>{cfg.label}</div>
-              {groups[prefix].map(task => {
-                const edit = taskEdits[task.id] || {}
-                const isTarget = dragOverTaskId === task.id
-                return (
-                  <div key={task.id}>
-                    {isTarget && <div style={{ height: 2, background: cfg.color, margin: '2px 6px', borderRadius: 2 }} />}
-                    <div
-                      onDragOver={e => { e.preventDefault(); e.stopPropagation(); if (dragOverTaskId !== task.id) setDragOverTaskId(task.id); if (dragOverPrefix !== prefix) setDragOverPrefix(prefix) }}
-                      onDrop={e => { e.preventDefault(); e.stopPropagation(); applyDrop(prefix, task.id) }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 4 }}>
-                      <span draggable={true}
-                        onDragStart={e => { dragTaskId.current = task.id; dragFromPrefix.current = prefix; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', task.id) }}
-                        onDragEnd={() => { setDragOverPrefix(null); setDragOverTaskId(null) }}
-                        title={t('rne.dragReorderTitle')}
-                        style={{ cursor: 'grab', color: 'var(--textSubtle)', letterSpacing: 2, userSelect: 'none', flexShrink: 0 }}>⠿</span>
-                      <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{task.key}</span>
-                      <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{edit.name || task.fields?.summary || ''}</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )
-        })}
+        <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+          {groupOrder.map(prefix => {
+            const cfg = { ...(GROUP_CONFIG[prefix] || { label: prefix, color: '#8B99B5' }), label: getSectionLabel(prefix) }
+            return (
+              <ReorderSection key={prefix} prefix={prefix} label={cfg.label} color={cfg.color}>
+                {groups[prefix].map(task => (
+                  <ReorderRow
+                    key={task.id}
+                    task={task}
+                    edit={taskEdits[task.id] || {}}
+                    prefix={prefix}
+                    cfgColor={cfg.color}
+                    isTarget={dragOverTaskId === task.id}
+                    t={t}
+                  />
+                ))}
+              </ReorderSection>
+            )
+          })}
+        </DndContext>
       </div>
     </div>
   )

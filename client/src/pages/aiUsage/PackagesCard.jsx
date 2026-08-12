@@ -58,7 +58,7 @@ export default function PackagesCard() {
       hint={t('ai2.packages.hint')}
       right={!draft && <button onClick={() => setDraft({ name: '', monthly_fee_eur: 0, included_eur: 0 })} style={btnPrimary}>{t('ai2.packages.new')}</button>}
     >
-      <div style={{ overflowX: 'auto' }}>
+      <div className="ui-scroll-x">
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
           <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
             <th style={thStyle}>{t('ai2.name')}</th>
