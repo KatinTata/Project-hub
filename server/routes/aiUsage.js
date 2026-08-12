@@ -18,7 +18,7 @@ import { buildReportData, buildXlsx, buildReportHtml } from '../aiUsage/report.j
 const router = Router()
 const MAX_APP_FILTERS = 40
 
-const roleOf = id => db.prepare('SELECT role FROM users WHERE id = ?').get(id)?.role || 'admin'
+const roleOf = id => db.prepare('SELECT role FROM users WHERE id = ?').get(id)?.role || 'user'
 const isAdmin = r => r === 'admin' || r === 'super_admin'
 
 function requireView(req, res) {
@@ -398,7 +398,7 @@ router.put('/admin/models/:modelName', (req, res) => {
   const name = String(req.params.modelName).toLowerCase().trim()
   const { input_price_per_1m, output_price_per_1m, model_markup_pct, is_active } = req.body
   const prev = db.prepare('SELECT * FROM ai_model_pricing WHERE model_name = ?').get(name)
-  const changedBy = db.prepare('SELECT email FROM users WHERE id = ?').get(req.userId)?.email || 'admin'
+  const changedBy = db.prepare('SELECT email FROM users WHERE id = ?').get(req.userId)?.email || 'unknown'
   const priceChanged = input_price_per_1m != null || output_price_per_1m != null
   if (!prev) {
     const inP = Number(input_price_per_1m) || 0, outP = Number(output_price_per_1m) || 0

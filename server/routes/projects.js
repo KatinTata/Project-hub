@@ -4,7 +4,7 @@ import db from '../db.js'
 const router = Router()
 
 function getUserRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
 }
 
 function isAdminRole(role) {

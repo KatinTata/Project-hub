@@ -6,7 +6,7 @@ const router = Router()
 const DEFAULTS = { workdayHours: 6.5, workdaysPerWeek: 5 }
 
 function getRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
 }
 
 function readSettings() {

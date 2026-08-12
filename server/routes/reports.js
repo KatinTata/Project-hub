@@ -5,7 +5,7 @@ import { buildProjectReport } from '../excel/buildReport.js'
 const router = Router()
 
 function getRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
 }
 
 function isAdminRole(role) {

@@ -13,7 +13,7 @@ function getUserJira(userId) {
 }
 
 function getUserRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
 }
 
 function isAdminRole(role) {

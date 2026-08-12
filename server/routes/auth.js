@@ -57,7 +57,7 @@ router.post('/login', async (req, res) => {
     const sharedJira = !!db.prepare("SELECT 1 FROM users WHERE role = 'super_admin' AND jira_url IS NOT NULL AND jira_token IS NOT NULL LIMIT 1").get()
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'admin', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira },
     })
   } catch (err) {
     console.error(err)
@@ -71,7 +71,7 @@ router.get('/me', authMiddleware, (req, res) => {
   // Admins inherit super-admin connections — tell the client Jira is reachable
   // even without own creds, so it doesn't fall back to demo data.
   const sharedJira = !!db.prepare("SELECT 1 FROM users WHERE role = 'super_admin' AND jira_url IS NOT NULL AND jira_token IS NOT NULL LIMIT 1").get()
-  res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role || 'admin', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira } })
+  res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira } })
 })
 
 router.put('/jira-config', authMiddleware, requireSuperAdmin, async (req, res) => {

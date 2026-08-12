@@ -36,7 +36,7 @@ function getSuperAdminJira() {
 }
 
 function getOwnerJiraForProject(userId, projectId) {
-  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
   if (isAdminRole(role)) return getUserJira(userId) || getSuperAdminJira()
 
   const row = db.prepare(`
@@ -49,7 +49,7 @@ function getOwnerJiraForProject(userId, projectId) {
 }
 
 function getProject(userId, projectId) {
-  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
   if (isAdminRole(role)) {
     // Strictly per-user — every admin (incl. super_admin) uses only own projects
     return db.prepare('SELECT * FROM projects WHERE id = ? AND user_id = ?').get(projectId, userId)
@@ -800,7 +800,7 @@ router.get('/client-list', (req, res) => {
 
 router.get('/:id/detail', (req, res) => {
   try {
-    const role = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId)?.role || 'admin'
+    const role = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId)?.role || 'user'
     let note
     if (role === 'user') {
       note = db.prepare(`

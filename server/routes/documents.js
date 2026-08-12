@@ -22,7 +22,7 @@ const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } })
 const router = Router()
 
 function getRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'admin'
+  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
 }
 
 function isAdminRole(role) {
