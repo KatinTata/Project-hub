@@ -6,6 +6,7 @@ import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
 import { fmtRelativeTime } from '../utils/format.js'
+import { toast } from '../ui/Toast.jsx'
 
 const fmtTime = (dateStr, t) => fmtRelativeTime(dateStr, t, { absoluteAfterDay: true })
 
@@ -139,7 +140,7 @@ export default function MessagesPage({
       setText('')
       const tid = message.subject || message.task_key
       if (tid) setThreadFilter(tid)
-    } catch (err) { alert(err.message) }
+    } catch (err) { toast.error(err.message) }
     finally { setSending(false) }
   }
 
@@ -159,7 +160,7 @@ export default function MessagesPage({
         a.click()
         URL.revokeObjectURL(url)
       })
-      .catch(() => alert(t('msg.exportError')))
+      .catch(() => toast.error(t('msg.exportError')))
   }
 
   const threads = [...new Map(

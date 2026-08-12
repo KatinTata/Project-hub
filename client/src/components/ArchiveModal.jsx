@@ -4,6 +4,7 @@ import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 
 import { fmtDateNumericLocale as fmtDate } from '../utils/format.js'
+import { toast } from '../ui/Toast.jsx'
 
 export default function ArchiveModal({ onClose, onRestore }) {
   const [projects, setProjects] = useState([])
@@ -26,7 +27,7 @@ export default function ArchiveModal({ onClose, onRestore }) {
       await onRestore(project)
       setProjects(prev => prev.filter(p => p.id !== project.id))
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     } finally {
       setWorking(false)
     }
@@ -39,7 +40,7 @@ export default function ArchiveModal({ onClose, onRestore }) {
       setProjects(prev => prev.filter(p => p.id !== id))
       setConfirmDeleteId(null)
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     } finally {
       setWorking(false)
     }

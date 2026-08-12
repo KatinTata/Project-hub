@@ -5,9 +5,11 @@ import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
 import { fmtDateLong } from '../utils/format.js'
+import { useConfirm } from '../ui/Confirm.jsx'
 
 export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboard, onGoToEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat }) {
   const t = useT()
+  const confirm = useConfirm()
   const isClient = isClientRole(user?.role)
 
   const [notesList, setNotesList] = useState([])
@@ -81,7 +83,7 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
             isClient={isClient}
             onBack={closeNote}
             onRelease={async () => {
-              if (!window.confirm(t('rn.markReleasedConfirm'))) return
+              if (!(await confirm(t('rn.markReleasedConfirm')))) return
               await api.markReleaseNoteReleased(selectedNote.id)
               const updated = { ...selectedNote, status: 'released', released_at: new Date().toISOString() }
               setSelectedNote(updated)
@@ -89,7 +91,7 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
               setNotesList(prev => prev.map(n => n.id === selectedNote.id ? updated : n))
             }}
             onDelete={async () => {
-              if (!window.confirm(t('rn.deleteConfirm'))) return
+              if (!(await confirm(t('rn.deleteConfirm')))) return
               await api.deleteReleaseNote(selectedNote.id)
               closeNote()
               loadNotesList()
@@ -137,12 +139,12 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
                 isClient={isClient}
                 onOpen={openNote}
                 onRelease={async (note) => {
-                  if (!window.confirm(t('rn.markReleasedConfirm'))) return
+                  if (!(await confirm(t('rn.markReleasedConfirm')))) return
                   await api.markReleaseNoteReleased(note.id)
                   loadNotesList()
                 }}
                 onDelete={async (note) => {
-                  if (!window.confirm(t('rn.deleteConfirm'))) return
+                  if (!(await confirm(t('rn.deleteConfirm')))) return
                   await api.deleteReleaseNote(note.id)
                   loadNotesList()
                 }}

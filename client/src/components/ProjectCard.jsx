@@ -19,6 +19,7 @@ import ProjectTrend from './ProjectTrend.jsx'
 import { buildStackMatrix, buildRoster } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
+import { toast } from '../ui/Toast.jsx'
 
 function fmtLastRefresh(date, t) {
   if (!date) return null
@@ -294,7 +295,7 @@ export default function ProjectCard({
   }, [project?.id])
   async function addTeamMember(name, stack) {
     try { const { member } = await api.addTeamMember(project.id, name, stack); setTeam(t => [...t, member]) }
-    catch (e) { alert(e.message || t('pc.err.addMember')) }
+    catch (e) { toast.error(e.message || t('pc.err.addMember')) }
   }
   async function removeTeamMember(id) {
     setTeam(t => t.filter(m => m.id !== id))
@@ -392,7 +393,7 @@ export default function ProjectCard({
         hasBillableField: !!data.hasBillableField,
       })
     } catch (err) {
-      alert(err.message || t('pc.err.exportExcel'))
+      toast.error(err.message || t('pc.err.exportExcel'))
     } finally {
       setExporting(false)
     }

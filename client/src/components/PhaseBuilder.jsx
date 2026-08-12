@@ -3,6 +3,8 @@ import { DndContext, DragOverlay, pointerWithin, PointerSensor, TouchSensor, use
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { api } from '../api.js'
 import PhaseProgress from './PhaseProgress.jsx'
+import { useConfirm } from '../ui/Confirm.jsx'
+import { useToast } from '../ui/Toast.jsx'
 
 const PHASE_COLORS = ['#4F8EF7', '#22C55E', '#F59E0B', '#A78BFA', '#14B8A6', '#EF4444', '#F97316', '#64748B']
 const UNASSIGNED_ID = '__unassigned__'
@@ -100,6 +102,7 @@ function DueDateBadge({ dueDate, isDone, small = false }) {
 }
 
 function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename, onDelete, onUpdateDueDate, onUpdateStartDate, activeTaskKey, jiraUrl }) {
+  const confirmDialog = useConfirm()
   const { setNodeRef, isOver } = useDroppable({ id })
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(phase.name)
@@ -204,7 +207,7 @@ function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename
               </svg>
             </button>
             <button
-              onClick={() => { if (window.confirm(`Obrisati fazu "${phase.name}"?\nTaskovi će biti prebačeni u Neraspoređeno.`)) onDelete?.() }}
+              onClick={async () => { if (await confirmDialog(`Obrisati fazu "${phase.name}"?\nTaskovi će biti prebačeni u Neraspoređeno.`)) onDelete?.() }}
               title="Obriši fazu"
               style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--textSubtle)', padding: '1px 2px', lineHeight: 1, flexShrink: 0, transition: 'color 0.15s', display: 'flex', alignItems: 'center' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
@@ -503,6 +506,7 @@ function AddPhasePanel({ onAdd, onCancel }) {
 // ── Main PhaseBuilder ─────────────────────────────────────────────────────────
 
 export default function PhaseBuilder({ projectId, tasks, isClient, onPhasesChange, jiraUrl }) {
+  const toast = useToast()
   const [phases, setPhases] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTask, setActiveTask] = useState(null)
@@ -573,7 +577,7 @@ export default function PhaseBuilder({ projectId, tasks, isClient, onPhasesChang
       setAddingPhase(false)
     } catch (e) {
       console.error('addPhase error:', e)
-      alert('Greška pri kreiranju faze: ' + (e.message || e))
+      toast.error('Greška pri kreiranju faze: ' + (e.message || e))
     }
   }
 

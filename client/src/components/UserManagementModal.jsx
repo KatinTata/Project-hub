@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api.js'
 import { useT } from '../lang.jsx'
+import { toast } from '../ui/Toast.jsx'
 
 function roleLabel(t, role) {
   if (role === 'super_admin') return t('um.roleSuperAdmin')
@@ -77,7 +78,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
       setOrganizations(prev => prev.filter(o => o.id !== orgId))
       setUsers(prev => prev.map(u => u.organizationId === orgId ? { ...u, organizationId: null, organizationName: null } : u))
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     }
   }
 
@@ -112,7 +113,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
       await api.deleteUser(userId)
       setUsers(prev => prev.filter(u => u.id !== userId))
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     }
   }
 
@@ -130,7 +131,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
         }))
       }
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     }
   }
 
@@ -142,7 +143,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
         return { ...u, projects: u.projects.filter(p => p.id !== projectId) }
       }))
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     }
   }
 

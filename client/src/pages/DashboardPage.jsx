@@ -12,6 +12,7 @@ import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
+import { toast } from '../ui/Toast.jsx'
 
 export default function DashboardPage({ user: initialUser, theme, onSetTheme, onLogout, onOpenSettings, onOpenUsers, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage, openChatOnMount, onChatMountConsumed }) {
   const [user, setUser] = useState(initialUser)
@@ -302,7 +303,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
       setProjectData(prev => { const n = { ...prev }; delete n[id]; return n })
       localStorage.removeItem(`jt_cache_${id}`)
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     }
   }
 
@@ -315,7 +316,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
       setActiveId(restored.id)
       fetchProjectData(restored)
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     }
   }
 

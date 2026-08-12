@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { api } from '../api.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT, useLang } from '../lang.jsx'
+import { toast } from '../ui/Toast.jsx'
 
 function IconUser() {
   return <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 15, height: 15, flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
@@ -96,7 +97,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
       localStorage.removeItem('jt_token')
       window.location.href = '/login'
     } catch (err) {
-      alert(err.message)
+      toast.error(err.message)
     }
   }
 

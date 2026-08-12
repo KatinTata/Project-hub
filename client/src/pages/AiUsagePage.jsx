@@ -4,6 +4,7 @@ import { useT } from '../lang.jsx'
 import Topbar from '../components/Topbar.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney, colorAt } from '../components/aiCharts.jsx'
+import { toast } from '../ui/Toast.jsx'
 
 // ── shared styles / helpers ───────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ async function openReportPdf(q, setBusy, t) {
     if (w) { w.document.open(); w.document.write(html); w.document.close() }
   } catch (e) {
     w?.close()
-    alert(t('ai2.report.pdfError', { msg: e.message }))
+    toast.error(t('ai2.report.pdfError', { msg: e.message }))
   } finally { setBusy?.(false) }
 }
 
@@ -175,7 +176,7 @@ function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashbo
   async function exportXlsx() {
     setExporting(true)
     try { await api.aiUsageExportXlsx(`${q}&currency=${currency}`) }
-    catch (e) { alert(t('ai2.excelError', { msg: e.message })) }
+    catch (e) { toast.error(t('ai2.excelError', { msg: e.message })) }
     finally { setExporting(false) }
   }
   const exportPdf = () => openReportPdf(`${q}&currency=${currency}`, setExporting, t)
@@ -435,7 +436,7 @@ function ReportView({ range, preset, setPreset, setRange }) {
     if (!tenantGuid) return
     setBusy(true)
     try { setReport(await api.aiUsageTenantReport(`tenantGuid=${encodeURIComponent(tenantGuid)}&from=${range.from}&to=${range.to}&currency=${currency}`)) }
-    catch (e) { alert(t('ai2.error', { msg: e.message })) }
+    catch (e) { toast.error(t('ai2.error', { msg: e.message })) }
     finally { setBusy(false) }
   }
 
@@ -553,7 +554,7 @@ function SettingsView() {
   }, [])
   useEffect(() => { reload() }, [reload])
 
-  const wrap = fn => async (...a) => { setBusy(true); try { await fn(...a); await reload() } catch (e) { alert(t('ai2.error', { msg: e.message })) } finally { setBusy(false) } }
+  const wrap = fn => async (...a) => { setBusy(true); try { await fn(...a); await reload() } catch (e) { toast.error(t('ai2.error', { msg: e.message })) } finally { setBusy(false) } }
   const saveConfig = wrap(async () => { await api.aiUsageSaveConfig({ base_url: baseUrl.trim(), is_active: true, service_password: keyInput || undefined }); setKeyInput('') })
   const saveMarkup = wrap(() => api.aiUsageSavePricingConfig({ global_markup_pct: Number(globalMarkup) }))
   const runSync = wrap(() => api.aiUsageSync())
@@ -685,19 +686,19 @@ function PackagesCard() {
       })
       setEdit(prev => { const n = { ...prev }; delete n[id]; return n })
       await reload()
-    } catch (err) { alert(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
+    } catch (err) { toast.error(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
   const createPkg = async () => {
-    if (!draft?.name?.trim()) { alert(t('ai2.packages.enterName')); return }
+    if (!draft?.name?.trim()) { toast.error(t('ai2.packages.enterName')); return }
     setBusy(true)
     try { await api.aiUsageCreatePackage(draft); setDraft(null); await reload() }
-    catch (err) { alert(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
+    catch (err) { toast.error(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
   const removePkg = async (id, name) => {
     if (!confirm(t('ai2.packages.deleteConfirm', { name }))) return
     setBusy(true)
     try { await api.aiUsageDeletePackage(id); await reload() }
-    catch (err) { alert(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
+    catch (err) { toast.error(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
 
   const numIn = (v, onCh, w = 90) => (
@@ -781,7 +782,7 @@ function MappingsCard() {
   async function discover() {
     setBusy(true)
     try { await api.aiUsageDiscover(); await reload() }
-    catch (e) { alert(t('ai2.error', { msg: e.message })) }
+    catch (e) { toast.error(t('ai2.error', { msg: e.message })) }
     finally { setBusy(false) }
   }
   async function toggleUser(tenant, userId) {
@@ -886,17 +887,17 @@ function BudgetsCard() {
       })
       setEdit(p => { const n = { ...p }; delete n[b.tenant_id]; return n })
       await reload()
-    } catch (err) { alert(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
+    } catch (err) { toast.error(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
   const runCheck = async () => {
     setBusy(true)
     try {
       const r = await api.aiUsageCheckBudgets()
-      alert(r.mail_configured
+      toast.error(r.mail_configured
         ? t('ai2.budgets.checkResult', { n: r.results.filter(x => x.mail?.ok).length })
         : t('ai2.budgets.smtpNotConfigured'))
       await reload()
-    } catch (e) { alert(t('ai2.error', { msg: e.message })) } finally { setBusy(false) }
+    } catch (e) { toast.error(t('ai2.error', { msg: e.message })) } finally { setBusy(false) }
   }
 
   return (
@@ -997,7 +998,7 @@ function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers, onGoToDashb
   async function exportXlsx() {
     setExporting(true)
     try { await api.aiUsageExportXlsx(`from=${range.from}&to=${range.to}&currency=${currency}`) }
-    catch (e) { alert(t('ai2.excelError', { msg: e.message })) }
+    catch (e) { toast.error(t('ai2.excelError', { msg: e.message })) }
     finally { setExporting(false) }
   }
   const exportPdf = () => openReportPdf(`from=${range.from}&to=${range.to}&currency=${currency}`, setExporting, t)

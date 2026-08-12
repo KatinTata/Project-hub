@@ -6,6 +6,7 @@ import { buildPhaseForecast } from '../utils/forecast.js'
 import { buildCapacity } from '../utils/capacity.js'
 import { setCalcConfig } from '../utils/calcConfig.js'
 import { fmtDateIso as fmtDate } from '../utils/format.js'
+import { toast } from '../ui/Toast.jsx'
 
 const fmtDays = n => (Math.round(n * 10) / 10).toFixed(1)
 
@@ -66,7 +67,7 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
       setCalcConfig(s) // obračun odmah koristi nove pragove (P2-E2)
       setEditing(false)
     } catch (e) {
-      alert(e.message || 'Greška pri čuvanju konfiguracije')
+      toast.error(e.message || 'Greška pri čuvanju konfiguracije')
     } finally {
       setSaving(false)
     }
