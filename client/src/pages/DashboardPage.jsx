@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import Topbar from '../components/Topbar.jsx'
 import ProjectTabs from '../components/ProjectTabs.jsx'
 import ProjectCard from '../components/ProjectCard.jsx'
@@ -7,8 +8,8 @@ import BrainAnimation from '../components/BrainAnimation.jsx'
 import ClientNotificationModal from '../components/ClientNotificationModal.jsx'
 import AddProjectPage from './AddProjectPage.jsx'
 import { api } from '../api.js'
-import { processEpicData, DEMO_PROJECTS, billableSecondsOf } from '../utils.js'
-import { buildStackMatrix } from '../utils/stacks.js'
+import { DEMO_PROJECTS } from '../utils.js'
+import { useProjectsQuery, useProjectDataQueries, useNotificationsQuery, clearProjectCache } from '../queries.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
@@ -16,22 +17,12 @@ import { toast } from '../ui/Toast.jsx'
 
 export default function DashboardPage({ user: initialUser, theme, onSetTheme, onLogout, onOpenSettings, onOpenUsers, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage, openChatOnMount, onChatMountConsumed }) {
   const [user, setUser] = useState(initialUser)
-  const [projects, setProjects] = useState([])
   const [activeId, setActiveId] = useState(null)
-  const [projectData, setProjectData] = useState({})
-  const [loadingProjects, setLoadingProjects] = useState({})
-  const [errorProjects, setErrorProjects] = useState({})
   const [archiveOpen, setArchiveOpen] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
   const [editingProject, setEditingProject] = useState(null) // project being edited (filter criteria)
-  const [initialized, setInitialized] = useState(false)
-  const [lastRefresh, setLastRefresh] = useState({})
-  const [refreshing, setRefreshing] = useState(false)
-  const [prevProjectData, setPrevProjectData] = useState({})
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [recentUnread, setRecentUnread] = useState([])
   const [clientModalOpen, setClientModalOpen] = useState(false)
-  const projectsRef = useRef([])
+  const queryClient = useQueryClient()
 
   const t = useT()
   const hasJira = !!(user.jiraUrl && user.jiraEmail) || !!user.sharedJira
@@ -45,6 +36,57 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     localStorage.getItem('jt_autorefresh') || ''
   )
 
+  // ── Server state (React Query, A2) ─────────────────────────────────────────
+  const projectsQuery = useProjectsQuery({ enabled: !demoMode })
+  const serverProjects = projectsQuery.data
+  const projects = demoMode ? DEMO_PROJECTS : (serverProjects || [])
+
+  const dataQueries = useProjectDataQueries(demoMode ? [] : projects, { isClient })
+  const { projectData, loadingProjects, errorProjects, lastRefresh, prevProjectData } = useMemo(() => {
+    const projectData = {}, loadingProjects = {}, errorProjects = {}, lastRefresh = {}, prevProjectData = {}
+    if (demoMode) {
+      const now = Date.now()
+      DEMO_PROJECTS.forEach(p => { projectData[p.id] = p.data; lastRefresh[p.id] = now })
+    } else {
+      projects.forEach((p, i) => {
+        const q = dataQueries[i]
+        if (!q) return
+        if (q.data) {
+          projectData[p.id] = q.data.data
+          lastRefresh[p.id] = q.data.fetchedAt
+          if (q.data.prev) prevProjectData[p.id] = q.data.prev
+        }
+        loadingProjects[p.id] = q.isPending && q.isFetching
+        errorProjects[p.id] = q.error ? q.error.message : null
+      })
+    }
+    return { projectData, loadingProjects, errorProjects, lastRefresh, prevProjectData }
+  }, [demoMode, projects, dataQueries])
+  const refreshing = !demoMode && dataQueries.some(q => q.isFetching)
+
+  // Prazna lista bez Jira pristupa → demo režim (samo interni korisnici)
+  useEffect(() => {
+    if (demoMode || !projectsQuery.isSuccess) return
+    if (!isClient && (serverProjects || []).length === 0 && !hasJira) setDemoMode(true)
+  }, [projectsQuery.isSuccess, serverProjects, demoMode, isClient, hasJira])
+  useEffect(() => {
+    if (projectsQuery.isError && !isClient && !hasJira) setDemoMode(true)
+  }, [projectsQuery.isError, isClient, hasJira])
+  useEffect(() => {
+    if (demoMode && !activeId) setActiveId(DEMO_PROJECTS[0].id)
+  }, [demoMode, activeId])
+
+  // Aktivni projekat prati listu (prvi po difoltu; ostaje izabrani ako postoji)
+  useEffect(() => {
+    if (!projects.length) return
+    if (!activeId || !projects.some(p => p.id === activeId)) setActiveId(projects[0].id)
+  }, [projects, activeId])
+  useEffect(() => {
+    if (serverProjects) localStorage.setItem('jt_project_count', serverProjects.length)
+  }, [serverProjects])
+
+  const initialized = demoMode || projectsQuery.isSuccess || projectsQuery.isError
+
   // Listen for setting changes from SettingsModal
   useEffect(() => {
     function onChanged() {
@@ -56,7 +98,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
 
   // Auto-refresh — fires once daily at the scheduled time
   useEffect(() => {
-    if (!autoRefreshTime) return
+    if (!autoRefreshTime || demoMode) return
     let timeoutId
     function msUntilNext(timeStr) {
       const [h, m] = timeStr.split(':').map(Number)
@@ -68,13 +110,13 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     }
     function scheduleNext() {
       timeoutId = setTimeout(() => {
-        if (projectsRef.current.length > 0) refreshAll(projectsRef.current)
+        queryClient.refetchQueries({ queryKey: ['projectData'] })
         scheduleNext()
       }, msUntilNext(autoRefreshTime))
     }
     scheduleNext()
     return () => clearTimeout(timeoutId)
-  }, [autoRefreshTime])
+  }, [autoRefreshTime, demoMode, queryClient])
 
   useEffect(() => { setUser(initialUser) }, [initialUser])
 
@@ -85,223 +127,52 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     }
   }, [openChatOnMount])
 
+  // Notifikacije: 60s polling, pauza u pozadini + refetch na fokus, backoff
+  // na greške — sve kroz React Query (B4 ponašanje očuvano).
+  const notificationsQuery = useNotificationsQuery({ enabled: !demoMode })
+  const unreadCount = notificationsQuery.data?.count ?? 0
+  const recentUnread = notificationsQuery.data?.messages ?? []
+
+  // Client modal — show once per session
   useEffect(() => {
-    loadProjects()
-  }, [])
-
-  // Notification polling — 60s, ali PAUZIRAN dok je tab u pozadini (P2-B4):
-  // Page Visibility API zaustavlja interval, povratak fokusa osveži odmah.
-  // Uzastopne greške eksponencijalno produžavaju interval (backoff do 8 min).
-  useEffect(() => {
-    if (demoMode) return
-    let timer = null
-    let failures = 0
-    let cancelled = false
-
-    async function loadNotifications() {
-      try {
-        const [{ count }, messages] = await Promise.all([
-          api.getUnreadCount(),
-          api.getRecentUnread(),
-        ])
-        if (cancelled) return
-        failures = 0
-        setUnreadCount(count)
-        setRecentUnread(messages)
-        // Client modal — show once per session
-        if (isClient && count > 0 && !sessionStorage.getItem('notif_modal_shown')) {
-          setClientModalOpen(true)
-          sessionStorage.setItem('notif_modal_shown', '1')
-        }
-      } catch {
-        failures = Math.min(failures + 1, 3)
-      }
+    if (isClient && unreadCount > 0 && !sessionStorage.getItem('notif_modal_shown')) {
+      setClientModalOpen(true)
+      sessionStorage.setItem('notif_modal_shown', '1')
     }
+  }, [isClient, unreadCount])
 
-    function schedule() {
-      if (timer) clearInterval(timer)
-      timer = setInterval(() => {
-        loadNotifications().then(() => {
-          // posle greške produži interval; posle uspeha vrati na 60s
-          const wanted = 60000 * 2 ** failures
-          if (currentDelay !== wanted) { currentDelay = wanted; schedule() }
-        })
-      }, currentDelay)
-    }
-
-    let currentDelay = 60000
-
-    function onVisibility() {
-      if (document.hidden) {
-        if (timer) { clearInterval(timer); timer = null }
-      } else {
-        loadNotifications()
-        currentDelay = 60000
-        schedule()
-      }
-    }
-
-    loadNotifications()
-    schedule()
-    document.addEventListener('visibilitychange', onVisibility)
-    return () => {
-      cancelled = true
-      if (timer) clearInterval(timer)
-      document.removeEventListener('visibilitychange', onVisibility)
-    }
-  }, [demoMode, isClient])
-
-  function saveProjectCache(projectId, data) {
-    try {
-      localStorage.setItem(`jt_cache_${projectId}`, JSON.stringify({ data, ts: Date.now() }))
-    } catch {}
-  }
-
-  function loadProjectCache(projectId) {
-    try {
-      const raw = localStorage.getItem(`jt_cache_${projectId}`)
-      return raw ? JSON.parse(raw) : null
-    } catch { return null }
-  }
-
-  function enterDemoMode() {
-    setDemoMode(true)
-    setProjects(DEMO_PROJECTS)
-    projectsRef.current = DEMO_PROJECTS
-    setActiveId(DEMO_PROJECTS[0].id)
-    const demoData = {}
-    const demoTs = {}
-    const now = Date.now()
-    DEMO_PROJECTS.forEach(p => { demoData[p.id] = p.data; demoTs[p.id] = now })
-    setProjectData(demoData)
-    setLastRefresh(demoTs)
-    setInitialized(true)
-  }
-
-  async function loadProjects() {
-    try {
-      const list = await api.getProjects()
-      if (!isClient && list.length === 0 && !hasJira) { enterDemoMode(); return }
-      setProjects(list)
-      projectsRef.current = list
-      localStorage.setItem('jt_project_count', list.length)
-      if (list.length > 0) {
-        setActiveId(list[0].id)
-
-        // Load cached data — no Jira API call on every page visit
-        const cachedData = {}
-        let latestTs = null
-        for (const p of list) {
-          const cached = loadProjectCache(p.id)
-          if (cached) {
-            cachedData[p.id] = cached.data
-            if (!latestTs || cached.ts > latestTs) latestTs = cached.ts
-          }
-        }
-        if (Object.keys(cachedData).length > 0) {
-          setProjectData(cachedData)
-          if (latestTs) {
-            const tsMap = {}
-            for (const p of list) {
-              const cached = loadProjectCache(p.id)
-              if (cached?.ts) tsMap[p.id] = cached.ts
-            }
-            setLastRefresh(tsMap)
-          }
-        }
-
-        // Only fetch from Jira for projects with no cache yet (first use)
-        const uncached = list.filter(p => !cachedData[p.id])
-        if (uncached.length > 0) {
-          await refreshAll(uncached)
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load projects', err)
-      if (!isClient && !hasJira) { enterDemoMode(); return }
-    } finally {
-      setInitialized(true)
-    }
-  }
-
-  async function fetchProjectData(project) {
-    setLoadingProjects(prev => ({ ...prev, [project.id]: true }))
-    setErrorProjects(prev => ({ ...prev, [project.id]: null }))
-    try {
-      const { parents, subtasks, epicSelf, hasBillableField } = await api.getTasks(project)
-      const data = processEpicData(parents, subtasks, epicSelf)
-      data.hasBillableField = !!hasBillableField
-      const fetchedAt = Date.now()
-      saveProjectCache(project.id, data)
-
-      // Daily snapshot (history) — fire and forget; server keeps one per day
-      if (!isClient && typeof project.id === 'number') {
-        try {
-          const sm = buildStackMatrix(data.tasks, [])
-          const stacks = {}
-          for (const s of sm.stacks) stacks[s] = { plan: sm.colTotals[s].plan, spent: sm.colTotals[s].spent, remaining: sm.colTotals[s].remaining }
-          const billableSpent = (data.tasks || []).reduce((acc, t) => acc + billableSecondsOf(t), 0)
-          api.saveSnapshot(project.id, {
-            total: data.total, done: data.done, inprog: data.inprog, testing: data.testing, todo: data.todo, unknown: data.unknown || 0,
-            totalEst: data.totalEst, totalSpent: data.totalSpent, remainingEst: sm.grand.remaining, billableSpent, stacks,
-          }).catch(() => {})
-        } catch {}
-      }
-      setLastRefresh(prev => ({ ...prev, [project.id]: fetchedAt }))
-      setProjectData(prev => {
-        const current = prev[project.id]
-        if (current) {
-          setPrevProjectData(p => ({ ...p, [project.id]: { data: current, time: fetchedAt } }))
-        }
-        return { ...prev, [project.id]: data }
-      })
-    } catch (err) {
-      setErrorProjects(prev => ({ ...prev, [project.id]: err.message }))
-    } finally {
-      setLoadingProjects(prev => ({ ...prev, [project.id]: false }))
-    }
-  }
-
-  async function refreshAll(list) {
-    if (demoMode) return
-    setRefreshing(true)
-    await Promise.all(list.map(p => fetchProjectData(p)))
-    setRefreshing(false)
+  function setProjectsList(updater) {
+    queryClient.setQueryData(['projects'], old => updater(old || []))
   }
 
   function handleRefreshClick() {
-    if (activeProject) fetchProjectData(activeProject)
+    if (activeProject) queryClient.refetchQueries({ queryKey: ['projectData', activeProject.id] })
   }
 
   async function handleAddProject(payload) {
     const { project } = await api.addProject({ ...payload })
-    const next = [...projectsRef.current, project]
-    setProjects(next)
-    projectsRef.current = next
+    setProjectsList(list => [...list, project])
     setActiveId(project.id)
     setAddingProject(false)
-    fetchProjectData(project)
+    // novi projekat nema keš — query se montira i sam povlači podatke
   }
 
   async function handleUpdateProject(payload) {
     const { project } = await api.updateProject(editingProject.id, payload)
-    const next = projectsRef.current.map(p => p.id === project.id ? project : p)
-    setProjects(next)
-    projectsRef.current = next
+    setProjectsList(list => list.map(p => p.id === project.id ? project : p))
     setEditingProject(null)
-    localStorage.removeItem(`jt_cache_${project.id}`)
-    fetchProjectData(project)
+    clearProjectCache(project.id) // uklonjen keš + query → remount → svež fetch
   }
 
   async function handleArchiveProject(id) {
     try {
       await api.archiveProject(id)
-      const next = projectsRef.current.filter(p => p.id !== id)
-      setProjects(next)
-      projectsRef.current = next
-      if (activeId === id) setActiveId(next[0]?.id || null)
-      setProjectData(prev => { const n = { ...prev }; delete n[id]; return n })
-      localStorage.removeItem(`jt_cache_${id}`)
+      setProjectsList(list => list.filter(p => p.id !== id))
+      if (activeId === id) {
+        const rest = projects.filter(p => p.id !== id)
+        setActiveId(rest[0]?.id || null)
+      }
+      clearProjectCache(id)
     } catch (err) {
       toast.error(err.message)
     }
@@ -310,11 +181,8 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   async function handleRestoreProject(project) {
     try {
       const { project: restored } = await api.restoreProject(project.id)
-      const next = [...projectsRef.current, restored]
-      setProjects(next)
-      projectsRef.current = next
+      setProjectsList(list => [...list, restored])
       setActiveId(restored.id)
-      fetchProjectData(restored)
     } catch (err) {
       toast.error(err.message)
     }
@@ -328,8 +196,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   async function handleMarkAllRead() {
     try {
       await api.markAllRead()
-      setUnreadCount(0)
-      setRecentUnread([])
+      queryClient.setQueryData(['notifications'], { count: 0, messages: [] })
     } catch {}
   }
 

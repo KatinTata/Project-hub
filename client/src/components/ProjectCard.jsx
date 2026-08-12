@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../api.js'
+import { usePhasesQuery, useTeamQuery } from '../queries.js'
 import MetricCards from './MetricCards.jsx'
 import DonutChart from './DonutChart.jsx'
 import BarChart from './BarChart.jsx'
@@ -280,25 +282,24 @@ export default function ProjectCard({
   const { isMobile, isTablet } = useWindowSize()
   const t = useT()
   const [activeTab, setActiveTab] = useState('tasks') // 'tasks' | 'phases'
-  const [chartPhases, setChartPhases] = useState([])
   const [exporting, setExporting] = useState(false)
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    if (!project?.id || typeof project.id === 'string') return
-    api.getPhases(project.id).then(d => setChartPhases(d?.phases || [])).catch(() => {})
-  }, [project?.id])
+  // Faze i tim kroz React Query (A2) — deljeni keš sa PhaseBuilder-om, bez
+  // dupliranih GET-ova kad su obe komponente montirane.
+  const phasesQuery = usePhasesQuery(project?.id)
+  const chartPhases = phasesQuery.data?.phases || []
 
-  const [team, setTeam] = useState([])
-  useEffect(() => {
-    if (!project?.id || typeof project.id === 'string') { setTeam([]); return }
-    api.getTeam(project.id).then(t => setTeam(t || [])).catch(() => setTeam([]))
-  }, [project?.id])
+  const teamQuery = useTeamQuery(project?.id)
+  const team = useMemo(() => teamQuery.data || [], [teamQuery.data])
   async function addTeamMember(name, stack) {
-    try { const { member } = await api.addTeamMember(project.id, name, stack); setTeam(t => [...t, member]) }
-    catch (e) { toast.error(e.message || t('pc.err.addMember')) }
+    try {
+      const { member } = await api.addTeamMember(project.id, name, stack)
+      queryClient.setQueryData(['team', project.id], old => [...(old || []), member])
+    } catch (e) { toast.error(e.message || t('pc.err.addMember')) }
   }
   async function removeTeamMember(id) {
-    setTeam(t => t.filter(m => m.id !== id))
+    queryClient.setQueryData(['team', project.id], old => (old || []).filter(m => m.id !== id))
     try { await api.removeTeamMember(project.id, id) } catch {}
   }
   const peoplePerStackMap = useMemo(() => buildRoster(team), [team])
@@ -773,7 +774,7 @@ export default function ProjectCard({
           <TaskTable tasks={tasks} overTasks={overTasks} isClient={isClient} projectId={project.id} onOpenMessages={onOpenMessages} jiraUrl={jiraUrl} hasBillableField={!!data.hasBillableField} />
         )}
         {activeTab === 'phases' && (
-          <PhaseBuilder projectId={project.id} tasks={tasks} isClient={isClient} onPhasesChange={setChartPhases} jiraUrl={jiraUrl} />
+          <PhaseBuilder projectId={project.id} tasks={tasks} isClient={isClient} jiraUrl={jiraUrl} />
         )}
         {activeTab === 'stacks' && !isClient && (
           <>

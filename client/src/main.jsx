@@ -1,10 +1,12 @@
 import { StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { applyTheme } from './theme.js'
 import { LangProvider } from './lang.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { ToastProvider } from './ui/Toast.jsx'
 import { ConfirmProvider } from './ui/Confirm.jsx'
+import { queryClient } from './queries.js'
 import App from './App.jsx'
 
 // Apply initial theme before render to avoid flash
@@ -20,16 +22,18 @@ const Loading = (
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <LangProvider>
-      <ErrorBoundary>
-        <ToastProvider>
-          <ConfirmProvider>
-            <Suspense fallback={Loading}>
-              <App />
-            </Suspense>
-          </ConfirmProvider>
-        </ToastProvider>
-      </ErrorBoundary>
-    </LangProvider>
+    <QueryClientProvider client={queryClient}>
+      <LangProvider>
+        <ErrorBoundary>
+          <ToastProvider>
+            <ConfirmProvider>
+              <Suspense fallback={Loading}>
+                <App />
+              </Suspense>
+            </ConfirmProvider>
+          </ToastProvider>
+        </ErrorBoundary>
+      </LangProvider>
+    </QueryClientProvider>
   </StrictMode>
 )

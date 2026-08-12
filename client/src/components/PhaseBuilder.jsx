@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { DndContext, DragOverlay, pointerWithin, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
+import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../api.js'
 import PhaseProgress from './PhaseProgress.jsx'
 import { useConfirm } from '../ui/Confirm.jsx'
@@ -507,6 +508,7 @@ function AddPhasePanel({ onAdd, onCancel }) {
 
 export default function PhaseBuilder({ projectId, tasks, isClient, onPhasesChange, jiraUrl }) {
   const toast = useToast()
+  const queryClient = useQueryClient()
   const [phases, setPhases] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTask, setActiveTask] = useState(null)
@@ -518,12 +520,21 @@ export default function PhaseBuilder({ projectId, tasks, isClient, onPhasesChang
   )
 
   useEffect(() => { loadPhases() }, [projectId])
-  useEffect(() => { onPhasesChange?.(phases) }, [phases])
+  // Lokalne (optimistične) izmene se preslikavaju u deljeni React Query keš
+  // (['phases', projectId]) da bi ProjectCard grafikoni ostali sinhronizovani.
+  useEffect(() => {
+    onPhasesChange?.(phases)
+    if (!loading) queryClient.setQueryData(['phases', projectId], { phases })
+  }, [phases])
 
   async function loadPhases() {
     setLoading(true)
     try {
-      const data = await api.getPhases(projectId)
+      // fetchQuery dedupira sa usePhasesQuery u ProjectCard (A2)
+      const data = await queryClient.fetchQuery({
+        queryKey: ['phases', projectId],
+        queryFn: () => api.getPhases(projectId),
+      })
       setPhases(data.phases || [])
     } catch { setPhases([]) }
     setLoading(false)
