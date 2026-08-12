@@ -1,7 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import NotificationBell from './NotificationBell.jsx'
 import { useT } from '../lang.jsx'
+import { isClientRole } from '../utils/roles.js'
+
+// URL → aktivna kartica u navigaciji (A3: jedini izvor istine je ruta)
+function pageFromPath(pathname) {
+  if (pathname.startsWith('/release-notes/editor')) return 'releaseNotesEditor'
+  if (pathname.startsWith('/release-notes')) return 'releaseNotes'
+  if (pathname.startsWith('/documents')) return 'documents'
+  if (pathname.startsWith('/messages')) return 'messages'
+  if (pathname.startsWith('/qa')) return 'qa'
+  if (pathname.startsWith('/ai-usage')) return 'aiUsage'
+  return 'dashboard'
+}
 
 // ── SVG Icons ─────────────────────────────────────────────────────────────────
 
@@ -178,17 +191,18 @@ export default function Topbar({
   user, theme, onLogout,
   onOpenSettings, onOpenUsers,
   unreadCount = 0, recentUnread = [], onMarkAllRead, onNotificationClick,
-  onOpenChat, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDashboard, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage,
-  currentPage,
-  projects = [], onAddProject,
+  projects = [],
   unreadMessages = 0,
-  // Legacy project dropdown props — kept for compatibility but unused in nav
-  activeId, onSelectProject, onArchiveProject, onOpenArchive, projectData,
+  messagesProjectId, // opcioni preselect projekta za chat (dashboard)
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
   const { isMobile } = useWindowSize()
   const t = useT()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const currentPage = pageFromPath(location.pathname)
+  const isClient = isClientRole(user?.role)
 
   useEffect(() => {
     function h(e) { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false) }
@@ -203,8 +217,6 @@ export default function Topbar({
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
     : '??'
-
-  const messagesAction = onGoToMessages || onOpenChat
 
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
@@ -325,7 +337,7 @@ export default function Topbar({
             label={t('topbar.nav.dashboard')}
             subtitle={`${projectCount} ${t('topbar.nav.dashboardSub')}`}
             active={currentPage === 'dashboard'}
-            onClick={onGoToDashboard}
+            onClick={() => navigate('/')}
             hideSubtitle={isMobile}
           />
 
@@ -335,18 +347,18 @@ export default function Topbar({
             label={t('topbar.nav.releaseNotes')}
             subtitle={t('topbar.nav.releaseNotesSub')}
             active={currentPage === 'releaseNotes'}
-            onClick={onGoToReleaseNotes}
+            onClick={() => navigate('/release-notes')}
             hideSubtitle={isMobile}
           />
 
-          {onGoToReleaseNotesEditor && (
+          {!isClient && (
             <ModuleCard
               icon={<IconClipboard />}
               iconBg="rgba(20,184,166,0.12)" iconColor="#14B8A6"
               label={t('topbar.nav.releaseNotesEditor')}
               subtitle={t('topbar.nav.releaseNotesEditorSub')}
               active={currentPage === 'releaseNotesEditor'}
-              onClick={onGoToReleaseNotesEditor}
+              onClick={() => navigate('/release-notes/editor')}
               hideSubtitle={isMobile}
             />
           )}
@@ -357,7 +369,7 @@ export default function Topbar({
             label={t('topbar.nav.documents')}
             subtitle={t('topbar.nav.documentsSub')}
             active={currentPage === 'documents'}
-            onClick={onGoToDocuments}
+            onClick={() => navigate('/documents')}
             hideSubtitle={isMobile}
           />
 
@@ -367,7 +379,7 @@ export default function Topbar({
             label={t('topbar.nav.messages')}
             subtitle={unreadMessages > 0 ? `${unreadMessages} ${t('topbar.nav.messagesSub')}` : t('topbar.nav.messagesSubEmpty')}
             active={currentPage === 'messages'}
-            onClick={messagesAction}
+            onClick={() => navigate(`/messages${messagesProjectId ? `?project=${messagesProjectId}` : ''}`)}
             badge={unreadMessages}
             hideSubtitle={isMobile}
           />
@@ -378,21 +390,19 @@ export default function Topbar({
             label={t('topbar.nav.qa')}
             subtitle={t('topbar.nav.qaSub')}
             active={currentPage === 'qa'}
-            onClick={onGoToQA}
+            onClick={() => navigate('/qa')}
             hideSubtitle={isMobile}
           />
 
-          {onGoToAiUsage && (
-            <ModuleCard
-              icon={<IconAi />}
-              iconBg="rgba(14,165,233,0.14)" iconColor="#0EA5E9"
-              label={t('nav2.aiUsage')}
-              subtitle={t('nav2.aiUsageSub')}
-              active={currentPage === 'aiUsage'}
-              onClick={onGoToAiUsage}
-              hideSubtitle={isMobile}
-            />
-          )}
+          <ModuleCard
+            icon={<IconAi />}
+            iconBg="rgba(14,165,233,0.14)" iconColor="#0EA5E9"
+            label={t('nav2.aiUsage')}
+            subtitle={t('nav2.aiUsageSub')}
+            active={currentPage === 'aiUsage'}
+            onClick={() => navigate('/ai-usage')}
+            hideSubtitle={isMobile}
+          />
 
         </div>
       </div>

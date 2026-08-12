@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../api.js'
 import Topbar from '../../components/Topbar.jsx'
 import BrainAnimation from '../../components/BrainAnimation.jsx'
@@ -20,13 +21,21 @@ import PublishModal from './PublishModal.jsx'
 // Release notes wizard: 1) select tasks → 2) edit content → 3) preview/export/publish.
 // Domain state lives in hooks (useTaskSource/useTaskEdits/useSections); this
 // component owns only wizard navigation, config, publish/export and the toast.
-export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat }) {
+export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
   const t = useT()
   const { isMobile } = useWindowSize()
+  const navigate = useNavigate()
 
-  // wizard
-  const [wizardStep, setWizardStep] = useState(1)
+  // wizard — korak živi u URL query-ju (?step=N) pa Back/Forward rade (A3);
+  // maxStep je in-memory (podaci koraka ionako ne preživljavaju refresh),
+  // pa se preduboki direktan link bezbedno spušta na korak 1.
+  const [searchParams, setSearchParams] = useSearchParams()
   const [maxStep, setMaxStep] = useState(1)
+  const requestedStep = parseInt(searchParams.get('step'), 10) || 1
+  const wizardStep = Math.max(1, Math.min(requestedStep, maxStep))
+  function setWizardStep(n) {
+    setSearchParams(n > 1 ? { step: String(n) } : {})
+  }
 
   // config (step 1)
   const [config, setConfig] = useState({ clientName: '', version: '' })
@@ -207,7 +216,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
           await api.setReleaseNoteClients(data.id, selectedClientIds).catch(() => {})
         }
         setPublishState(null)
-        onGoToReleaseNotes()
+        navigate('/release-notes')
       } else {
         setPublishState({ error: data.error || t('rne.noTokenReturned') })
       }
@@ -222,13 +231,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         <BrainAnimation opacity={0.45} fullscreen />
       </div>
       <div style={{ position: 'relative', zIndex: 1 }}>
-      <Topbar
-        user={user} theme={theme} currentPage="releaseNotesEditor"
-        onLogout={onLogout} onGoToDashboard={onGoToDashboard} onGoToReleaseNotes={onGoToReleaseNotes}
-        onGoToReleaseNotesEditor={onGoToReleaseNotesEditor}
-        onGoToDocuments={onGoToDocuments} onGoToQA={onGoToQA}
-        onGoToAiUsage={onGoToAiUsage} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} onOpenChat={onOpenChat}
-      />
+      <Topbar user={user} theme={theme} onLogout={onLogout} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} />
       <div style={{ padding: '20px 28px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
           <Stepper step={wizardStep} maxStep={maxStep} onStepClick={goToStep} />

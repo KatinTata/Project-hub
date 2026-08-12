@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api.js'
 import Topbar from '../components/Topbar.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
@@ -14,15 +15,13 @@ const TASK_KEY_RE = /^[A-Z][A-Z0-9]*-\d+$/
 function looksLikeTaskKey(val) { return TASK_KEY_RE.test(val.trim().toUpperCase()) }
 function threadId(m) { return m.subject || m.task_key || null }
 
-export default function MessagesPage({
-  user, theme, onLogout, onOpenSettings, onOpenUsers,
-  onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenChat,
-  initialProjectId,
-}) {
+export default function MessagesPage({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
   const t = useT()
-  const isAdmin = !isClientRole(user.role)
   const isClient = isClientRole(user.role)
   const { isMobile } = useWindowSize()
+  // Preselect projekta kroz URL: /messages?project=ID (A3)
+  const [searchParams] = useSearchParams()
+  const initialProjectId = searchParams.get('project') ? Number(searchParams.get('project')) : null
 
   // Projects
   const [projects, setProjects] = useState([])
@@ -198,16 +197,7 @@ export default function MessagesPage({
           theme={theme}
           onLogout={onLogout}
           onOpenSettings={onOpenSettings}
-          onGoToDashboard={onGoToDashboard}
-          onGoToReleaseNotes={onGoToReleaseNotes}
-          onGoToReleaseNotesEditor={isAdmin ? onGoToReleaseNotesEditor : null}
-          onGoToDocuments={onGoToDocuments}
-          onGoToQA={onGoToQA}
-        onGoToAiUsage={onGoToAiUsage}
-          onOpenChat={null}
-          onGoToMessages={null}
           onOpenUsers={onOpenUsers}
-          currentPage="messages"
         />
 
         {/* Main content: sidebar + chat */}

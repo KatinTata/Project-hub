@@ -674,19 +674,12 @@ function Pill({ label, count, active, onClick }) {
 
 // ── QAPage ────────────────────────────────────────────────────────────────────
 
-export default function QAPage({
-  user, theme, onLogout,
-  onGoToDashboard, onGoToDocuments, onGoToReleaseNotes, onGoToReleaseNotesEditor,
-  onGoToMessages, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat,
-  projects = [],
-}) {
+export default function QAPage({ user, theme, onLogout, onOpenSettings, onOpenUsers, projects = [] }) {
   const t = useT()
   const [openId, setOpenId] = useState(null)
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState('all')
   const [searchFocused, setSearchFocused] = useState(false)
-
-  const messagesAction = onGoToMessages || onOpenChat
 
   const QA_DATA = getQaData(t)
   const QA_DATA_STABLE = QA_DATA.map(cat => ({
@@ -726,15 +719,7 @@ export default function QAPage({
       <Topbar
         user={user}
         theme={theme}
-        currentPage="qa"
         onLogout={onLogout}
-        onGoToDashboard={onGoToDashboard}
-        onGoToReleaseNotes={onGoToReleaseNotes}
-        onGoToReleaseNotesEditor={onGoToReleaseNotesEditor}
-        onGoToDocuments={onGoToDocuments}
-        onGoToMessages={messagesAction}
-        onGoToQA={onGoToQA}
-        onGoToAiUsage={onGoToAiUsage}
         onOpenSettings={onOpenSettings}
         onOpenUsers={onOpenUsers}
         projects={projects}

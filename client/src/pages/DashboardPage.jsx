@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import Topbar from '../components/Topbar.jsx'
 import ProjectTabs from '../components/ProjectTabs.jsx'
@@ -15,14 +16,17 @@ import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
 import { toast } from '../ui/Toast.jsx'
 
-export default function DashboardPage({ user: initialUser, theme, onSetTheme, onLogout, onOpenSettings, onOpenUsers, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage, openChatOnMount, onChatMountConsumed }) {
+export default function DashboardPage({ user: initialUser, theme, onSetTheme, onLogout, onOpenSettings, onOpenUsers }) {
   const [user, setUser] = useState(initialUser)
-  const [activeId, setActiveId] = useState(null)
   const [archiveOpen, setArchiveOpen] = useState(false)
-  const [addingProject, setAddingProject] = useState(false)
   const [editingProject, setEditingProject] = useState(null) // project being edited (filter criteria)
   const [clientModalOpen, setClientModalOpen] = useState(false)
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const params = useParams()
+  // /projects/new renderuje AddProjectPage; /projects/:projectId/:tab bira projekat i tab
+  const addingProject = location.pathname === '/projects/new'
 
   const t = useT()
   const hasJira = !!(user.jiraUrl && user.jiraEmail) || !!user.sharedJira
@@ -72,15 +76,22 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   useEffect(() => {
     if (projectsQuery.isError && !isClient && !hasJira) setDemoMode(true)
   }, [projectsQuery.isError, isClient, hasJira])
-  useEffect(() => {
-    if (demoMode && !activeId) setActiveId(DEMO_PROJECTS[0].id)
-  }, [demoMode, activeId])
 
-  // Aktivni projekat prati listu (prvi po difoltu; ostaje izabrani ako postoji)
-  useEffect(() => {
-    if (!projects.length) return
-    if (!activeId || !projects.some(p => p.id === activeId)) setActiveId(projects[0].id)
-  }, [projects, activeId])
+  // Aktivni projekat iz URL-a (/projects/:projectId); bez parametra — prvi iz liste
+  const paramId = params.projectId
+    ? (/^\d+$/.test(params.projectId) ? Number(params.projectId) : params.projectId)
+    : null
+  const activeId = (paramId != null && projects.some(p => p.id === paramId))
+    ? paramId
+    : (projects[0]?.id ?? null)
+  const activeTab = params.tab || 'tasks'
+  function setActiveId(id) {
+    navigate(id != null ? `/projects/${id}` : '/')
+  }
+  function setActiveTab(tab) {
+    if (activeId == null) return
+    navigate(tab === 'tasks' ? `/projects/${activeId}` : `/projects/${activeId}/${tab}`)
+  }
   useEffect(() => {
     if (serverProjects) localStorage.setItem('jt_project_count', serverProjects.length)
   }, [serverProjects])
@@ -120,12 +131,9 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
 
   useEffect(() => { setUser(initialUser) }, [initialUser])
 
-  useEffect(() => {
-    if (openChatOnMount) {
-      onGoToMessages?.(activeId || null)
-      onChatMountConsumed?.()
-    }
-  }, [openChatOnMount])
+  function goToMessages(projectId) {
+    navigate(`/messages${projectId ? `?project=${projectId}` : ''}`)
+  }
 
   // Notifikacije: 60s polling, pauza u pozadini + refetch na fokus, backoff
   // na greške — sve kroz React Query (B4 ponašanje očuvano).
@@ -152,9 +160,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   async function handleAddProject(payload) {
     const { project } = await api.addProject({ ...payload })
     setProjectsList(list => [...list, project])
-    setActiveId(project.id)
-    setAddingProject(false)
-    // novi projekat nema keš — query se montira i sam povlači podatke
+    setActiveId(project.id) // napušta /projects/new; novi projekat nema keš — query sam povlači podatke
   }
 
   async function handleUpdateProject(payload) {
@@ -201,7 +207,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   }
 
   function handleNotificationClick(n) {
-    onGoToMessages?.(n.project_id || activeId || null)
+    goToMessages(n.project_id || activeId || null)
   }
 
   const activeProject = projects.find(p => p.id === activeId)
@@ -218,7 +224,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     return (
       <AddProjectPage
         onAdd={handleAddProject}
-        onCancel={() => setAddingProject(false)}
+        onCancel={() => navigate('/')}
       />
     )
   }
@@ -243,31 +249,16 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
       <Topbar
         user={user}
         theme={theme}
-        currentPage="dashboard"
         onOpenSettings={isClient ? undefined : onOpenSettings}
         onLogout={handleLogout}
         unreadCount={unreadCount}
         recentUnread={recentUnread}
         onMarkAllRead={handleMarkAllRead}
         onNotificationClick={handleNotificationClick}
-        onGoToMessages={onGoToMessages ? () => onGoToMessages(activeProject?.id || null) : undefined}
         onOpenUsers={isClient ? undefined : onOpenUsers}
-        onOpenChat={undefined}
-
-        onGoToDashboard={undefined}
-        onGoToReleaseNotes={onGoToReleaseNotes}
-        onGoToReleaseNotesEditor={isClient ? undefined : onGoToReleaseNotesEditor}
-        onGoToDocuments={onGoToDocuments}
-        onGoToQA={onGoToQA}
-        onGoToAiUsage={onGoToAiUsage}
         unreadMessages={unreadCount}
         projects={projects}
-        activeId={activeId}
-        onSelectProject={setActiveId}
-        onArchiveProject={isClient ? undefined : handleArchiveProject}
-        onOpenArchive={isClient ? undefined : () => setArchiveOpen(true)}
-        projectData={projectData}
-        onAddProject={!isClient && !demoMode ? () => setAddingProject(true) : undefined}
+        messagesProjectId={activeProject?.id || null}
       />
 
       {projects.length > 0 && (
@@ -275,7 +266,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           projects={projects}
           activeId={activeId}
           onSelect={setActiveId}
-          onAdd={!isClient && !demoMode ? () => setAddingProject(true) : undefined}
+          onAdd={!isClient && !demoMode ? () => navigate('/projects/new') : undefined}
           onArchive={isClient ? undefined : handleArchiveProject}
           onOpenArchive={isClient ? undefined : () => setArchiveOpen(true)}
           projectData={projectData}
@@ -327,7 +318,9 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               isSuperAdmin={user.role === 'super_admin'}
               jiraUrl={user.jiraUrl}
               autoRefreshTime={autoRefreshTime}
-              onOpenMessages={() => onGoToMessages?.(activeProject?.id || null)}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onOpenMessages={() => goToMessages(activeProject?.id || null)}
               onEditProject={!isClient && !demoMode ? () => setEditingProject(activeProject) : undefined}
             />
           )}
@@ -384,7 +377,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
                 title: t('dash.step2'),
                 desc: t('dash.step2Sub'),
                 disabled: !hasJira,
-                action: { label: 'Dodaj projekat', onClick: () => setAddingProject(true) },
+                action: { label: 'Dodaj projekat', onClick: () => navigate('/projects/new') },
               },
               {
                 step: '3',
@@ -470,7 +463,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
         <ClientNotificationModal
           notifications={recentUnread}
           onClose={() => setClientModalOpen(false)}
-          onOpenChat={() => { setClientModalOpen(false); onGoToMessages?.(activeProject?.id || null) }}
+          onOpenChat={() => { setClientModalOpen(false); goToMessages(activeProject?.id || null) }}
         />
       )}
 

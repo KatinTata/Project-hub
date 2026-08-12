@@ -278,10 +278,15 @@ export default function ProjectCard({
   hasJira, refreshing, lastRefresh, onRefresh,
   previousData, previousTime, isClient, onOpenMessages, jiraUrl,
   autoRefreshTime, isSuperAdmin, onEditProject,
+  activeTab: activeTabProp, onTabChange,
 }) {
   const { isMobile, isTablet } = useWindowSize()
   const t = useT()
-  const [activeTab, setActiveTab] = useState('tasks') // 'tasks' | 'phases'
+  // Tab je kontrolisan iz URL-a (/projects/:id/:tab — A3); nepoznata ili
+  // klijentu nedostupna vrednost pada na 'tasks'.
+  const validTabs = isClient ? ['tasks', 'phases'] : ['tasks', 'phases', 'stacks', 'trend']
+  const activeTab = validTabs.includes(activeTabProp) ? activeTabProp : 'tasks'
+  const setActiveTab = tab => onTabChange?.(tab)
   const [exporting, setExporting] = useState(false)
   const queryClient = useQueryClient()
 

@@ -500,9 +500,7 @@ function Checkbox({ checked }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export default function DocumentsPage({
-  user, theme, onLogout, onOpenSettings, onOpenUsers, onGoToDashboard, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenChat,
-}) {
+export default function DocumentsPage({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
   const t = useT()
   const { isMobile } = useWindowSize()
   const [sections, setSections] = useState([])
@@ -580,15 +578,7 @@ export default function DocumentsPage({
         theme={theme}
         onLogout={onLogout}
         onOpenSettings={onOpenSettings}
-        onGoToDashboard={onGoToDashboard}
-        onGoToReleaseNotes={onGoToReleaseNotes}
-        onGoToReleaseNotesEditor={isAdmin ? onGoToReleaseNotesEditor : null}
-        onOpenChat={onOpenChat}
         onOpenUsers={onOpenUsers}
-        onGoToDocuments={onGoToDocuments}
-        onGoToQA={onGoToQA}
-        onGoToAiUsage={onGoToAiUsage}
-        currentPage="documents"
       />
 
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '20px 16px' : '32px 28px' }}>

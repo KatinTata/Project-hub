@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import Topbar from '../components/Topbar.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
@@ -8,18 +9,21 @@ import { fmtDateLong } from '../utils/format.js'
 import { useConfirm } from '../ui/Confirm.jsx'
 import { useDialogBehavior } from '../ui/Modal.jsx'
 
-export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboard, onGoToEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat }) {
+export default function ReleaseNotesPage({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
   const t = useT()
   const confirm = useConfirm()
   const isClient = isClientRole(user?.role)
+  const navigate = useNavigate()
+  const { noteId } = useParams() // /release-notes/:noteId — deep link na objavu (A3)
 
   const [notesList, setNotesList] = useState([])
   const [notesListLoading, setNotesListLoading] = useState(false)
   const [assignModal, setAssignModal] = useState(null)
   const [allClientUsers, setAllClientUsers] = useState([])
-  const [selectedNote, setSelectedNote] = useState(null)
   const [noteDetail, setNoteDetailData] = useState(null)
   const [noteDetailLoading, setNoteDetailLoading] = useState(false)
+
+  const selectedNote = noteId ? notesList.find(n => String(n.id) === String(noteId)) || null : null
 
   useEffect(() => { loadNotesList() }, [])
 
@@ -32,25 +36,29 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
     setNotesListLoading(false)
   }
 
-  async function openNote(note) {
-    setSelectedNote(note)
+  // Detalj prati izabrani note iz URL-a (radi i za direktan link i Back/Forward)
+  useEffect(() => {
+    if (!selectedNote) { setNoteDetailData(null); return }
+    let cancelled = false
     setNoteDetailData(null)
     setNoteDetailLoading(true)
-    try {
-      const res = await fetch(`/rn/${note.token}`)
-      if (res.ok) {
-        const html = await res.text()
-        setNoteDetailData({ ...note, html })
-      } else {
-        setNoteDetailData(note)
-      }
-    } catch { setNoteDetailData(note) }
-    setNoteDetailLoading(false)
+    fetch(`/rn/${selectedNote.token}`)
+      .then(async res => {
+        if (cancelled) return
+        if (res.ok) setNoteDetailData({ ...selectedNote, html: await res.text() })
+        else setNoteDetailData(selectedNote)
+      })
+      .catch(() => { if (!cancelled) setNoteDetailData(selectedNote) })
+      .finally(() => { if (!cancelled) setNoteDetailLoading(false) })
+    return () => { cancelled = true }
+  }, [selectedNote?.id, selectedNote?.token]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function openNote(note) {
+    navigate(`/release-notes/${note.id}`)
   }
 
   function closeNote() {
-    setSelectedNote(null)
-    setNoteDetailData(null)
+    navigate('/release-notes')
   }
 
   return (
@@ -63,16 +71,9 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
       <Topbar
         user={user}
         theme={theme}
-        currentPage="releaseNotes"
         onLogout={onLogout}
-        onGoToDashboard={onGoToDashboard}
-        onGoToReleaseNotesEditor={isClient ? undefined : onGoToEditor}
-        onGoToDocuments={onGoToDocuments}
-        onGoToQA={onGoToQA}
-        onGoToAiUsage={onGoToAiUsage}
         onOpenSettings={onOpenSettings}
         onOpenUsers={onOpenUsers}
-        onOpenChat={onOpenChat}
       />
 
       <div style={{ padding: '28px' }}>
@@ -87,7 +88,6 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
               if (!(await confirm(t('rn.markReleasedConfirm')))) return
               await api.markReleaseNoteReleased(selectedNote.id)
               const updated = { ...selectedNote, status: 'released', released_at: new Date().toISOString() }
-              setSelectedNote(updated)
               setNoteDetailData(prev => prev ? { ...prev, status: 'released', released_at: updated.released_at } : prev)
               setNotesList(prev => prev.map(n => n.id === selectedNote.id ? updated : n))
             }}
