@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage.jsx'
 import BrainAnimation from './components/BrainAnimation.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import UserManagementModal from './components/UserManagementModal.jsx'
+import { setCalcConfig } from './utils/calcConfig.js'
 
 // Pages are code-split: each loads its own chunk on first navigation, so the
 // login/initial load no longer ships the whole app (pdfjs, tiptap, dnd-kit).
@@ -77,6 +78,13 @@ export default function App() {
       .catch(() => localStorage.removeItem('jt_token'))
       .finally(() => setChecking(false))
   }, [])
+
+  // Pragovi obračuna iz podešavanja (P2-E2) — jednom po sesiji, defaulti
+  // identični hardkodovanim vrednostima pa je pad poziva bezopasan.
+  useEffect(() => {
+    if (!user) return
+    api.getAppSettings().then(setCalcConfig).catch(() => {})
+  }, [user])
 
   // Browser Back/Forward: re-resolve the page from the URL.
   useEffect(() => {

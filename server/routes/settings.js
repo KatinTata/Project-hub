@@ -4,7 +4,15 @@ import { getRole } from '../rbac.js'
 
 const router = Router()
 
-const DEFAULTS = { workdayHours: 6.5, workdaysPerWeek: 5 }
+// Defaulti IDENTIČNI ranije hardkodovanim vrednostima (P2-E2) — bez
+// podešavanja se ponašanje ne menja.
+const DEFAULTS = {
+  workdayHours: 6.5,
+  workdaysPerWeek: 5,
+  overrunThresholdPct: 15, // prag prekoračenja taska (utils.js)
+  capacityTightPct: 85,    // load iznad ovoga = "tight" (capacity.js)
+  overrunTailPct: 10,      // rep preostalog rada za probijene otvorene taskove (stacks.js)
+}
 
 function readSettings() {
   const rows = db.prepare('SELECT key, value FROM app_settings').all()
@@ -17,6 +25,9 @@ function readSettings() {
   return {
     workdayHours: num('workdayHours', DEFAULTS.workdayHours),
     workdaysPerWeek: num('workdaysPerWeek', DEFAULTS.workdaysPerWeek),
+    overrunThresholdPct: num('overrunThresholdPct', DEFAULTS.overrunThresholdPct),
+    capacityTightPct: num('capacityTightPct', DEFAULTS.capacityTightPct),
+    overrunTailPct: num('overrunTailPct', DEFAULTS.overrunTailPct),
   }
 }
 
@@ -40,6 +51,14 @@ router.put('/', (req, res) => {
     const d = parseInt(workdaysPerWeek, 10)
     if (!(d >= 1 && d <= 7)) return res.status(400).json({ error: 'Radnih dana u nedelji mora biti 1–7' })
     set.run('workdaysPerWeek', String(d))
+  }
+  // Pragovi obračuna (P2-E2) — procenti 0–100
+  for (const key of ['overrunThresholdPct', 'capacityTightPct', 'overrunTailPct']) {
+    if (req.body[key] !== undefined) {
+      const v = parseFloat(req.body[key])
+      if (!(v >= 0 && v <= 100)) return res.status(400).json({ error: `${key} mora biti između 0 i 100` })
+      set.run(key, String(v))
+    }
   }
   res.json(readSettings())
 })

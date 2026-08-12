@@ -1,3 +1,5 @@
+import { getCalcConfig } from './utils/calcConfig.js'
+
 const DONE    = new Set(['Resolved', 'Closed', 'Done'])
 const TESTING = new Set(['For Testing', 'TESTING STARTED', 'On Hold - Testing'])
 const TODO    = new Set(['To Do', 'For Grooming', 'Estimated'])
@@ -94,7 +96,8 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
       subs.push(sub)
     }
 
-    const over = calcEst > 0 && calcSpent > calcEst * 1.15
+    const overFactor = 1 + getCalcConfig().overrunThresholdPct / 100
+    const over = calcEst > 0 && calcSpent > calcEst * overFactor
     const overPct = calcEst > 0 ? Math.round(((calcSpent - calcEst) / calcEst) * 100) : 0
 
     const modules = f.modules || []
@@ -140,7 +143,7 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
     const statusCat = getStatusCategory(statusName)
     const est = f.timeoriginalestimate || 0
     const spent = f.timespent || 0
-    const over = est > 0 && spent > est * 1.15
+    const over = est > 0 && spent > est * (1 + getCalcConfig().overrunThresholdPct / 100)
 
     const task = {
       key: child.key,

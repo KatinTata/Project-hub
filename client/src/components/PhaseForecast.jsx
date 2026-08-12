@@ -4,6 +4,7 @@ import { useT } from '../lang.jsx'
 import { buildStackMatrix } from '../utils/stacks.js'
 import { buildPhaseForecast } from '../utils/forecast.js'
 import { buildCapacity } from '../utils/capacity.js'
+import { setCalcConfig } from '../utils/calcConfig.js'
 
 function fmtDate(iso) {
   if (!iso) return '—'
@@ -28,12 +29,17 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
   const [settings, setSettings] = useState(null)
   const [basis, setBasis] = useState('remaining')
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState({ workdayHours: 6.5, workdaysPerWeek: 5 })
+  const [draft, setDraft] = useState({ workdayHours: 6.5, workdaysPerWeek: 5, overrunThresholdPct: 15, capacityTightPct: 85, overrunTailPct: 10 })
   const [saving, setSaving] = useState(false)
+
+  const draftFrom = s => ({
+    workdayHours: s.workdayHours, workdaysPerWeek: s.workdaysPerWeek,
+    overrunThresholdPct: s.overrunThresholdPct ?? 15, capacityTightPct: s.capacityTightPct ?? 85, overrunTailPct: s.overrunTailPct ?? 10,
+  })
 
   useEffect(() => {
     api.getAppSettings()
-      .then(s => { setSettings(s); setDraft({ workdayHours: s.workdayHours, workdaysPerWeek: s.workdaysPerWeek }) })
+      .then(s => { setSettings(s); setDraft(draftFrom(s)); setCalcConfig(s) })
       .catch(() => setSettings({ workdayHours: 6.5, workdaysPerWeek: 5 }))
   }, [])
 
@@ -53,8 +59,15 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
   async function saveConfig() {
     setSaving(true)
     try {
-      const s = await api.updateAppSettings({ workdayHours: parseFloat(draft.workdayHours), workdaysPerWeek: parseInt(draft.workdaysPerWeek, 10) })
+      const s = await api.updateAppSettings({
+        workdayHours: parseFloat(draft.workdayHours),
+        workdaysPerWeek: parseInt(draft.workdaysPerWeek, 10),
+        overrunThresholdPct: parseFloat(draft.overrunThresholdPct),
+        capacityTightPct: parseFloat(draft.capacityTightPct),
+        overrunTailPct: parseFloat(draft.overrunTailPct),
+      })
       setSettings(s)
+      setCalcConfig(s) // obračun odmah koristi nove pragove (P2-E2)
       setEditing(false)
     } catch (e) {
       alert(e.message || 'Greška pri čuvanju konfiguracije')
@@ -100,6 +113,11 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
             <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }}>{settings.workdayHours} h/dan</span>
             <span style={{ color: 'var(--textSubtle)' }}>·</span>
             <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }}>{settings.workdaysPerWeek} dana/nedelji</span>
+            <span style={{ color: 'var(--textSubtle)' }}>·</span>
+            <span style={labelMuted}>Pragovi:</span>
+            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }} title="Prag prekoračenja taska">over &gt;{settings.overrunThresholdPct ?? 15}%</span>
+            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }} title="Load iznad ovoga je tight">tight &gt;{settings.capacityTightPct ?? 85}%</span>
+            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }} title="Rep preostalog rada za probijene otvorene taskove">rep {settings.overrunTailPct ?? 10}%</span>
             {canEditConfig && (
               <button onClick={() => setEditing(true)} style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--accent)', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600 }}>Izmeni</button>
             )}
@@ -118,8 +136,26 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
                 onChange={e => setDraft(d => ({ ...d, workdaysPerWeek: e.target.value }))}
                 style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
             </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, ...labelMuted }} title="Task je prekoračen kad utrošeno pređe estimaciju za više od ovog procenta">
+              Over %
+              <input type="number" min={0} max={100} value={draft.overrunThresholdPct}
+                onChange={e => setDraft(d => ({ ...d, overrunThresholdPct: e.target.value }))}
+                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, ...labelMuted }} title="Load kapaciteta iznad ovog procenta se označava kao tight">
+              Tight %
+              <input type="number" min={0} max={100} value={draft.capacityTightPct}
+                onChange={e => setDraft(d => ({ ...d, capacityTightPct: e.target.value }))}
+                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, ...labelMuted }} title="Preostali rad probijenog otvorenog taska = ovaj procenat estimacije">
+              Rep %
+              <input type="number" min={0} max={100} value={draft.overrunTailPct}
+                onChange={e => setDraft(d => ({ ...d, overrunTailPct: e.target.value }))}
+                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
+            </label>
             <button onClick={saveConfig} disabled={saving} style={{ background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif" }}>{saving ? 'Čuvam…' : 'Sačuvaj'}</button>
-            <button onClick={() => { setEditing(false); setDraft({ workdayHours: settings.workdayHours, workdaysPerWeek: settings.workdaysPerWeek }) }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '5px 12px', fontSize: 12, cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif" }}>Otkaži</button>
+            <button onClick={() => { setEditing(false); setDraft(draftFrom(settings)) }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '5px 12px', fontSize: 12, cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif" }}>Otkaži</button>
           </>
         )}
       </div>

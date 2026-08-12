@@ -8,22 +8,20 @@
 
 export const STACKS = ['Backend', 'Frontend', 'Mobile', 'Database', 'Testing', 'Ostalo']
 
-// Otvoren posao koji je potrošio ceo plan ne znači 0 preostalog rada — bez
-// repa bi prognoza bila sistematski optimistična baš na najrizičnijim
-// (probijenim) taskovima (P1-8.4). Pretpostavka: dok se task ne zatvori,
-// ostaje mu još najmanje 10% originalne estimacije.
-export const OVERRUN_TAIL_PCT = 0.1
+import { getCalcConfig } from './calcConfig.js'
 
 // Status-aware remaining effort for one unit (task-own or subtask).
 // Completion is driven by Jira STATUS, not by burned hours:
 //   done            → 0 (gotovo, bez obzira na potrošeno)
 //   todo            → pun plan (posao nije počeo)
-//   inprog/testing  → max(plan − utrošeno, 10% plana) — nikad 0 dok je otvoren
+//   inprog/testing  → max(plan − utrošeno, tail% plana) — nikad 0 dok je otvoren
+// Otvoren posao koji je potrošio ceo plan ne znači 0 preostalog rada (P1-8.4);
+// rep je konfigurabilan kroz podešavanja (P2-E2), default 10% estimacije.
 export function remainingOf(statusCat, plan, spent) {
   if (statusCat === 'done') return 0
   if (statusCat === 'todo') return plan
   const rem = Math.max(0, plan - spent)
-  if (rem === 0 && plan > 0) return plan * OVERRUN_TAIL_PCT
+  if (rem === 0 && plan > 0) return plan * (getCalcConfig().overrunTailPct / 100)
   return rem
 }
 

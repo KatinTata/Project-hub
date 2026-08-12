@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useT } from '../lang.jsx'
+import { getCalcConfig } from '../utils/calcConfig.js'
 
 export default function BarChart({ data = [], width = 600, height = 260 }) {
   const t = useT()
@@ -75,7 +76,7 @@ export default function BarChart({ data = [], width = 600, height = 260 }) {
 
           const estH = toBarH(d.est)
           const spentH = toBarH(d.spent)
-          const isOver = d.spent > d.est * 1.15
+          const isOver = d.est > 0 && d.spent > d.est * (1 + getCalcConfig().overrunThresholdPct / 100)
           const spentColor = isOver ? 'var(--red)' : 'var(--green)'
 
           return (

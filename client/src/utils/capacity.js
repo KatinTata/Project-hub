@@ -5,6 +5,7 @@
 
 import { buildStackMatrix, buildStackTeams, normalizeStack, remainingOf, STACKS } from './stacks.js'
 import { parseLocalDate } from './dates.js'
+import { getCalcConfig } from './calcConfig.js'
 
 const mondayIdx = d => (d.getDay() + 6) % 7
 const isWorking = (d, wdpw) => mondayIdx(d) < wdpw
@@ -56,7 +57,11 @@ export function buildCapacity(tasks, phases, config, opts = {}) {
       // Prozor bez ijednog radnog dana → capacity 0; demand/0 bi dao Infinity
       // i lažni "over" bez broja (P1-8.5). Zaseban status sa jasnom porukom.
       else if (capacity <= 0) status = 'nocapacity'
-      else { const load = demand / capacity; status = load > 1 ? 'over' : load > 0.85 ? 'tight' : 'ok' }
+      else {
+        const load = demand / capacity
+        const tight = getCalcConfig().capacityTightPct / 100
+        status = load > 1 ? 'over' : load > tight ? 'tight' : 'ok'
+      }
       cells[s] = { demand, capacity, people, load: capacity > 0 ? demand / capacity : null, status }
     }
     return { phaseId: p.id, name: p.name, start: p.start, due: p.due, hasWindow, workingDays: W, cells, worst: worstStatus(cells) }
