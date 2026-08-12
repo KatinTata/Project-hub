@@ -5,6 +5,7 @@ import fs from 'fs'
 import { fileURLToPath } from 'url'
 import db from '../db.js'
 import { logAudit } from '../audit.js'
+import { getRole, isAdminRole } from '../rbac.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadsDir = process.env.DATA_DIR
@@ -20,14 +21,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } })
 
 const router = Router()
-
-function getRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
-}
-
-function isAdminRole(role) {
-  return role === 'admin' || role === 'super_admin'
-}
 
 function canClientSee(doc, userId) {
   if (doc.visible_to === 'all') return true

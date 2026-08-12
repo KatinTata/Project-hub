@@ -1,13 +1,8 @@
 import { Router } from 'express'
 import db from '../db.js'
+import { requireSuperAdmin } from '../rbac.js'
 
 const router = Router()
-
-function requireSuperAdmin(req, res, next) {
-  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId)?.role
-  if (role !== 'super_admin') return res.status(403).json({ error: 'Forbidden: super admin only' })
-  next()
-}
 
 // GET /api/organizations — list all (any authenticated user can read)
 router.get('/', (req, res) => {

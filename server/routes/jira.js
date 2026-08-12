@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import db from '../db.js'
 import { decryptToken, makeJiraAuth, jiraGet, jiraPost, fetchEpicTasks, fetchByJql, fetchSubtasks, attachWorklogs, TASK_FIELDS, detectBillableField, parseBillableValue, detectModuleField, detectHoursToBillField } from '../jiraClient.js'
+import { getRole as getUserRole, isAdminRole, roleFrom } from '../rbac.js'
 
 const router = Router()
 
@@ -12,19 +13,10 @@ function getUserJira(userId) {
   return { jiraUrl: user.jira_url, auth }
 }
 
-function getUserRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
-}
-
-function isAdminRole(role) {
-  return role === 'admin' || role === 'super_admin'
-}
-
 // Klijent (rola 'user') nema svoje Jira kredencijale — fallback lanac bi ga
 // odveo na super_admin kredencijale, pa interne rute moraju biti zatvorene.
 function requireInternal(req, res, next) {
-  const role = req.userRole || getUserRole(req.userId)
-  if (!isAdminRole(role)) {
+  if (!isAdminRole(roleFrom(req))) {
     return res.status(403).json({ error: 'Forbidden' })
   }
   next()

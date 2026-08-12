@@ -1,13 +1,10 @@
 import { Router } from 'express'
 import db from '../db.js'
+import { getRole } from '../rbac.js'
 
 const router = Router()
 
 const DEFAULTS = { workdayHours: 6.5, workdaysPerWeek: 5 }
-
-function getRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
-}
 
 function readSettings() {
   const rows = db.prepare('SELECT key, value FROM app_settings').all()

@@ -5,17 +5,12 @@ import db from '../db.js'
 import { authMiddleware } from '../auth.js'
 import { encryptToken, makeJiraAuth, jiraGet } from '../jiraClient.js'
 import { logAudit } from '../audit.js'
+import { requireSuperAdmin } from '../rbac.js'
 
 const router = Router()
 
 function signToken(userId) {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
-}
-
-function requireSuperAdmin(req, res, next) {
-  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId)?.role
-  if (role !== 'super_admin') return res.status(403).json({ error: 'Forbidden: super admin only' })
-  next()
 }
 
 // First-run setup — only works if no users exist yet

@@ -4,6 +4,7 @@ import db from '../db.js'
 import { decryptToken, makeJiraAuth, jiraPost, detectBillableField, parseBillableValue } from '../jiraClient.js'
 import { preparePublishedHtml, setPublishedSecurityHeaders } from '../publishedHtml.js'
 import { sanitizePublishedHtml } from '../sanitize.js'
+import { getRole, isAdminRole } from '../rbac.js'
 import { logAudit } from '../audit.js'
 import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
@@ -24,10 +25,6 @@ function getUserJira(userId) {
   return { jiraUrl: user.jira_url, auth }
 }
 
-function isAdminRole(role) {
-  return role === 'admin' || role === 'super_admin'
-}
-
 function getSuperAdminJira() {
   const sa = db.prepare("SELECT jira_url, jira_email, jira_token FROM users WHERE role = 'super_admin' AND jira_url IS NOT NULL AND jira_token IS NOT NULL LIMIT 1").get()
   if (!sa) return null
@@ -37,7 +34,7 @@ function getSuperAdminJira() {
 }
 
 function getOwnerJiraForProject(userId, projectId) {
-  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
+  const role = getRole(userId)
   if (isAdminRole(role)) return getUserJira(userId) || getSuperAdminJira()
 
   const row = db.prepare(`
@@ -50,7 +47,7 @@ function getOwnerJiraForProject(userId, projectId) {
 }
 
 function getProject(userId, projectId) {
-  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
+  const role = getRole(userId)
   if (isAdminRole(role)) {
     // Strictly per-user — every admin (incl. super_admin) uses only own projects
     return db.prepare('SELECT * FROM projects WHERE id = ? AND user_id = ?').get(projectId, userId)
@@ -139,8 +136,7 @@ const CLIENT_OPEN_ROUTES = [
 ]
 router.use((req, res, next) => {
   if (CLIENT_OPEN_ROUTES.some(r => r.method === req.method && r.re.test(req.path))) return next()
-  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId)?.role
-  if (!isAdminRole(role)) return res.status(403).json({ error: 'Samo za interne korisnike' })
+  if (!isAdminRole(getRole(req.userId))) return res.status(403).json({ error: 'Samo za interne korisnike' })
   next()
 })
 
@@ -804,7 +800,7 @@ router.get('/client-list', (req, res) => {
 
 router.get('/:id/detail', (req, res) => {
   try {
-    const role = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId)?.role || 'user'
+    const role = getRole(req.userId)
     let note
     if (role === 'user') {
       note = db.prepare(`

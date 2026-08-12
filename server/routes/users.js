@@ -2,30 +2,9 @@ import { Router } from 'express'
 import bcrypt from 'bcrypt'
 import db from '../db.js'
 import { logAudit } from '../audit.js'
+import { getRole as getUserRole, requireAdmin, requireSuperAdmin } from '../rbac.js'
 
 const router = Router()
-
-function getUserRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
-}
-
-function isAdminRole(role) {
-  return role === 'admin' || role === 'super_admin'
-}
-
-function requireAdmin(req, res, next) {
-  if (!isAdminRole(getUserRole(req.userId))) {
-    return res.status(403).json({ error: 'Forbidden: admin only' })
-  }
-  next()
-}
-
-function requireSuperAdmin(req, res, next) {
-  if (getUserRole(req.userId) !== 'super_admin') {
-    return res.status(403).json({ error: 'Forbidden: super admin only' })
-  }
-  next()
-}
 
 function userWithOrg(u) {
   const projects = u.role === 'user'

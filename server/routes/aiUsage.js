@@ -14,12 +14,13 @@ import { fetchTodaysRates, usdConversion } from '../aiUsage/fx.js'
 import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey, listAlerts, BUDGET_SELECT } from '../aiUsage/budgets.js'
 import { mailConfigured } from '../aiUsage/mailer.js'
 import { buildReportData, buildXlsx, buildReportHtml } from '../aiUsage/report.js'
+import { getRole, isAdminRole } from '../rbac.js'
 
 const router = Router()
 const MAX_APP_FILTERS = 40
 
-const roleOf = id => db.prepare('SELECT role FROM users WHERE id = ?').get(id)?.role || 'user'
-const isAdmin = r => r === 'admin' || r === 'super_admin'
+const roleOf = getRole
+const isAdmin = isAdminRole
 
 function requireView(req, res) {
   if (!isAdmin(roleOf(req.userId))) { res.status(403).json({ error: 'Forbidden' }); return false }

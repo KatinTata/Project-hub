@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import db from '../db.js'
+import { getRole, isAdminRole } from '../rbac.js'
 
 const router = Router()
 
 function canAccessProject(userId, projectId) {
-  const role = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
-  if (role === 'admin' || role === 'super_admin') {
+  const role = getRole(userId)
+  if (isAdminRole(role)) {
     return db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(projectId, userId)
   }
   return db.prepare(`

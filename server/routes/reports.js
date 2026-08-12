@@ -1,16 +1,9 @@
 import { Router } from 'express'
 import db from '../db.js'
 import { buildProjectReport } from '../excel/buildReport.js'
+import { getRole, isAdminRole } from '../rbac.js'
 
 const router = Router()
-
-function getRole(userId) {
-  return db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'user'
-}
-
-function isAdminRole(role) {
-  return role === 'admin' || role === 'super_admin'
-}
 
 function getAccessibleProject(userId, projectId, role) {
   if (isAdminRole(role)) {
