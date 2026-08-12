@@ -7,7 +7,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { authMiddleware } from './auth.js'
 import db from './db.js'
-import { preparePublishedHtml } from './publishedHtml.js'
+import { preparePublishedHtml, setPublishedSecurityHeaders } from './publishedHtml.js'
 import authRoutes from './routes/auth.js'
 import projectRoutes from './routes/projects.js'
 import jiraRoutes from './routes/jira.js'
@@ -57,10 +57,11 @@ const app = express()
 app.set('trust proxy', 1)
 const PORT = process.env.PORT || 3001
 
-// Security headers. CSP is disabled here because the SPA relies on inline
-// style attributes and the Google Fonts CDN; a per-route CSP is applied to
-// the public /rn page below. All other protections (nosniff, HSTS,
-// X-Frame-Options, referrer policy) still apply.
+// Security headers. Global CSP is disabled because the SPA relies on inline
+// style attributes and the Google Fonts CDN. The public /rn/:token route DOES
+// get a strict per-route CSP via setPublishedSecurityHeaders (publishedHtml.js)
+// — only the hashed bootstrap script may execute there. All other protections
+// (nosniff, HSTS, X-Frame-Options, referrer policy) still apply globally.
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }))
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }))
@@ -109,6 +110,7 @@ app.get('/rn/:token', (req, res) => {
   const row = db.prepare('SELECT html FROM published_notes WHERE token = ?').get(req.params.token)
   if (!row) return res.status(404).send('<!DOCTYPE html><html><body><h2>Release notes nisu pronađeni.</h2></body></html>')
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
+  setPublishedSecurityHeaders(res)
   res.send(preparePublishedHtml(row.html))
 })
 

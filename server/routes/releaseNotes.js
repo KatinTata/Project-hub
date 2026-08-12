@@ -2,7 +2,8 @@ import { Router } from 'express'
 import { randomBytes } from 'crypto'
 import db from '../db.js'
 import { decryptToken, makeJiraAuth, jiraPost, detectBillableField, parseBillableValue } from '../jiraClient.js'
-import { preparePublishedHtml } from '../publishedHtml.js'
+import { preparePublishedHtml, setPublishedSecurityHeaders } from '../publishedHtml.js'
+import { sanitizePublishedHtml } from '../sanitize.js'
 import { logAudit } from '../audit.js'
 import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
@@ -698,8 +699,10 @@ router.delete('/sections/:id', (req, res) => {
 
 router.post('/publish', (req, res) => {
   try {
-    const { html, title, projectId, version, sectionId } = req.body
-    if (!html?.trim()) return res.status(400).json({ error: 'html je obavezan' })
+    const { html: rawHtml, title, projectId, version, sectionId } = req.body
+    if (!rawHtml?.trim()) return res.status(400).json({ error: 'html je obavezan' })
+    // Serverska sanitizacija — klijentska (RichBodyEditor) se zaobilazi direktnim POST-om.
+    const html = sanitizePublishedHtml(rawHtml)
 
     const token = randomBytes(16).toString('hex')
 
@@ -751,6 +754,7 @@ router.get('/public/:token', (req, res) => {
   const row = db.prepare('SELECT html, title FROM published_notes WHERE token = ?').get(req.params.token)
   if (!row) return res.status(404).send('<h1>Not found</h1>')
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
+  setPublishedSecurityHeaders(res)
   res.send(preparePublishedHtml(row.html))
 })
 
