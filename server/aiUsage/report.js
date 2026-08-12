@@ -5,7 +5,6 @@
 //   client   → only their own tenants, final prices only (no markups/pricelist)
 
 import ExcelJS from 'exceljs'
-import { Resvg } from '@resvg/resvg-js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import db from '../db.js'
@@ -14,6 +13,7 @@ import { makePriceResolver, groupCost, costModelGroups, getPricingConfig } from 
 import { usdConversion } from './fx.js'
 import { budgetStatus, BUDGET_SELECT } from './budgets.js'
 import { donut, trend, hbars, compareBars, gauge, P, SERIES } from './reportCharts.js'
+import { renderSvgToPng } from '../svgWorker.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FONT_FILES = [
@@ -24,12 +24,8 @@ const FONT_FILES = [
 ]
 const MAX_APPS = 40
 
-function svgToPng(svg) {
-  return new Resvg(svg, {
-    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Hanken Grotesk' },
-    fitTo: { mode: 'zoom', value: 2 },
-  }).render().asPng()
-}
+// Rasterizacija u worker threadu (P2-B5) — ne blokira event loop.
+const svgToPng = svg => renderSvgToPng(svg, FONT_FILES)
 
 // ── formatting ────────────────────────────────────────────────────────────────
 export const money = (v, cur) => {
@@ -311,8 +307,8 @@ export async function buildXlsx(d) {
   const m = v => money(v, d.currency)
   const moneyFmt = d.currency === 'USD' ? '"$"#,##0.00' : d.currency === 'EUR' ? '#,##0.00" €"' : '#,##0.00" RSD"'
 
-  const place = (ws, svg, wpx, hpx, col, row) => {
-    const id = wb.addImage({ buffer: svgToPng(svg), extension: 'png' })
+  const place = async (ws, svg, wpx, hpx, col, row) => {
+    const id = wb.addImage({ buffer: await svgToPng(svg), extension: 'png' })
     ws.addImage(id, { tl: { col, row }, ext: { width: wpx, height: hpx }, editAs: 'oneCell' })
   }
   const title = (ws, row, text) => {
@@ -392,12 +388,12 @@ export async function buildXlsx(d) {
   }
 
   title(s1, r, d.audience === 'internal' ? 'Trošak po klijentu' : 'Trošak po aplikaciji'); r += 1
-  place(s1, ch.mainDonut, 460, 250, 0, r - 1); r += 13
+  await place(s1, ch.mainDonut, 460, 250, 0, r - 1); r += 13
   title(s1, r, 'Tokeni: input vs output'); r += 1
-  place(s1, ch.tokenDonut, 460, 250, 0, r - 1); r += 13
+  await place(s1, ch.tokenDonut, 460, 250, 0, r - 1); r += 13
   title(s1, r, 'Dnevni trend'); r += 1
-  place(s1, ch.trend, 900, 260, 0, r - 1); r += 14
-  if (ch.gauge) { title(s1, r, 'Budžeti (tekući mesec, isprekidano = projekcija)'); r += 1; place(s1, ch.gauge, 460, 40 * d.budgets.length + 16, 0, r - 1) }
+  await place(s1, ch.trend, 900, 260, 0, r - 1); r += 14
+  if (ch.gauge) { title(s1, r, 'Budžeti (tekući mesec, isprekidano = projekcija)'); r += 1; await place(s1, ch.gauge, 460, 40 * d.budgets.length + 16, 0, r - 1) }
 
   // ── Sheet: Dnevni trend ──
   const s2 = wb.addWorksheet('Dnevni trend', { views: [{ showGridLines: false, state: 'frozen', ySplit: 1 }] })
@@ -414,7 +410,7 @@ export async function buildXlsx(d) {
       [null, '#,##0', '#,##0', moneyFmt, '0.0%'])
     rr += 1
     title(s3, rr, 'Zahtevi po klijentu'); rr += 1
-    place(s3, ch.clientBars, 460, 26 * Math.min(8, d.clients.length) + 16, 0, rr - 1)
+    await place(s3, ch.clientBars, 460, 26 * Math.min(8, d.clients.length) + 16, 0, rr - 1)
 
     const s3b = wb.addWorksheet('Klijent x izvor', { views: [{ showGridLines: false, state: 'frozen', ySplit: 1 }] })
     s3b.columns = [{ width: 34 }, { width: 18 }, { width: 14 }, { width: 16 }, { width: 18 }]
@@ -426,7 +422,7 @@ export async function buildXlsx(d) {
     s3c.columns = [{ width: 24 }, { width: 14 }, { width: 16 }, { width: 18 }]
     let rc = table(s3c, 1, ['Izvor', 'Zahtevi', 'Tokeni', `Trošak (${d.currency})`],
       d.sources.map(s => [s.source, s.requests, s.tokens, s.cost]), [null, '#,##0', '#,##0', moneyFmt])
-    if (ch.sourceDonut) { rc += 1; place(s3c, ch.sourceDonut, 460, 250, 0, rc - 1) }
+    if (ch.sourceDonut) { rc += 1; await place(s3c, ch.sourceDonut, 460, 250, 0, rc - 1) }
   }
 
   // ── Sheet: Po aplikaciji ──
@@ -437,7 +433,7 @@ export async function buildXlsx(d) {
     [null, '#,##0', '#,##0', moneyFmt, '0.0%'])
   r4 += 1
   title(s4, r4, 'Top aplikacije po trošku'); r4 += 1
-  place(s4, ch.appBars, 460, 26 * Math.min(8, d.apps.length) + 16, 0, r4 - 1)
+  await place(s4, ch.appBars, 460, 26 * Math.min(8, d.apps.length) + 16, 0, r4 - 1)
 
   // ── Sheet: Po modelu ──
   const s5 = wb.addWorksheet('Po modelu', { views: [{ showGridLines: false }] })
@@ -447,9 +443,9 @@ export async function buildXlsx(d) {
     [null, '#,##0', '#,##0', '#,##0', '#,##0', moneyFmt])
   r5 += 1
   title(s5, r5, 'Trošak po modelu'); r5 += 1
-  place(s5, ch.modelDonut, 460, 250, 0, r5 - 1); r5 += 13
+  await place(s5, ch.modelDonut, 460, 250, 0, r5 - 1); r5 += 13
   title(s5, r5, 'Tokeni po modelu'); r5 += 1
-  place(s5, ch.modelTokBars, 460, 26 * Math.min(8, d.models.length) + 16, 0, r5 - 1)
+  await place(s5, ch.modelTokBars, 460, 26 * Math.min(8, d.models.length) + 16, 0, r5 - 1)
 
   // ── Sheet: Poređenje perioda ──
   const s6 = wb.addWorksheet('Poređenje', { views: [{ showGridLines: false }] })
@@ -459,8 +455,8 @@ export async function buildXlsx(d) {
   r6 = table(s6, r6, ['Model', `Tekući (${d.currency})`, `Prethodni (${d.currency})`, 'Promena %'],
     d.compareModels.map(x => [x.label, x.now, x.prev, pctDelta(x.now, x.prev) / 100]), [null, moneyFmt, moneyFmt, '+0.0%;-0.0%'])
   r6 += 1
-  place(s6, ch.compareApps, 460, 240, 0, r6 - 1)
-  place(s6, ch.compareModels, 460, 240, 5, r6 - 1)
+  await place(s6, ch.compareApps, 460, 240, 0, r6 - 1)
+  await place(s6, ch.compareModels, 460, 240, 5, r6 - 1)
 
   // ── Sheet: Budžeti ──
   if (d.budgets.length) {

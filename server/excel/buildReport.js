@@ -3,10 +3,10 @@
 // so there is no Jira/logic duplication here — this module only formats.
 
 import ExcelJS from 'exceljs'
-import { Resvg } from '@resvg/resvg-js'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { renderSvgToPng } from '../svgWorker.js'
 import { donutSVG, columnSVG, hbarSVG, PALETTE } from './charts.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -40,13 +40,8 @@ function fmtDate(iso) {
 const CAT_LABEL = { done: 'Završeno', testing: 'Testing', inprog: 'In Progress', todo: 'To Do' }
 
 // SVG → PNG with the bundled Hanken Grotesk font (no reliance on system/container fonts).
-function svgToPng(svg) {
-  const r = new Resvg(svg, {
-    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Hanken Grotesk' },
-    fitTo: { mode: 'zoom', value: 2 }, // 2× for crisp embedding
-  })
-  return r.render().asPng()
-}
+// Rasterizacija ide u worker thread (P2-B5) da ne blokira event loop.
+const svgToPng = svg => renderSvgToPng(svg, FONT_FILES)
 
 function thinBorder() {
   const s = { style: 'thin', color: { argb: C.border } }
@@ -207,8 +202,8 @@ async function buildDashboard(wb, ctx) {
   }
 
   // ── Charts (images) ─────────────────────────────────────────────────────
-  const place = (svg, wpx, hpx, tlCol, atRow) => {
-    const id = wb.addImage({ buffer: svgToPng(svg), extension: 'png' })
+  const place = async (svg, wpx, hpx, tlCol, atRow) => {
+    const id = wb.addImage({ buffer: await svgToPng(svg), extension: 'png' })
     ws.addImage(id, { tl: { col: tlCol, row: atRow }, ext: { width: wpx, height: hpx }, editAs: 'oneCell' })
   }
   const sectionTitle = (atRow, text, color) => {
@@ -226,7 +221,7 @@ async function buildDashboard(wb, ctx) {
   // Row A: status donut + estimate-vs-spent columns
   sectionTitle(row, 'Distribucija statusa  ·  Estimacija vs Utrošeno (top taskovi)')
   row += 1
-  place(donutSVG([
+  await place(donutSVG([
     { value: totals.done || 0, label: 'Završeno', color: PALETTE.green },
     { value: totals.testing || 0, label: 'Testing', color: PALETTE.amber },
     { value: totals.inprog || 0, label: 'In Progress', color: PALETTE.accent },
@@ -236,7 +231,7 @@ async function buildDashboard(wb, ctx) {
     .filter(t => (t.est || 0) > 0)
     .sort((a, b) => (b.est || 0) - (a.est || 0))
     .map(t => ({ label: t.key, est: t.est, spent: t.spent, over: t.over }))
-  place(columnSVG(colData, { width: 470, height: 240 }), 470, 240, 6.7, row)
+  await place(columnSVG(colData, { width: 470, height: 240 }), 470, 240, 6.7, row)
   row += rowsFor(240)
 
   // Row B: time by module + workload by assignee
@@ -247,8 +242,8 @@ async function buildDashboard(wb, ctx) {
     row += 1
     const mH = hbarH(moduleItems.length)
     const aH = hbarH(assigneeItems.length)
-    if (moduleItems.length) place(hbarSVG(moduleItems, { width: 440, color: PALETTE.accent }), 440, mH, 1, row)
-    if (assigneeItems.length) place(hbarSVG(assigneeItems, { width: 440, color: PALETTE.green }), 440, aH, 6.2, row)
+    if (moduleItems.length) await place(hbarSVG(moduleItems, { width: 440, color: PALETTE.accent }), 440, mH, 1, row)
+    if (assigneeItems.length) await place(hbarSVG(assigneeItems, { width: 440, color: PALETTE.green }), 440, aH, 6.2, row)
     row += rowsFor(Math.max(mH, aH))
   }
 
@@ -264,7 +259,7 @@ async function buildDashboard(wb, ctx) {
     sectionTitle(row, 'Napredak po fazama (% završeno)')
     row += 1
     const pH = hbarH(phaseItems.length)
-    place(hbarSVG(phaseItems, { width: 900, color: PALETTE.green, format: 'pct', max: 1 }), 900, pH, 1, row)
+    await place(hbarSVG(phaseItems, { width: 900, color: PALETTE.green, format: 'pct', max: 1 }), 900, pH, 1, row)
     row += rowsFor(pH)
   }
 
