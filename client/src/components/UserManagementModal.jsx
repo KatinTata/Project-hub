@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { api } from '../api.js'
 import { useT } from '../lang.jsx'
 import { toast } from '../ui/Toast.jsx'
+import { useDialogBehavior } from '../ui/Modal.jsx'
+import { useConfirm } from '../ui/Confirm.jsx'
 
 function roleLabel(t, role) {
   if (role === 'super_admin') return t('um.roleSuperAdmin')
@@ -18,6 +20,8 @@ const ROLE_COLORS = {
 
 export default function UserManagementModal({ onClose, isSuperAdmin }) {
   const t = useT()
+  const panelRef = useDialogBehavior(true, onClose)
+  const confirmDialog = useConfirm()
   const [users, setUsers] = useState([])
   const [organizations, setOrganizations] = useState([])
   const [projects, setProjects] = useState([])
@@ -72,7 +76,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
   }
 
   async function handleDeleteOrg(orgId) {
-    if (!confirm(t('um.deleteOrgConfirm'))) return
+    if (!(await confirmDialog(t('um.deleteOrgConfirm')))) return
     try {
       await api.deleteOrganization(orgId)
       setOrganizations(prev => prev.filter(o => o.id !== orgId))
@@ -108,7 +112,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
   }
 
   async function handleDeleteUser(userId) {
-    if (!confirm(t('users.deleteConfirm'))) return
+    if (!(await confirmDialog(t('users.deleteConfirm')))) return
     try {
       await api.deleteUser(userId)
       setUsers(prev => prev.filter(u => u.id !== userId))
@@ -217,7 +221,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
     }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-label={t('users.title')} tabIndex={-1} style={{
         background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 16, width: '100%', maxWidth: 760, maxHeight: '88vh',
         display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.4)',

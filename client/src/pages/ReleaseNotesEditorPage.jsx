@@ -7,6 +7,7 @@ import { useT } from '../lang.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import RichBodyEditor, { sanitizeBodyHtml, textToHtml, htmlToText } from '../components/RichBodyEditor.jsx'
 import { isClientRole } from '../utils/roles.js'
+import { useDialogBehavior } from '../ui/Modal.jsx'
 
 // ── Pure helpers ───────────────────────────────────────────────────────────────
 
@@ -2105,6 +2106,7 @@ function Toast({ message, onClose }) {
 
 function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishState }) {
   const t = useT()
+  const panelRef = useDialogBehavior(true, onClose)
   const [selected, setSelected] = useState(new Set())
   const [publishing, setPublishing] = useState(false)
   const [sectionDropOpen, setSectionDropOpen] = useState(false)
@@ -2132,7 +2134,7 @@ function PublishModal({ clientUsers, sections = [], onClose, onPublish, publishS
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
+      <div onClick={e => e.stopPropagation()} ref={panelRef} role="dialog" aria-modal="true" aria-label="Release Notes" tabIndex={-1} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>Release Notes</span>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>×</button>

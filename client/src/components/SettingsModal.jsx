@@ -3,6 +3,7 @@ import { api } from '../api.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT, useLang } from '../lang.jsx'
 import { toast } from '../ui/Toast.jsx'
+import { useDialogBehavior } from '../ui/Modal.jsx'
 
 function IconUser() {
   return <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 15, height: 15, flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
@@ -22,6 +23,7 @@ function IconPalette() {
 
 export default function SettingsModal({ user, theme, onSetTheme, onClose, onUserUpdate, isSuperAdmin }) {
   const t = useT()
+  const panelRef = useDialogBehavior(true, onClose)
   const { lang, setLang } = useLang()
   const [tab, setTab] = useState('profile')
   const [jiraUrl, setJiraUrl] = useState(user.jiraUrl || '')
@@ -154,7 +156,7 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
       justifyContent: 'center',
       zIndex: 1000,
     }} onClick={isMobile ? undefined : onClose}>
-      <div style={{
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-label={t('settings.title')} tabIndex={-1} style={{
         background: 'var(--surface)',
         border: isMobile ? 'none' : '1px solid var(--border)',
         borderRadius: isMobile ? '16px 16px 0 0' : 16,

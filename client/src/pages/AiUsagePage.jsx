@@ -5,6 +5,7 @@ import Topbar from '../components/Topbar.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney, colorAt } from '../components/aiCharts.jsx'
 import { toast } from '../ui/Toast.jsx'
+import { useConfirm } from '../ui/Confirm.jsx'
 
 // ── shared styles / helpers ───────────────────────────────────────────────────
 
@@ -663,6 +664,7 @@ function SettingsView() {
 // ── AI paketi (tieri): fiksni pristup + uključena potrošnja ──────────────────
 function PackagesCard() {
   const t = useT()
+  const confirmDialog = useConfirm()
   const [packages, setPackages] = useState([])
   const [edit, setEdit] = useState({})
   const [draft, setDraft] = useState(null)
@@ -695,7 +697,7 @@ function PackagesCard() {
     catch (err) { toast.error(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }
   }
   const removePkg = async (id, name) => {
-    if (!confirm(t('ai2.packages.deleteConfirm', { name }))) return
+    if (!(await confirmDialog(t('ai2.packages.deleteConfirm', { name })))) return
     setBusy(true)
     try { await api.aiUsageDeletePackage(id); await reload() }
     catch (err) { toast.error(t('ai2.error', { msg: err.message })) } finally { setBusy(false) }

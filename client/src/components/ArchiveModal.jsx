@@ -5,6 +5,7 @@ import { useT } from '../lang.jsx'
 
 import { fmtDateNumericLocale as fmtDate } from '../utils/format.js'
 import { toast } from '../ui/Toast.jsx'
+import { useDialogBehavior } from '../ui/Modal.jsx'
 
 export default function ArchiveModal({ onClose, onRestore }) {
   const [projects, setProjects] = useState([])
@@ -13,6 +14,7 @@ export default function ArchiveModal({ onClose, onRestore }) {
   const [working, setWorking] = useState(false)
   const { isMobile } = useWindowSize()
   const t = useT()
+  const panelRef = useDialogBehavior(true, onClose)
 
   useEffect(() => {
     api.getArchivedProjects()
@@ -54,7 +56,7 @@ export default function ArchiveModal({ onClose, onRestore }) {
       alignItems: isMobile ? 'flex-end' : 'center',
       justifyContent: 'center',
     }} onClick={onClose}>
-      <div className="glass-card" style={{
+      <div className="glass-card" ref={panelRef} role="dialog" aria-modal="true" aria-label={t('archive.title')} tabIndex={-1} style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',
         borderRadius: isMobile ? '16px 16px 0 0' : 14,

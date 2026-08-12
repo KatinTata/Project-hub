@@ -6,6 +6,7 @@ import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
 import { fmtDateLong } from '../utils/format.js'
 import { useConfirm } from '../ui/Confirm.jsx'
+import { useDialogBehavior } from '../ui/Modal.jsx'
 
 export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboard, onGoToEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat }) {
   const t = useT()
@@ -496,6 +497,7 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
 function AssignClientsModal({ assignModal, allClientUsers, onClose, onSave }) {
   const t = useT()
   const [selected, setSelected] = useState(new Set(assignModal.currentClients.map(c => c.id)))
+  const panelRef = useDialogBehavior(true, onClose)
 
   function toggle(id) {
     setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
@@ -503,7 +505,7 @@ function AssignClientsModal({ assignModal, allClientUsers, onClose, onSave }) {
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
+      <div onClick={e => e.stopPropagation()} ref={panelRef} role="dialog" aria-modal="true" aria-label={t('rn.assignClients')} tabIndex={-1} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{t('rn.assignClients')}</span>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', fontSize: 22, cursor: 'pointer' }}>×</button>

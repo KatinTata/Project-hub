@@ -7,6 +7,7 @@ import { useT } from '../lang.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { isClientRole } from '../utils/roles.js'
 import { fmtDateNumericLocale } from '../utils/format.js'
+import { useDialogBehavior } from '../ui/Modal.jsx'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -230,6 +231,7 @@ function DocCard({ doc, isAdmin, onDelete }) {
 
 function UploadModal({ sections, onClose, onUploaded }) {
   const t = useT()
+  const panelRef = useDialogBehavior(true, onClose)
   const [step, setStep] = useState(1)
   const [file, setFile] = useState(null)
   const [docName, setDocName] = useState('')
@@ -322,7 +324,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 520, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
+      <div onClick={e => e.stopPropagation()} ref={panelRef} role="dialog" aria-modal="true" aria-label={t('docs.add')} tabIndex={-1} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 520, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
 
         {/* Header */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>

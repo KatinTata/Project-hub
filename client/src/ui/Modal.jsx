@@ -8,7 +8,11 @@ import { useEffect, useRef } from 'react'
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-export default function Modal({ open, onClose, label, children, maxWidth = 520, closeOnOverlay = true }) {
+// Ponašanje dijaloga izdvojeno u hook da POSTOJEĆI modali (sa sopstvenim
+// izgledom — bottom sheet na mobilnom itd.) dobiju focus trap / Escape /
+// vraćanje fokusa BEZ prepravljanja svog JSX-a: panel div dobija
+// ref={panelRef} + role="dialog" + aria-modal + aria-label.
+export function useDialogBehavior(open, onClose) {
   const panelRef = useRef(null)
   const openerRef = useRef(null)
 
@@ -43,6 +47,12 @@ export default function Modal({ open, onClose, label, children, maxWidth = 520, 
       if (openerRef.current?.focus) openerRef.current.focus()
     }
   }, [open, onClose])
+
+  return panelRef
+}
+
+export default function Modal({ open, onClose, label, children, maxWidth = 520, closeOnOverlay = true }) {
+  const panelRef = useDialogBehavior(open, onClose)
 
   if (!open) return null
 
