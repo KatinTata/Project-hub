@@ -108,11 +108,17 @@ export async function detectModuleField(jiraUrl, auth) {
   }
 }
 
+// Accepted "billable" option values. BILLED counts as billable too — it means
+// the work was billable and has already been invoiced; without it, tasks would
+// vanish from billable totals the moment they get invoiced. Values are trimmed
+// because at least one Jira option is stored with a trailing space ("BILLED ").
+const BILLABLE_VALUES = new Set(['yes', 'true', '1', 'da', 'billed'])
+
 export function parseBillableValue(raw) {
   if (raw === null || raw === undefined) return false
   if (typeof raw === 'boolean') return raw
-  if (typeof raw === 'string') return ['yes', 'true', '1', 'da'].includes(raw.toLowerCase())
-  if (typeof raw === 'object' && raw.value) return ['yes', 'true', '1', 'da'].includes(String(raw.value).toLowerCase())
+  if (typeof raw === 'string') return BILLABLE_VALUES.has(raw.trim().toLowerCase())
+  if (typeof raw === 'object' && raw.value) return BILLABLE_VALUES.has(String(raw.value).trim().toLowerCase())
   return false
 }
 
