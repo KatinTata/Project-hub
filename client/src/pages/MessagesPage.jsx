@@ -4,6 +4,7 @@ import Topbar from '../components/Topbar.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
+import { isClientRole } from '../utils/roles.js'
 
 function fmtTime(dateStr, t) {
   const d = new Date(dateStr)
@@ -24,8 +25,8 @@ export default function MessagesPage({
   initialProjectId,
 }) {
   const t = useT()
-  const isAdmin = user.role !== 'client'
-  const isClient = user.role === 'client'
+  const isAdmin = !isClientRole(user.role)
+  const isClient = isClientRole(user.role)
   const { isMobile } = useWindowSize()
 
   // Projects

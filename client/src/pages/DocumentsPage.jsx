@@ -5,6 +5,7 @@ import BrainAnimation from '../components/BrainAnimation.jsx'
 import * as pdfjsLib from 'pdfjs-dist'
 import { useT } from '../lang.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
+import { isClientRole } from '../utils/roles.js'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -247,7 +248,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
   const dropRef = useRef(null)
 
   useEffect(() => {
-    api.getUsers().then(users => setClients(users.filter(u => u.role === 'client'))).catch(() => {})
+    api.getUsers().then(users => setClients(users.filter(u => isClientRole(u.role)))).catch(() => {})
   }, [])
 
   function handleFile(f) {
@@ -514,7 +515,7 @@ export default function DocumentsPage({
   const [confirmDeleteSection, setConfirmDeleteSection] = useState(null)
   const [confirmDeleteDoc, setConfirmDeleteDoc] = useState(null)
 
-  const isAdmin = user.role !== 'client'
+  const isAdmin = !isClientRole(user.role)
 
   useEffect(() => {
     load()

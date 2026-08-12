@@ -11,6 +11,7 @@ import { processEpicData, DEMO_PROJECTS, billableSecondsOf } from '../utils.js'
 import { buildStackMatrix } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
+import { isClientRole } from '../utils/roles.js'
 
 export default function DashboardPage({ user: initialUser, theme, onSetTheme, onLogout, onOpenSettings, onOpenUsers, onGoToReleaseNotes, onGoToReleaseNotesEditor, onGoToDocuments, onGoToMessages, onGoToQA, onGoToAiUsage, openChatOnMount, onChatMountConsumed }) {
   const [user, setUser] = useState(initialUser)
@@ -36,7 +37,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   // Demo only when there is truly no Jira access (no own creds and no shared
   // super-admin connection) and no projects to show.
   const [demoMode, setDemoMode] = useState(false)
-  const isClient = user.role === 'client'
+  const isClient = isClientRole(user.role)
   const { isMobile } = useWindowSize()
 
   const [autoRefreshTime, setAutoRefreshTime] = useState(() =>

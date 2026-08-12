@@ -3,10 +3,11 @@ import { api } from '../api.js'
 import Topbar from '../components/Topbar.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useT } from '../lang.jsx'
+import { isClientRole } from '../utils/roles.js'
 
 export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboard, onGoToEditor, onGoToDocuments, onGoToQA, onGoToAiUsage, onOpenSettings, onOpenUsers, onOpenChat }) {
   const t = useT()
-  const isClient = user?.role === 'client'
+  const isClient = isClientRole(user?.role)
 
   const [notesList, setNotesList] = useState([])
   const [notesListLoading, setNotesListLoading] = useState(false)
@@ -97,7 +98,7 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onGoToDashboar
                 api.getReleaseNoteClients(selectedNote.id),
                 api.getUsers(),
               ])
-              setAllClientUsers((Array.isArray(usersData) ? usersData : []).filter(u => u.role === 'client'))
+              setAllClientUsers((Array.isArray(usersData) ? usersData : []).filter(u => isClientRole(u.role)))
               setAssignModal({ noteId: selectedNote.id, currentClients: clientsData?.clients || [] })
             }}
           />

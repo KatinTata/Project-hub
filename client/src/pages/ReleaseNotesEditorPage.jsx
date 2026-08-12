@@ -6,6 +6,7 @@ import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useT } from '../lang.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import RichBodyEditor, { sanitizeBodyHtml, textToHtml, htmlToText } from '../components/RichBodyEditor.jsx'
+import { isClientRole } from '../utils/roles.js'
 
 // ── Pure helpers ───────────────────────────────────────────────────────────────
 
@@ -854,7 +855,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onGoToDa
         api.getUsers().catch(() => []),
         api.getReleaseNoteSections().catch(() => ({ sections: [] })),
       ])
-      const clientUsers = (Array.isArray(usersData) ? usersData : []).filter(u => u.role === 'client')
+      const clientUsers = (Array.isArray(usersData) ? usersData : []).filter(u => isClientRole(u.role))
       const sections = sectionsData?.sections || []
       setPublishModal({ clientUsers, sections })
     } catch (err) {
