@@ -30,6 +30,7 @@ function jiraClient(jiraUrl, auth) {
   const baseUrl = jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')
   return axios.create({
     baseURL: `https://${baseUrl}/rest/api/3`,
+    timeout: JIRA_TIMEOUT_MS,
     headers: {
       Authorization: auth,
       'Content-Type': 'application/json',
@@ -38,24 +39,66 @@ function jiraClient(jiraUrl, auth) {
   })
 }
 
-export async function jiraPost(jiraUrl, path, body, auth) {
+// ── Transport: timeout + retry + globalni limit paralelnosti (P1-14) ─────────
+// Bez timeouta je spor Jira endpoint držao zahtev otvorenim neograničeno; bez
+// limita je veliki epic (stotine subtaskova sa worklogovima) otvarao onoliko
+// konekcija koliko ima taskova.
+const JIRA_TIMEOUT_MS = 20000
+const JIRA_MAX_RETRIES = 3
+const JIRA_MAX_CONCURRENT = 8
+
+let activeRequests = 0
+const waitQueue = []
+async function withSlot(fn) {
+  if (activeRequests >= JIRA_MAX_CONCURRENT) await new Promise(r => waitQueue.push(r))
+  activeRequests++
   try {
-    const res = await jiraClient(jiraUrl, auth).post(path, body)
-    return res.data
-  } catch (err) {
-    const msg = err.response?.data ? JSON.stringify(err.response.data) : err.message
-    throw new Error(`Jira API error ${err.response?.status ?? ''}: ${msg}`)
+    return await fn()
+  } finally {
+    activeRequests--
+    const next = waitQueue.shift()
+    if (next) next()
   }
 }
 
-export async function jiraGet(jiraUrl, path, auth) {
-  try {
-    const res = await jiraClient(jiraUrl, auth).get(path)
-    return res.data
-  } catch (err) {
-    const msg = err.response?.data ? JSON.stringify(err.response.data) : err.message
-    throw new Error(`Jira API error ${err.response?.status ?? ''}: ${msg}`)
+const sleep = ms => new Promise(r => setTimeout(r, ms))
+
+// Retry samo za prolazne greške: mrežne/timeout (bez response-a), 429 i 5xx.
+// Ostale 4xx su determinističke — retry bi samo ponovio istu grešku.
+const isRetryable = err => {
+  const st = err.response?.status
+  if (st === 429) return true
+  if (st >= 500 && st <= 599) return true
+  return !err.response
+}
+
+// Svi pozivi kroz jiraGet/jiraPost su čitanja (search, issue, field, worklog),
+// pa je retry bezbedan i za POST (/search/jql je pretraga, ne mutacija).
+async function jiraRequest(jiraUrl, method, path, body, auth) {
+  let lastErr
+  for (let attempt = 0; attempt < JIRA_MAX_RETRIES; attempt++) {
+    try {
+      return await withSlot(async () => {
+        const client = jiraClient(jiraUrl, auth)
+        const res = method === 'post' ? await client.post(path, body) : await client.get(path)
+        return res.data
+      })
+    } catch (err) {
+      lastErr = err
+      if (!isRetryable(err) || attempt === JIRA_MAX_RETRIES - 1) break
+      await sleep(500 * 2 ** attempt) // 500ms pa 1s
+    }
   }
+  const msg = lastErr.response?.data ? JSON.stringify(lastErr.response.data) : lastErr.message
+  throw new Error(`Jira API error ${lastErr.response?.status ?? ''}: ${msg}`)
+}
+
+export function jiraPost(jiraUrl, path, body, auth) {
+  return jiraRequest(jiraUrl, 'post', path, body, auth)
+}
+
+export function jiraGet(jiraUrl, path, auth) {
+  return jiraRequest(jiraUrl, 'get', path, null, auth)
 }
 
 export const TASK_FIELDS = [
