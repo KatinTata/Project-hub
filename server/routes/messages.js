@@ -25,10 +25,12 @@ function checkProjectAccess(userId, projectId, role) {
   return db.prepare('SELECT 1 FROM projects WHERE id = ? AND user_id = ?').get(projectId, userId)
 }
 
-// Visibility filter for client: sees messages addressed to them or to all
+// Visibility filter for client: sees messages addressed to them or to all.
+// Vraća { sql, params } — userId ide kroz placeholder, nikad interpolacijom.
 function clientMsgFilter(userId) {
-  return `(m.recipient_user_id IS NULL OR m.recipient_user_id = ${userId})`
+  return { sql: '(m.recipient_user_id IS NULL OR m.recipient_user_id = ?)', params: [userId] }
 }
+const NO_FILTER = { sql: '1=1', params: [] }
 
 // GET /api/messages/unread-count
 router.get('/unread-count', (req, res) => {
@@ -37,15 +39,15 @@ router.get('/unread-count', (req, res) => {
   if (!projectIds.length) return res.json({ count: 0 })
 
   const ph = projectIds.map(() => '?').join(',')
-  const recipientFilter = role === 'user' ? clientMsgFilter(req.userId) : '1=1'
+  const recipientFilter = role === 'user' ? clientMsgFilter(req.userId) : NO_FILTER
 
   const row = db.prepare(`
     SELECT COUNT(*) as c FROM messages m
     WHERE m.project_id IN (${ph})
       AND m.sender_id != ?
-      AND ${recipientFilter}
+      AND ${recipientFilter.sql}
       AND m.id NOT IN (SELECT message_id FROM message_reads WHERE user_id = ?)
-  `).get(...projectIds, req.userId, req.userId)
+  `).get(...projectIds, req.userId, ...recipientFilter.params, req.userId)
 
   res.json({ count: row.c })
 })
@@ -57,7 +59,7 @@ router.get('/recent-unread', (req, res) => {
   if (!projectIds.length) return res.json([])
 
   const ph = projectIds.map(() => '?').join(',')
-  const recipientFilter = role === 'user' ? clientMsgFilter(req.userId) : '1=1'
+  const recipientFilter = role === 'user' ? clientMsgFilter(req.userId) : NO_FILTER
 
   const messages = db.prepare(`
     SELECT m.id, m.project_id, m.text, m.task_key, m.created_at,
@@ -68,11 +70,11 @@ router.get('/recent-unread', (req, res) => {
     JOIN projects p ON p.id = m.project_id
     WHERE m.project_id IN (${ph})
       AND m.sender_id != ?
-      AND ${recipientFilter}
+      AND ${recipientFilter.sql}
       AND m.id NOT IN (SELECT message_id FROM message_reads WHERE user_id = ?)
     ORDER BY m.created_at DESC
     LIMIT 5
-  `).all(...projectIds, req.userId, req.userId)
+  `).all(...projectIds, req.userId, ...recipientFilter.params, req.userId)
 
   res.json(messages)
 })
@@ -84,15 +86,15 @@ router.put('/read-all', (req, res) => {
   if (!projectIds.length) return res.json({ ok: true })
 
   const ph = projectIds.map(() => '?').join(',')
-  const recipientFilter = role === 'user' ? clientMsgFilter(req.userId) : '1=1'
+  const recipientFilter = role === 'user' ? clientMsgFilter(req.userId) : NO_FILTER
 
   const unread = db.prepare(`
     SELECT id FROM messages m
     WHERE m.project_id IN (${ph})
       AND m.sender_id != ?
-      AND ${recipientFilter}
+      AND ${recipientFilter.sql}
       AND m.id NOT IN (SELECT message_id FROM message_reads WHERE user_id = ?)
-  `).all(...projectIds, req.userId, req.userId)
+  `).all(...projectIds, req.userId, ...recipientFilter.params, req.userId)
 
   const insert = db.prepare('INSERT OR IGNORE INTO message_reads (message_id, user_id) VALUES (?, ?)')
   db.transaction(() => { unread.forEach(m => insert.run(m.id, req.userId)) })()
@@ -168,8 +170,8 @@ router.get('/:projectId', (req, res) => {
   if (!checkProjectAccess(req.userId, projectId, role)) return res.status(403).json({ error: 'Forbidden' })
 
   const recipientFilter = role === 'user'
-    ? `AND (m.recipient_user_id IS NULL OR m.recipient_user_id = ${req.userId} OR m.sender_id = ${req.userId})`
-    : ''
+    ? { sql: 'AND (m.recipient_user_id IS NULL OR m.recipient_user_id = ? OR m.sender_id = ?)', params: [req.userId, req.userId] }
+    : { sql: '', params: [] }
 
   const messages = db.prepare(`
     SELECT m.id, m.text, m.task_key, m.task_summary, m.subject, m.created_at, m.sender_id, m.recipient_user_id,
@@ -180,9 +182,9 @@ router.get('/:projectId', (req, res) => {
     JOIN users sender ON sender.id = m.sender_id
     LEFT JOIN users recip ON recip.id = m.recipient_user_id
     LEFT JOIN message_reads mr ON mr.message_id = m.id AND mr.user_id = ?
-    WHERE m.project_id = ? ${recipientFilter}
+    WHERE m.project_id = ? ${recipientFilter.sql}
     ORDER BY m.created_at ASC
-  `).all(req.userId, req.userId, projectId)
+  `).all(req.userId, req.userId, projectId, ...recipientFilter.params)
 
   // Auto-mark as read
   const unread = messages.filter(m => !m.is_read)
