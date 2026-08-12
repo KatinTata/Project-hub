@@ -88,15 +88,23 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     loadProjects()
   }, [])
 
-  // Notification polling — every 60s
+  // Notification polling — 60s, ali PAUZIRAN dok je tab u pozadini (P2-B4):
+  // Page Visibility API zaustavlja interval, povratak fokusa osveži odmah.
+  // Uzastopne greške eksponencijalno produžavaju interval (backoff do 8 min).
   useEffect(() => {
     if (demoMode) return
+    let timer = null
+    let failures = 0
+    let cancelled = false
+
     async function loadNotifications() {
       try {
         const [{ count }, messages] = await Promise.all([
           api.getUnreadCount(),
           api.getRecentUnread(),
         ])
+        if (cancelled) return
+        failures = 0
         setUnreadCount(count)
         setRecentUnread(messages)
         // Client modal — show once per session
@@ -104,11 +112,42 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           setClientModalOpen(true)
           sessionStorage.setItem('notif_modal_shown', '1')
         }
-      } catch {}
+      } catch {
+        failures = Math.min(failures + 1, 3)
+      }
     }
+
+    function schedule() {
+      if (timer) clearInterval(timer)
+      timer = setInterval(() => {
+        loadNotifications().then(() => {
+          // posle greške produži interval; posle uspeha vrati na 60s
+          const wanted = 60000 * 2 ** failures
+          if (currentDelay !== wanted) { currentDelay = wanted; schedule() }
+        })
+      }, currentDelay)
+    }
+
+    let currentDelay = 60000
+
+    function onVisibility() {
+      if (document.hidden) {
+        if (timer) { clearInterval(timer); timer = null }
+      } else {
+        loadNotifications()
+        currentDelay = 60000
+        schedule()
+      }
+    }
+
     loadNotifications()
-    const interval = setInterval(loadNotifications, 60000)
-    return () => clearInterval(interval)
+    schedule()
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      cancelled = true
+      if (timer) clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
   }, [demoMode, isClient])
 
   function saveProjectCache(projectId, data) {
