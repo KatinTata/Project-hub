@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../api.js'
 import Topbar from '../../components/Topbar.jsx'
@@ -51,10 +51,11 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
   // toast
   const [toast, setToast] = useState(null)
 
-  function showToast(message) {
+  // Stabilan (B1) — ulazi u useCallback deps hook-ova i memo kartica
+  const showToast = useCallback(message => {
     setToast({ message })
     setTimeout(() => setToast(null), 3500)
-  }
+  }, [])
 
   const source = useTaskSource({ t, showToast, setConfig })
   const { tasks, selectedIds, selectedProject, copiedEdits } = source

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useMemo } from 'react'
 import { translations } from './translations.js'
 
 const LangContext = createContext({ lang: 'sr', setLang: () => {} })
@@ -20,8 +20,9 @@ export function useLang() {
 
 export function useT() {
   const { lang } = useContext(LangContext)
-  return function t(key, vars = {}) {
+  // Stabilna referenca po jeziku (B1) — `t` sme u useCallback/React.memo deps.
+  return useMemo(() => function t(key, vars = {}) {
     const str = translations[lang]?.[key] ?? translations.sr[key] ?? key
     return Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, String(v)), str)
-  }
+  }, [lang])
 }

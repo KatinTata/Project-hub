@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { GROUP_CONFIG, groupKeyOf, orderGroups } from '../../lib/renderReleaseNoteHtml.js'
 
 // Section domain: per-task section overrides, custom section labels, and
@@ -14,6 +14,9 @@ export function useSections({ tasks, selectedIds }) {
   const [sectionTaskOrders, setSectionTaskOrders] = useState({}) // { [prefix]: [id,...] }
   const dragTaskId = useRef(null)
   const dragFromPrefix = useRef(null)
+  // Ref ogledala za stabilan applyDrop (B1 — ulazi u React.memo kartice)
+  const stateRef = useRef({})
+  stateRef.current = { tasks, selectedIds, sectionOverrides }
 
   function buildGroups(taskList) {
     const groups = {}
@@ -40,7 +43,7 @@ export function useSections({ tasks, selectedIds }) {
     return { groups, groupOrder }
   }
 
-  function applyDrop(toPrefix, beforeTaskId) {
+  const applyDrop = useCallback((toPrefix, beforeTaskId) => {
     const fromTaskId = dragTaskId.current
     if (!fromTaskId) return
     const fromPrefix = dragFromPrefix.current
@@ -49,6 +52,8 @@ export function useSections({ tasks, selectedIds }) {
     setDragOverPrefix(null)
     setDragOverTaskId(null)
 
+    const { tasks: curTasks, selectedIds: curSelected, sectionOverrides: curOverrides } = stateRef.current
+
     // Move to new section if needed
     if (fromPrefix !== toPrefix) {
       setSectionOverrides(prev => ({ ...prev, [fromTaskId]: toPrefix }))
@@ -56,13 +61,13 @@ export function useSections({ tasks, selectedIds }) {
 
     // Reorder: build new order for both affected sections using current groups snapshot
     setSectionTaskOrders(prev => {
-      const selTasks = tasks.filter(t => selectedIds.has(t.id))
+      const selTasks = curTasks.filter(t => curSelected.has(t.id))
       // Compute which section each task belongs to (applying pending cross-section move)
       const snap = {}
       for (const task of selTasks) {
         const p = (fromPrefix !== toPrefix && task.id === fromTaskId)
           ? toPrefix
-          : (sectionOverrides[task.id] || groupKeyOf(task))
+          : (curOverrides[task.id] || groupKeyOf(task))
         if (!snap[p]) snap[p] = []
         snap[p].push(task.id)
       }
@@ -90,7 +95,7 @@ export function useSections({ tasks, selectedIds }) {
       }
       return result
     })
-  }
+  }, [])
 
   function getSectionLabel(prefix) {
     return sectionLabels[prefix] || GROUP_CONFIG[prefix]?.label || prefix

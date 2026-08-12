@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { textToHtml, htmlToText } from '../../components/RichBodyEditor.jsx'
 
 async function aiEnhance(action, content) {
@@ -23,8 +23,14 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
   const [aiCooldownIds, setAiCooldownIds] = useState(new Set())
   const [bulkProgress, setBulkProgress] = useState(null)
   const [aiBackup, setAiBackup] = useState({}) // { [taskId]: { name, description, bodyHtml } } — undo for AI
+  // Ref ogledala state-a: handleri čitaju kroz ref pa mogu biti stabilni
+  // (useCallback bez zavisnosti) — uslov da React.memo kartica radi (B1).
   const editsRef = useRef(taskEdits)
   editsRef.current = taskEdits
+  const detailsRef = useRef(taskJiraDetails)
+  detailsRef.current = taskJiraDetails
+  const backupRef = useRef(aiBackup)
+  backupRef.current = aiBackup
 
   // Seed edits for the current selection (called when entering the content step).
   function seedEditsForSelection() {
@@ -44,27 +50,27 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
     })
   }
 
-  function updateEdit(taskId, key, value) {
+  const updateEdit = useCallback((taskId, key, value) => {
     setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], [key]: value } }))
-  }
+  }, [])
 
   // Rich body: store HTML + keep a plain-text mirror (used for AI prompt context).
-  function updateBody(taskId, html) {
+  const updateBody = useCallback((taskId, html) => {
     setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], bodyHtml: html, description: htmlToText(html) } }))
-  }
+  }, [])
 
   // Snapshot a task's content so the user can revert an AI change.
-  function backupAi(taskId) {
+  const backupAi = useCallback(taskId => {
     const cur = editsRef.current[taskId] || {}
     setAiBackup(b => ({ ...b, [taskId]: { name: cur.name, description: cur.description, bodyHtml: cur.bodyHtml } }))
-  }
+  }, [])
 
-  function revertAi(taskId) {
-    const bk = aiBackup[taskId]
+  const revertAi = useCallback(taskId => {
+    const bk = backupRef.current[taskId]
     if (!bk) return
     setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], name: bk.name, description: bk.description, bodyHtml: bk.bodyHtml } }))
     setAiBackup(b => { const n = { ...b }; delete n[taskId]; return n })
-  }
+  }, [])
 
   function revertAllAi() {
     setTaskEdits(prev => {
@@ -76,10 +82,10 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
   }
 
   // Apply AI/translate plain text into the rich body (converts to paragraphs).
-  function applyAiText(taskId, text) {
+  const applyAiText = useCallback((taskId, text) => {
     backupAi(taskId)
     setTaskEdits(prev => ({ ...prev, [taskId]: { ...prev[taskId], description: text, bodyHtml: textToHtml(text) } }))
-  }
+  }, [backupAi])
 
   // Fetch Jira detail for a task, pre-fill description if empty
   async function fetchAndSetDetail(task) {
@@ -107,10 +113,10 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
     }
   }
 
-  async function generateTaskDesc(taskId) {
-    const edit = taskEdits[taskId]
+  const generateTaskDesc = useCallback(async taskId => {
+    const edit = editsRef.current[taskId]
     if (!edit) return
-    const jiraDetail = taskJiraDetails[taskId]
+    const jiraDetail = detailsRef.current[taskId]
     setAiLoadingIds(prev => new Set([...prev, taskId]))
     try {
       const jiraDesc = (jiraDetail?.description || '').trim()
@@ -133,10 +139,10 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
       setAiCooldownIds(prev => new Set([...prev, taskId]))
       setTimeout(() => setAiCooldownIds(prev => { const n = new Set(prev); n.delete(taskId); return n }), 3000)
     }
-  }
+  }, [applyAiText, showToast, t]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function translateTask(taskId) {
-    const edit = taskEdits[taskId]
+  const translateTask = useCallback(async taskId => {
+    const edit = editsRef.current[taskId]
     if (!edit) return
     setAiLoadingIds(prev => new Set([...prev, taskId]))
     try {
@@ -180,7 +186,7 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
       setAiCooldownIds(prev => new Set([...prev, taskId]))
       setTimeout(() => setAiCooldownIds(prev => { const n = new Set(prev); n.delete(taskId); return n }), 3000)
     }
-  }
+  }, [backupAi, showToast, t])
 
   async function generateAllDescriptions() {
     if (bulkProgress) return

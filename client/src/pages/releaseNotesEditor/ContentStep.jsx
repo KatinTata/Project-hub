@@ -1,8 +1,84 @@
+import { memo } from 'react'
 import { useT } from '../../lang.jsx'
 import RichBodyEditor from '../../components/RichBodyEditor.jsx'
 import { GROUP_CONFIG, KEY_COLORS, keyPrefixOf, getHelpLinks, migrateBodyHtml } from '../../lib/renderReleaseNoteHtml.js'
 import { buildHelpUrl, smallBtnStyle, iconBtnStyle } from './uiHelpers.js'
 import { IconLink } from '../../ui/icons.jsx'
+
+// Stabilna referenca za taskove bez izmena — čuva memo dosledan identitet
+const EMPTY_EDIT = {}
+
+// Kartica jednog taska — React.memo (B1): kucanje u jednom tasku menja samo
+// njegov `edit` objekat, pa ostale kartice (i njihovi TipTap editori) ne
+// re-renderuju. Svi handleri iz hook-ova su stabilni (useCallback + ref).
+const ContentTaskCard = memo(function ContentTaskCard({
+  task, edit, prefix, cfgColor, isInsertTarget,
+  aiLoading, aiCooldown, bulkActive, hasBackup, hasAiKey, jiraUrl,
+  updateEdit, updateBody, generateTaskDesc, translateTask, revertAi,
+  removeFromSelection, showToast, applyDrop, setDragOverTaskId, setDragOverPrefix,
+}) {
+  const t = useT()
+  const helpLinks = getHelpLinks(task)
+  const keyC = KEY_COLORS[keyPrefixOf(task)] || KEY_COLORS.OTHER
+  return (
+    <div>
+      {/* Drop indicator line */}
+      {isInsertTarget && (
+        <div style={{ height: 3, borderRadius: 2, background: cfgColor, margin: '2px 0', opacity: 0.7 }} />
+      )}
+      <div
+        onDragOver={e => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; setDragOverTaskId(task.id); setDragOverPrefix(prefix) }}
+        onDrop={e => { e.preventDefault(); e.stopPropagation(); applyDrop(prefix, task.id) }}
+        style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`, flexShrink: 0 }}>{task.key}</span>
+          <input value={edit.name || ''} onChange={e => updateEdit(task.id, 'name', e.target.value)} placeholder={t('rne.taskNamePlaceholder')}
+            style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14, fontWeight: 600 }} />
+          <button onClick={() => removeFromSelection(task.id)} title={t('rne.removeTask')} style={{ ...iconBtnStyle, color: 'var(--textMuted)' }}>×</button>
+        </div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+          <button onClick={() => !aiLoading && !aiCooldown && !bulkActive && generateTaskDesc(task.id)}
+            disabled={aiLoading || aiCooldown || bulkActive}
+            title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
+            style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldown || bulkActive) ? 0.45 : 1 }}>
+            {aiLoading ? t('rne.generating') : t('rne.generateText')}
+          </button>
+          <button onClick={() => !aiLoading && !aiCooldown && !bulkActive && translateTask(task.id)}
+            disabled={aiLoading || aiCooldown || bulkActive}
+            title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
+            style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldown || bulkActive) ? 0.45 : 1 }}>
+            {t('rne.translate')}
+          </button>
+          {hasBackup && (
+            <button onClick={() => revertAi(task.id)} title={t('rne.revertTitle')}
+              style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', cursor: 'pointer' }}>
+              {t('rne.revertOriginal')}
+            </button>
+          )}
+        </div>
+        <RichBodyEditor
+          value={migrateBodyHtml(edit)}
+          onChange={html => updateBody(task.id, html)}
+          placeholder={t('rne.bodyPlaceholder')}
+          onError={showToast}
+        />
+        {helpLinks.map(link => (
+          <div key={link.key} style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8, marginTop: 4, borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
+            <span style={{ color: 'var(--amber)', display: 'flex', alignItems: 'center' }}><IconLink /></span>
+            <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)', flexShrink: 0 }}>{link.key}</span>
+            {link.summary && <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', flex: 1 }}>{link.summary}</span>}
+            {buildHelpUrl(link.key, jiraUrl) && (
+              <a href={buildHelpUrl(link.key, jiraUrl)} target="_blank" rel="noopener noreferrer"
+                style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none', padding: '3px 8px', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 6 }}>
+                {t('rne.open')}
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+})
 
 // Wizard step 2: edit task names/bodies grouped by section, AI generate/translate,
 // drag tasks between sections, rename sections.
@@ -125,70 +201,32 @@ export default function ContentStep({ user, source, edits, sections, config, pre
 
                 {/* Task cards */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  {groups[prefix].map(task => {
-                    const edit = taskEdits[task.id] || {}
-                    const helpLinks = getHelpLinks(task)
-                    const keyC = KEY_COLORS[keyPrefixOf(task)] || KEY_COLORS.OTHER
-                    const isInsertTarget = dragOverTaskId === task.id
-                    return (
-                      <div key={task.id}>
-                        {/* Drop indicator line */}
-                        {isInsertTarget && (
-                          <div style={{ height: 3, borderRadius: 2, background: cfg.color, margin: '2px 0', opacity: 0.7 }} />
-                        )}
-                        <div
-                          onDragOver={e => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; if (dragOverTaskId !== task.id) setDragOverTaskId(task.id); if (dragOverPrefix !== prefix) setDragOverPrefix(prefix) }}
-                          onDrop={e => { e.preventDefault(); e.stopPropagation(); applyDrop(prefix, task.id) }}
-                          style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                            <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: keyC.bg, color: keyC.color, border: `1px solid ${keyC.border}`, flexShrink: 0 }}>{task.key}</span>
-                            <input value={edit.name || ''} onChange={e => updateEdit(task.id, 'name', e.target.value)} placeholder={t('rne.taskNamePlaceholder')}
-                              style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14, fontWeight: 600 }} />
-                            <button onClick={() => removeFromSelection(task.id)} title={t('rne.removeTask')} style={{ ...iconBtnStyle, color: 'var(--textMuted)' }}>×</button>
-                          </div>
-                          <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-                            <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && generateTaskDesc(task.id)}
-                              disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
-                              title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
-                              style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
-                              {aiLoadingIds.has(task.id) ? t('rne.generating') : t('rne.generateText')}
-                            </button>
-                            <button onClick={() => !aiLoadingIds.has(task.id) && !aiCooldownIds.has(task.id) && !bulkProgress && translateTask(task.id)}
-                              disabled={aiLoadingIds.has(task.id) || aiCooldownIds.has(task.id) || !!bulkProgress}
-                              title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
-                              style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldownIds.has(task.id) || !!bulkProgress) ? 0.45 : 1 }}>
-                              {t('rne.translate')}
-                            </button>
-                            {aiBackup[task.id] && (
-                              <button onClick={() => revertAi(task.id)} title={t('rne.revertTitle')}
-                                style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--amber)', background: 'var(--amberTint)', color: 'var(--amber)', cursor: 'pointer' }}>
-                                {t('rne.revertOriginal')}
-                              </button>
-                            )}
-                          </div>
-                          <RichBodyEditor
-                            value={migrateBodyHtml(edit)}
-                            onChange={html => updateBody(task.id, html)}
-                            placeholder={t('rne.bodyPlaceholder')}
-                            onError={showToast}
-                          />
-                          {helpLinks.map(link => (
-                            <div key={link.key} style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8, marginTop: 4, borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
-                              <span style={{ color: 'var(--amber)', display: 'flex', alignItems: 'center' }}><IconLink /></span>
-                              <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 11, padding: '3px 9px', borderRadius: 6, background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)', flexShrink: 0 }}>{link.key}</span>
-                              {link.summary && <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', flex: 1 }}>{link.summary}</span>}
-                              {buildHelpUrl(link.key, user?.jiraUrl) && (
-                                <a href={buildHelpUrl(link.key, user?.jiraUrl)} target="_blank" rel="noopener noreferrer"
-                                  style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none', padding: '3px 8px', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 6 }}>
-                                  {t('rne.open')}
-                                </a>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
+                  {groups[prefix].map(task => (
+                    <ContentTaskCard
+                      key={task.id}
+                      task={task}
+                      edit={taskEdits[task.id] || EMPTY_EDIT}
+                      prefix={prefix}
+                      cfgColor={cfg.color}
+                      isInsertTarget={dragOverTaskId === task.id}
+                      aiLoading={aiLoadingIds.has(task.id)}
+                      aiCooldown={aiCooldownIds.has(task.id)}
+                      bulkActive={!!bulkProgress}
+                      hasBackup={!!aiBackup[task.id]}
+                      hasAiKey={hasAiKey}
+                      jiraUrl={user?.jiraUrl}
+                      updateEdit={updateEdit}
+                      updateBody={updateBody}
+                      generateTaskDesc={generateTaskDesc}
+                      translateTask={translateTask}
+                      revertAi={revertAi}
+                      removeFromSelection={removeFromSelection}
+                      showToast={showToast}
+                      applyDrop={applyDrop}
+                      setDragOverTaskId={setDragOverTaskId}
+                      setDragOverPrefix={setDragOverPrefix}
+                    />
+                  ))}
                 </div>
               </div>
             )

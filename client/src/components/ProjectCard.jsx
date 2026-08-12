@@ -309,6 +309,25 @@ export default function ProjectCard({
   }
   const peoplePerStackMap = useMemo(() => buildRoster(team), [team])
 
+  // Teški izvedeni podaci — računaju se samo kad se promene taskovi/faze (B1),
+  // ne na svaki re-render (npr. promena taba ili notifikacija).
+  const derived = useMemo(() => {
+    const tasks = data?.tasks
+    if (!tasks) return null
+    const chartTaskPhaseMap = {}
+    for (const p of chartPhases) for (const k of (p.taskKeys || [])) chartTaskPhaseMap[k] = p.id
+    const chartTasksByPhase = {}
+    for (const p of chartPhases) chartTasksByPhase[p.id] = []
+    for (const t of tasks) {
+      const pid = chartTaskPhaseMap[t.key]
+      if (pid != null && chartTasksByPhase[pid]) chartTasksByPhase[pid].push(t)
+    }
+    const assigneeData = !isClient ? buildAssigneeData(tasks) : null
+    const componentData = !isClient ? buildComponentData(tasks) : null
+    const { moduleData, noModuleTasks } = !isClient ? buildModuleData(tasks) : { moduleData: [], noModuleTasks: [] }
+    return { chartTasksByPhase, assigneeData, componentData, moduleData, noModuleTasks }
+  }, [data, chartPhases, isClient])
+
   if (loading) {
     return (
       <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
@@ -338,20 +357,7 @@ export default function ProjectCard({
   }
 
   const { tasks, totalEst, totalSpent, done, inprog, testing, todo, unknown = 0, total, overTasks } = data
-
-  // Build phase chart data from chartPhases + tasks
-  const chartTaskPhaseMap = {}
-  for (const p of chartPhases) for (const k of (p.taskKeys || [])) chartTaskPhaseMap[k] = p.id
-  const chartTasksByPhase = {}
-  for (const p of chartPhases) chartTasksByPhase[p.id] = []
-  for (const t of tasks) {
-    const pid = chartTaskPhaseMap[t.key]
-    if (pid != null && chartTasksByPhase[pid]) chartTasksByPhase[pid].push(t)
-  }
-
-  const assigneeData   = !isClient ? buildAssigneeData(tasks)   : null
-  const componentData  = !isClient ? buildComponentData(tasks)  : null
-  const { moduleData, noModuleTasks } = !isClient ? buildModuleData(tasks) : { moduleData: [], noModuleTasks: [] }
+  const { chartTasksByPhase, assigneeData, componentData, moduleData, noModuleTasks } = derived
 
   const donePct = total > 0 ? done / total : 0
   const inprogPct = total > 0 ? inprog / total : 0

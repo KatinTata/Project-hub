@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { api } from '../../api.js'
 import { statusCat } from './uiHelpers.js'
 
@@ -93,13 +93,13 @@ export function useTaskSource({ t, showToast, setConfig }) {
       .finally(() => setLoadingTasks(false))
   }, [selectedProject, fetchTrigger]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function toggleSelected(taskId) {
+  const toggleSelected = useCallback(taskId => {
     setSelectedIds(prev => { const n = new Set(prev); n.has(taskId) ? n.delete(taskId) : n.add(taskId); return n })
-  }
+  }, [])
 
-  function removeFromSelection(taskId) {
+  const removeFromSelection = useCallback(taskId => {
     setSelectedIds(prev => { const n = new Set(prev); n.delete(taskId); return n })
-  }
+  }, [])
 
   // Compose JQL from the quick-filter selections (quoted IN / NOT IN lists).
   function applyQuickFilters() {
@@ -208,20 +208,20 @@ export function useTaskSource({ t, showToast, setConfig }) {
     }
   }
 
-  const filteredTasks = tasks.filter(t => {
+  const filteredTasks = useMemo(() => tasks.filter(t => {
     const matchSearch = !search ||
       (t.key || '').toLowerCase().includes(search.toLowerCase()) ||
       (t.fields?.summary || t.summary || '').toLowerCase().includes(search.toLowerCase())
     const matchFilter = statusFilter === 'all' || statusCat(t) === statusFilter
     return matchSearch && matchFilter
-  }).sort((a, b) => (b.billable ? 1 : 0) - (a.billable ? 1 : 0)) // billable first
+  }).sort((a, b) => (b.billable ? 1 : 0) - (a.billable ? 1 : 0)), [tasks, search, statusFilter]) // billable first
 
-  const countByStatus = {
+  const countByStatus = useMemo(() => ({
     all: tasks.length,
     resolved: tasks.filter(t => statusCat(t) === 'resolved').length,
     inprog: tasks.filter(t => statusCat(t) === 'inprog').length,
     testing: tasks.filter(t => statusCat(t) === 'testing').length,
-  }
+  }), [tasks])
 
   return {
     projects, selectedProject, setSelectedProject,
