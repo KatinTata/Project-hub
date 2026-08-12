@@ -3,6 +3,7 @@ import { useT } from '../../lang.jsx'
 import { fmtMoney } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
 import Button from '../../ui/Button.jsx'
+import { useCollapsedSections, CollapseToggle } from '../../ui/collapse.jsx'
 
 // ── shared styles / helpers ───────────────────────────────────────────────────
 
@@ -62,15 +63,19 @@ export function AlertNotes({ alerts, onAck, compact }) {
   )
 }
 
-export function Section({ title, hint, right, children }) {
+// `collapseId` (opciono, C5): sekcija dobija chevron i pamti sklopljenost.
+export function Section({ title, hint, right, children, collapseId }) {
+  const { collapsed, toggle } = useCollapsedSections('jt_ai_sections')
+  const isCollapsed = !!collapseId && !!collapsed[collapseId]
   return (
     <div style={{ ...card, padding: 0, overflow: 'visible' }}>
-      <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+      <div style={{ padding: '13px 18px', borderBottom: isCollapsed ? 'none' : '1px solid var(--border)', display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        {collapseId && <CollapseToggle open={!isCollapsed} onClick={() => toggle(collapseId)} />}
         <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
         {hint && <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{hint}</span>}
         {right && <span style={{ marginLeft: 'auto' }}>{right}</span>}
       </div>
-      <div style={{ padding: 18 }}>{children}</div>
+      {!isCollapsed && <div style={{ padding: 18 }}>{children}</div>}
     </div>
   )
 }

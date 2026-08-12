@@ -22,6 +22,7 @@ import { buildStackMatrix, buildRoster } from '../utils/stacks.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 import { toast } from '../ui/Toast.jsx'
+import { useCollapsedSections, CollapseToggle } from '../ui/collapse.jsx'
 
 function fmtLastRefresh(date, t) {
   if (!date) return null
@@ -308,6 +309,9 @@ export default function ProjectCard({
     try { await api.removeTeamMember(project.id, id) } catch {}
   }
   const peoplePerStackMap = useMemo(() => buildRoster(team), [team])
+
+  // Collapsible sekcije sa pamćenjem izbora (C5) — default sve otvoreno
+  const { collapsed: sec, toggle: toggleSec } = useCollapsedSections('jt_pc_sections')
 
   // Teški izvedeni podaci — računaju se samo kad se promene taskovi/faze (B1),
   // ne na svaki re-render (npr. promena taba ili notifikacija).
@@ -619,10 +623,13 @@ export default function ProjectCard({
           borderRadius: 12,
           padding: isMobile ? '16px' : '20px 24px',
         }}>
-          <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
-            {t('pc.distribution')}
-          </h3>
-          <DonutChart segments={donutSegments} size={isMobile ? 160 : 200} innerRadius={isMobile ? 56 : 70} horizontal={isClient && !isMobile} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: sec.dist ? 0 : 16 }}>
+            <CollapseToggle open={!sec.dist} onClick={() => toggleSec('dist')} label={t('pc.distribution')} />
+            <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
+              {t('pc.distribution')}
+            </h3>
+          </div>
+          {!sec.dist && <DonutChart segments={donutSegments} size={isMobile ? 160 : 200} innerRadius={isMobile ? 56 : 70} horizontal={isClient && !isMobile} />}
         </div>
 
         {/* Bar chart — Estimacija vs Utrošeno, admin only */}
@@ -634,12 +641,17 @@ export default function ProjectCard({
             padding: isMobile ? '16px' : '20px 24px',
             overflow: 'hidden',
           }}>
-            <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
-              {t('pc.estVsSpent')}
-            </h3>
-            <div style={{ overflowX: isMobile ? 'auto' : 'hidden' }}>
-              <BarChart data={barData} width={isMobile ? 340 : 600} height={isMobile ? 200 : 260} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: sec.estSpent ? 0 : 16 }}>
+              <CollapseToggle open={!sec.estSpent} onClick={() => toggleSec('estSpent')} label={t('pc.estVsSpent')} />
+              <h3 style={{ fontFamily: 'Hanken Grotesk', fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
+                {t('pc.estVsSpent')}
+              </h3>
             </div>
+            {!sec.estSpent && (
+              <div style={{ overflowX: isMobile ? 'auto' : 'hidden' }}>
+                <BarChart data={barData} width={isMobile ? 340 : 600} height={isMobile ? 200 : 260} />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -649,16 +661,19 @@ export default function ProjectCard({
         <div style={{ display: 'grid', gridTemplateColumns: (moduleData.length > 0 && data.hasBillableField && !isTablet) ? '1fr 300px' : '1fr', gap: 16, alignItems: 'start' }}>
           {moduleData.length > 0 && (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px 24px' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div>
-                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('topbar.modules')}</div>
-                  <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>{t('pc.modulesDesc')}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: sec.modules ? 0 : 14 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                  <CollapseToggle open={!sec.modules} onClick={() => toggleSec('modules')} label={t('topbar.modules')} />
+                  <div>
+                    <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('topbar.modules')}</div>
+                    <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>{t('pc.modulesDesc')}</div>
+                  </div>
                 </div>
                 <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {t('pc.modulesCount', { n: moduleData.filter(d => d.name !== 'Bez modula').length })}
                 </span>
               </div>
-              <ModuleChart moduleData={moduleData} noModuleTasks={noModuleTasks} jiraUrl={jiraUrl} />
+              {!sec.modules && <ModuleChart moduleData={moduleData} noModuleTasks={noModuleTasks} jiraUrl={jiraUrl} />}
             </div>
           )}
 
@@ -700,56 +715,65 @@ export default function ProjectCard({
         <>
           {/* Assignee Workload — full width */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
-              <div>
-                <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  {t('pc.workloadTitle')}
-                </div>
-                <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
-                  {t('pc.workloadDesc')}
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: sec.workload ? 0 : 14 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                <CollapseToggle open={!sec.workload} onClick={() => toggleSec('workload')} label={t('pc.workloadTitle')} />
+                <div>
+                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    {t('pc.workloadTitle')}
+                  </div>
+                  <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+                    {t('pc.workloadDesc')}
+                  </div>
                 </div>
               </div>
               <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                 {t('pc.membersCount', { n: assigneeData.filter(d => d.name !== 'Neraspoređeno').length })}
               </span>
             </div>
-            <AssigneeWorkload data={assigneeData} tasks={tasks} jiraUrl={jiraUrl} />
+            {!sec.workload && <AssigneeWorkload data={assigneeData} tasks={tasks} jiraUrl={jiraUrl} />}
           </div>
 
           {/* Component Breakdown + Overrun Heatmap — side by side */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile || isTablet ? '1fr' : '1fr 1fr', gap: 16 }}>
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div>
-                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Component Breakdown
-                  </div>
-                  <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
-                    {t('pc.componentsDesc')}
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: sec.components ? 0 : 14 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                  <CollapseToggle open={!sec.components} onClick={() => toggleSec('components')} label="Component Breakdown" />
+                  <div>
+                    <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Component Breakdown
+                    </div>
+                    <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+                      {t('pc.componentsDesc')}
+                    </div>
                   </div>
                 </div>
                 <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {t('pc.componentsCount', { n: componentData.length })}
                 </span>
               </div>
-              <ComponentBreakdown data={componentData} />
+              {!sec.components && <ComponentBreakdown data={componentData} />}
             </div>
 
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div>
-                  <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Overrun Heatmap
-                  </div>
-                  <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
-                    {t('pc.overrunDesc')}
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: sec.overrun ? 0 : 14 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                  <CollapseToggle open={!sec.overrun} onClick={() => toggleSec('overrun')} label="Overrun Heatmap" />
+                  <div>
+                    <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Overrun Heatmap
+                    </div>
+                    <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+                      {t('pc.overrunDesc')}
+                    </div>
                   </div>
                 </div>
                 <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {t('pc.withEstimateCount', { n: tasks.filter(task => task.est > 0).length })}
                 </span>
               </div>
-              <OverrunHeatmap tasks={tasks} />
+              {!sec.overrun && <OverrunHeatmap tasks={tasks} />}
             </div>
           </div>
 

@@ -129,21 +129,21 @@ export default function AdminAiView({ user, onLogout, onOpenSettings, onOpenUser
                 </div>
               )}
 
-              <Section title={t('ai2.section.dailyTrend')} hint={t('ai2.section.dailyTrendHint')}>
+              <Section collapseId="trend" title={t('ai2.section.dailyTrend')} hint={t('ai2.section.dailyTrendHint')}>
                 <TrendChart days={(d.trends?.days || []).map(x => ({ date: x.date, requests: x.requests, cost: x.cost_usd }))} currency="USD" height={230} />
               </Section>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(430px, 1fr))', gap: 14 }}>
-                <Section title={t('ai2.section.costByClient')} hint={t('ai2.section.costByClientHint')}>
+                <Section collapseId="costByClient" title={t('ai2.section.costByClient')} hint={t('ai2.section.costByClientHint')}>
                   <PieChart data={clients.map(c => ({ label: c.name, value: c.cost_usd }))} valueFmt={v => fmtMoney(v)} centerValue={fmtMoney(tot?.total_cost_usd)} centerLabel={t('ai2.center.total')} />
                 </Section>
-                <Section title={t('ai2.section.costBySource')} hint={t('ai2.section.costBySourceHint')}>
+                <Section collapseId="costBySource" title={t('ai2.section.costBySource')} hint={t('ai2.section.costBySourceHint')}>
                   <PieChart data={sources.map((s, i) => ({ label: s.source, value: s.cost_usd, color: colorAt(i + 2) }))} valueFmt={v => fmtMoney(v)} centerValue={`${sources.length}`} centerLabel={t('ai2.center.sources')} />
                 </Section>
-                <Section title={t('ai2.section.costByModel')}>
+                <Section collapseId="costByModel" title={t('ai2.section.costByModel')}>
                   <PieChart data={models.map(m => ({ label: m.model, value: m.cost_usd }))} valueFmt={v => fmtMoney(v)} centerValue={`${models.length}`} centerLabel={t('ai2.center.models')} />
                 </Section>
-                <Section title={t('ai2.section.tokensInOut')}>
+                <Section collapseId="tokensInOut" title={t('ai2.section.tokensInOut')}>
                   <PieChart
                     data={[
                       { label: t('ai2.label.promptInput'), value: tot?.prompt_tokens || 0, color: '#2563EB' },
@@ -151,16 +151,16 @@ export default function AdminAiView({ user, onLogout, onOpenSettings, onOpenUser
                     ]}
                     valueFmt={fmtTok} centerValue={fmtTok(tot?.total_tokens)} centerLabel={t('ai2.center.tokens')} />
                 </Section>
-                <Section title={t('ai2.section.requestsByClient')} hint={t('ai2.top10')}>
+                <Section collapseId="requestsByClient" title={t('ai2.section.requestsByClient')} hint={t('ai2.top10')}>
                   <HBars data={clients.map(c => ({ label: c.name, value: c.requests }))} valueFmt={fmtNum} />
                 </Section>
-                <Section title={t('ai2.section.costByApp')} hint={d.byApp?.truncated ? t('ai2.hint.first40') : t('ai2.top10')}>
+                <Section collapseId="costByApp" title={t('ai2.section.costByApp')} hint={d.byApp?.truncated ? t('ai2.hint.first40') : t('ai2.top10')}>
                   <HBars data={apps.map(a => ({ label: a.app, value: a.cost_usd }))} valueFmt={v => fmtMoney(v)} color="#0D9488" />
                 </Section>
               </div>
 
               {gauges.length > 0 && (
-                <Section title={t('ai2.section.budgetsCurrentMonth')} hint={t('ai2.hint.spentVsLimit', { month: budgets?.month })}>
+                <Section collapseId="budgets" title={t('ai2.section.budgetsCurrentMonth')} hint={t('ai2.hint.spentVsLimit', { month: budgets?.month })}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
                     {gauges.map(b => (
                       <BudgetGauge key={b.tenant_id} name={b.package_name ? `${b.tenant_name} · ${b.package_name}` : b.tenant_name} spent={b.status.spent_eur} limit={b.status.limit_eur} pct={b.status.pct} level={b.status.level} />
