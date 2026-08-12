@@ -11,7 +11,7 @@ import { setCalcConfig } from './utils/calcConfig.js'
 // login/initial load no longer ships the whole app (pdfjs, tiptap, dnd-kit).
 const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'))
 const ReleaseNotesPage = lazy(() => import('./pages/ReleaseNotesPage.jsx'))
-const ReleaseNotesEditorPage = lazy(() => import('./pages/ReleaseNotesEditorPage.jsx'))
+const ReleaseNotesEditorPage = lazy(() => import('./pages/releaseNotesEditor/ReleaseNotesEditorPage.jsx'))
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage.jsx'))
 const MessagesPage = lazy(() => import('./pages/MessagesPage.jsx'))
 const QAPage = lazy(() => import('./pages/QAPage.jsx'))
