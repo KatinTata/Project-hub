@@ -4,6 +4,7 @@ import { useWindowSize } from '../hooks/useWindowSize.js'
 import NotificationBell from './NotificationBell.jsx'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
+import { getEffectiveTheme } from '../theme.js'
 import { IconCog, IconGrid, IconDoc, IconClipboard, IconFolder, IconChat, IconUsers, IconAi, IconQA, IconLogout } from '../ui/icons.jsx'
 
 // URL → aktivna kartica u navigaciji (A3: jedini izvor istine je ruta)
@@ -119,6 +120,10 @@ export default function Topbar({
   const location = useLocation()
   const currentPage = pageFromPath(location.pathname)
   const isClient = isClientRole(user?.role)
+  // Logo mora da prati STVARNO prikazanu temu: `theme` može biti 'system'
+  // (tada odlučuje OS), a neke stranice ga uopšte ne proslede — zato fallback
+  // na sačuvani izbor umesto poređenja theme === 'dark'.
+  const effectiveTheme = getEffectiveTheme(theme || localStorage.getItem('jt_theme') || 'dark')
 
   useEffect(() => {
     function h(e) { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false) }
@@ -147,7 +152,7 @@ export default function Topbar({
         {/* Left: Logo + name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <img
-            src={theme === 'dark' ? '/logo-white.png' : '/logo-dark.png'}
+            src={effectiveTheme === 'dark' ? '/logo-white.png' : '/logo-dark.png'}
             alt="Intelisale"
             style={{ height: 28, flexShrink: 0 }}
           />

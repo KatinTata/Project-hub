@@ -137,7 +137,7 @@ export default function App() {
         <Route path="/documents" element={<DocumentsPage {...shared} />} />
         <Route path="/messages" element={<MessagesPage {...shared} />} />
         <Route path="/qa" element={<QAPage {...shared} />} />
-        <Route path="/ai-usage" element={<AiUsagePage user={user} onLogout={handleLogout} onOpenSettings={openSettings} onOpenUsers={isAdmin ? openUsers : undefined} />} />
+        <Route path="/ai-usage" element={<AiUsagePage {...shared} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {settingsOpen && <SettingsModal user={user} theme={theme} onSetTheme={handleSetTheme} onClose={() => setSettingsOpen(false)} onUserUpdate={handleUserUpdate} isSuperAdmin={isSuperAdmin} />}

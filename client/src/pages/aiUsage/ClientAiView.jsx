@@ -9,7 +9,7 @@ import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf }
 import { SimpleTable } from './tables.jsx'
 
 // Klijentski pogled: sopstvena potrošnja (preko client_tenant_users), paket/budžet.
-export default function ClientAiView({ user, onLogout, onOpenSettings, onOpenUsers }) {
+export default function ClientAiView({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
   const t = useT()
   const [preset, setPreset] = useState('month')
   const [range, setRange] = useState(presetRange('month'))
@@ -47,7 +47,7 @@ export default function ClientAiView({ user, onLogout, onOpenSettings, onOpenUse
     <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}><BrainAnimation opacity={0.4} fullscreen /></div>
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <Topbar user={user} onLogout={onLogout} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} />
+        <Topbar user={user} theme={theme} onLogout={onLogout} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} />
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '22px 22px 60px' }}>
           <div style={{ marginBottom: 14 }}>
             <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>{t('ai2.client.title')}</h1>

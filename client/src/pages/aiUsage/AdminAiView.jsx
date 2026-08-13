@@ -12,7 +12,7 @@ import SettingsView from './SettingsView.jsx'
 
 // Admin dashboard: KPI-jevi, trendovi, pite/barovi, budžeti, pivot tabele +
 // tabovi za izveštaj po kupcu i (super_admin) podešavanja.
-export default function AdminAiView({ user, onLogout, onOpenSettings, onOpenUsers }) {
+export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
   const t = useT()
   const isSuperAdmin = user?.role === 'super_admin'
   const [view, setView] = useState('dashboard')
@@ -65,7 +65,7 @@ export default function AdminAiView({ user, onLogout, onOpenSettings, onOpenUser
     <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}><BrainAnimation opacity={0.4} fullscreen /></div>
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <Topbar user={user} onLogout={onLogout} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} />
+        <Topbar user={user} theme={theme} onLogout={onLogout} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} />
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '22px 22px 60px' }}>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
