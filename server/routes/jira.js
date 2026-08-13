@@ -227,7 +227,7 @@ router.post('/tasks', async (req, res) => {
     // P3-1: client-safe DTO — rola `user` NE dobija interne brojeve ni imena.
     // UI skrivanje nije zaštita: strip se radi na serveru, pre slanja.
     if (role === 'user') {
-      const showBillable = db.prepare("SELECT v FROM app_settings WHERE k = 'clientShowsBillableHours'").get()?.v === 'true'
+      const showBillable = db.prepare("SELECT value FROM app_settings WHERE key = 'clientShowsBillableHours'").get()?.value === 'true'
       for (const issue of [...parents, ...subtasks]) stripInternalFields(issue, { showBillable })
       return res.json({
         parents, subtasks,

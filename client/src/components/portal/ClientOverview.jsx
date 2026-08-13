@@ -128,6 +128,17 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
     queryFn: () => api.getClientReleaseNotes(),
     staleTime: 60_000,
   })
+
+  // Izveštaji poslati klijentu (P3-2)
+  const reportsQuery = useQuery({
+    queryKey: ['myReports'],
+    queryFn: () => api.getMyReports(),
+    staleTime: 60_000,
+  })
+  const myReports = useMemo(
+    () => (reportsQuery.data?.runs || []).filter(r => r.project_id === project?.id).slice(0, 5),
+    [reportsQuery.data, project?.id]
+  )
   const releases = useMemo(() => {
     const all = releasesQuery.data?.notes || []
     return all.filter(n => !n.project_id || n.project_id === project?.id).slice(0, 3)
@@ -209,6 +220,24 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
         </div>
         {!sec.phases && <PhaseProgress phases={phases} tasksByPhase={tasksByPhase} />}
       </Card>
+
+      {/* Izveštaji poslati klijentu (P3-2) */}
+      {myReports.length > 0 && (
+        <Card style={{ padding: '20px 24px' }}>
+          <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 10 }}>
+            {t('portal.section.reports')}
+          </div>
+          {myReports.map(r => (
+            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: '1px solid var(--border)' }}>
+              <span style={{ fontFamily: font, fontSize: 13, color: 'var(--text)' }}>{fmtDateLong(r.ran_at)}</span>
+              <span style={{ fontFamily: font, fontSize: 12, color: 'var(--textSubtle)' }}>{r.period || ''}</span>
+              <Button variant="pill" style={{ marginLeft: 'auto' }} onClick={() => api.downloadReportRun(r.id)}>
+                {t('portal.reports.download')}
+              </Button>
+            </div>
+          ))}
+        </Card>
+      )}
 
       {/* Detalji: taskovi (sklopivo, default sklopljeno — "story, ne dashboard") */}
       <Card style={{ padding: '20px 24px' }}>

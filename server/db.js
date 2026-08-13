@@ -476,6 +476,49 @@ db.exec(`
   )
 `)
 
+// Automatski izveštaji (P3-2): raspored po projektu, primaoci za custom mode,
+// istorija slanja sa dedup-om po (schedule, period) — restart ne šalje duplo.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS report_schedules (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id      INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    cadence         TEXT NOT NULL DEFAULT 'weekly',   -- 'weekly' | 'monthly'
+    day_of_week     INTEGER DEFAULT 1,                -- 1=pon ... 7=ned
+    day_of_month    INTEGER DEFAULT 1,
+    hour            INTEGER DEFAULT 8,
+    timezone        TEXT DEFAULT 'Europe/Belgrade',
+    format          TEXT DEFAULT 'html',              -- v1: 'html'
+    recipients_mode TEXT NOT NULL DEFAULT 'clients',  -- 'clients' | 'internal' | 'custom'
+    enabled         INTEGER DEFAULT 1,
+    created_by      INTEGER,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS report_recipients (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    schedule_id INTEGER NOT NULL REFERENCES report_schedules(id) ON DELETE CASCADE,
+    email       TEXT NOT NULL
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS report_runs (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    schedule_id      INTEGER REFERENCES report_schedules(id) ON DELETE SET NULL,
+    project_id       INTEGER NOT NULL,
+    period           TEXT,                            -- 'YYYY-Wnn' | 'YYYY-MM' | NULL za rucno
+    ran_at           DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status           TEXT NOT NULL,                   -- 'ok' | 'error'
+    file_path        TEXT,
+    recipients_count INTEGER DEFAULT 0,
+    audience         TEXT DEFAULT 'clients',
+    error_message    TEXT,
+    UNIQUE(schedule_id, period)
+  )
+`)
+
 // FAQ iz baze (P2-E1) — QAPage čita kroz API, admin menja bez deploya.
 // answer je sanitizovan HTML (upis kroz /api/faq prolazi sanitize-html).
 db.exec(`

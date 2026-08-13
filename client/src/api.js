@@ -234,6 +234,16 @@ export const api = {
   // App settings — working-calendar config (PUT is super_admin only)
   getAppSettings: () => request('GET', '/settings'),
 
+  // Automatski izveštaji (P3-2)
+  getReportSchedules: projectId => request('GET', `/reports/${projectId}/schedules`),
+  createReportSchedule: (projectId, body) => request('POST', `/reports/${projectId}/schedules`, body),
+  updateReportSchedule: (id, body) => request('PUT', `/reports/schedules/${id}`, body),
+  deleteReportSchedule: id => request('DELETE', `/reports/schedules/${id}`),
+  runReportNow: id => request('POST', `/reports/schedules/${id}/run-now`),
+  getReportRuns: projectId => request('GET', `/reports/${projectId}/runs`),
+  getMyReports: () => request('GET', '/reports/my/runs'),
+  downloadReportRun: (id, name) => downloadReport(`/reports/runs/${id}/download`, name || 'izvestaj.html'),
+
   // FAQ (P2-E1)
   getFaq: lang => request('GET', `/faq?lang=${encodeURIComponent(lang || 'sr')}`),
   createFaq: body => request('POST', '/faq', body),

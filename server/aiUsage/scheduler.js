@@ -8,13 +8,22 @@ import { checkBudgets } from './budgets.js'
 import { runBackup } from '../backup.js'
 import { runDailySnapshots } from '../snapshots.js'
 import { pruneAuditLog } from '../audit.js'
+import { runDueReportSchedules } from '../reports/reportRunner.js'
+
+const ISO_WEEKDAY = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 }
 
 function belgradeNow() {
   const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Belgrade', hour: '2-digit', minute: '2-digit', weekday: 'short',
+    timeZone: 'Europe/Belgrade', hour: '2-digit', minute: '2-digit', day: '2-digit', weekday: 'short',
   }).formatToParts(new Date())
   const get = t => parts.find(p => p.type === t)?.value
-  return { hhmm: `${get('hour')}:${get('minute')}`, weekday: get('weekday') }
+  return {
+    hhmm: `${get('hour')}:${get('minute')}`,
+    weekday: get('weekday'),
+    hour: Number(get('hour')),
+    dayOfMonth: Number(get('day')),
+    isoWeekday: ISO_WEEKDAY[get('weekday')] || 1,
+  }
 }
 
 let lastPriceRun = ''
@@ -69,6 +78,18 @@ export function startAiUsageScheduler() {
         console.log(`[snapshot] ${r.day}: ${r.ok} novih, ${r.skipped} preskočeno, ${r.failed} palo (${r.total} projekata)`)
       } catch (e) { console.error('[snapshot] failed:', e.message) }
     }
+
+    // Automatski izveštaji (P3-2): rasporedi se proveravaju na svaki tik —
+    // dedup po (schedule, period) u report_runs sprečava dupla slanja, a
+    // propušten termin se nadoknađuje istog dana čim proces bude živ.
+    try {
+      const belgrade = belgradeNow()
+      const sent = await runDueReportSchedules(belgrade)
+      for (const r of sent) {
+        if (r.status === 'ok') console.log(`[reports] raspored ${r.scheduleId} (projekat ${r.projectId}) OK → ${r.filePath} (${r.recipients} primalaca)`)
+        else console.error(`[reports] raspored ${r.scheduleId} GREŠKA: ${r.error}`)
+      }
+    } catch (e) { console.error('[reports] scheduler failed:', e.message) }
 
     // 09:30 daily — budget warning / limit emails (once per month per threshold)
     if (hhmm === '09:30' && lastBudgetRun !== today) {

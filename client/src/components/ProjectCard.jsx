@@ -15,6 +15,7 @@ import ModuleChart from './ModuleChart.jsx'
 import PhaseBuilder, { PhaseCharts } from './PhaseBuilder.jsx'
 import StackMatrix from './StackMatrix.jsx'
 import PhaseForecast from './PhaseForecast.jsx'
+import ReportsPanel from './ReportsPanel.jsx'
 import ProjectEstimateSummary from './ProjectEstimateSummary.jsx'
 import TeamRoster from './TeamRoster.jsx'
 import ProjectTrend from './ProjectTrend.jsx'
@@ -285,7 +286,7 @@ export default function ProjectCard({
   const t = useT()
   // Tab je kontrolisan iz URL-a (/projects/:id/:tab — A3); nepoznata ili
   // klijentu nedostupna vrednost pada na 'tasks'.
-  const validTabs = isClient ? ['tasks', 'phases'] : ['tasks', 'phases', 'stacks', 'trend']
+  const validTabs = isClient ? ['tasks', 'phases'] : ['tasks', 'phases', 'stacks', 'trend', 'reports']
   const activeTab = validTabs.includes(activeTabProp) ? activeTabProp : 'tasks'
   const setActiveTab = tab => onTabChange?.(tab)
   const [exporting, setExporting] = useState(false)
@@ -786,7 +787,7 @@ export default function ProjectCard({
           {[
             { id: 'tasks', label: t('pc.tab.tasks') },
             { id: 'phases', label: t('pc.tab.phases') },
-            ...(!isClient ? [{ id: 'stacks', label: t('pc.tab.stacks') }, { id: 'trend', label: t('pc.tab.trend') }] : []),
+            ...(!isClient ? [{ id: 'stacks', label: t('pc.tab.stacks') }, { id: 'trend', label: t('pc.tab.trend') }, { id: 'reports', label: t('pc.tab.reports') }] : []),
           ].map(tab => (
             <button
               key={tab.id}
@@ -820,6 +821,9 @@ export default function ProjectCard({
         )}
         {activeTab === 'trend' && !isClient && (
           <ProjectTrend projectId={project.id} />
+        )}
+        {activeTab === 'reports' && !isClient && (
+          <ReportsPanel projectId={project.id} />
         )}
       </div>
     </div>
