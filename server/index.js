@@ -22,6 +22,7 @@ import settingsRoutes from './routes/settings.js'
 import aiUsageRoutes from './routes/aiUsage.js'
 import auditRoutes from './routes/audit.js'
 import faqRoutes from './routes/faq.js'
+import alertsRoutes from './routes/alerts.js'
 import { startAiUsageScheduler } from './aiUsage/scheduler.js'
 import { migrateSecretsToGcm } from './secretsMigration.js'
 import { logger, httpLogger } from './logger.js'
@@ -113,6 +114,7 @@ app.use('/api/settings', authMiddleware, settingsRoutes)
 app.use('/api/ai-usage', authMiddleware, aiUsageRoutes)
 app.use('/api/audit', authMiddleware, auditRoutes)
 app.use('/api/faq', authMiddleware, faqRoutes)
+app.use('/api/alerts', authMiddleware, alertsRoutes)
 
 // Unknown API route → JSON 404 (so the SPA catch-all below never swallows a
 // mistyped/removed endpoint and returns index.html instead of an error).

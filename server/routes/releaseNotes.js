@@ -6,6 +6,7 @@ import { preparePublishedHtml, setPublishedSecurityHeaders } from '../publishedH
 import { sanitizePublishedHtml } from '../sanitize.js'
 import { getRole, isAdminRole } from '../rbac.js'
 import { logAudit } from '../audit.js'
+import { notifyNewRelease } from '../alerts/detector.js'
 import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, BorderStyle, AlignmentType, HeadingLevel,
@@ -736,6 +737,12 @@ router.post('/publish', (req, res) => {
 
     const noteRow = db.prepare('SELECT id FROM published_notes WHERE token = ?').get(token)
     logAudit(req.userId, 'releasenote.publish', `note id=${noteRow?.id}, projekat=${projectId || '-'}, verzija=${version || '-'}`, req)
+
+    // P3-3: obavesti klijente projekta o novoj objavi (best-effort, dedup po noteId)
+    if (noteRow?.id && projectId) {
+      notifyNewRelease({ noteId: noteRow.id, projectId, title: title || version || null }).catch(() => {})
+    }
+
     res.json({ token, id: noteRow?.id, updated: false })
   } catch (err) {
     console.error('publish error:', err)

@@ -128,11 +128,29 @@ export function useNotificationsQuery({ enabled = true } = {}) {
   return useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const [{ count }, messages] = await Promise.all([
+      const [{ count }, messages, alertsRes] = await Promise.all([
         api.getUnreadCount(),
         api.getRecentUnread(),
+        api.getMyAlerts().catch(() => ({ alerts: [], unread: 0 })),
       ])
-      return { count, messages }
+      // Upozorenja (P3-3) u istom zvonu kao poruke — prilagođena obliku stavke
+      const alertItems = (alertsRes.alerts || [])
+        .filter(a => !a.read_at)
+        .map(a => ({
+          id: `alert-${a.delivery_id}`,
+          kind: 'alert',
+          type: a.type,
+          severity: a.severity,
+          project_id: a.project_id,
+          project_name: a.project_name,
+          created_at: a.created_at,
+          sender_name: a.title,
+          text: a.body || '',
+        }))
+      const merged = [...alertItems, ...(messages || [])]
+        .sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)))
+        .slice(0, 15)
+      return { count: (count || 0) + alertItems.length, messages: merged }
     },
     enabled,
     retry: false,

@@ -244,6 +244,14 @@ export const api = {
   getMyReports: () => request('GET', '/reports/my/runs'),
   downloadReportRun: (id, name) => downloadReport(`/reports/runs/${id}/download`, name || 'izvestaj.html'),
 
+  // Upozorenja (P3-3)
+  getMyAlerts: () => request('GET', '/alerts/my'),
+  markAlertsRead: () => request('PUT', '/alerts/my/read-all'),
+  getAlertRules: projectId => request('GET', `/alerts/${projectId}/rules`),
+  saveAlertRules: (projectId, rules) => request('PUT', `/alerts/${projectId}/rules`, { rules }),
+  getAlertHistory: projectId => request('GET', `/alerts/${projectId}/history`),
+  ackProjectAlert: id => request('POST', `/alerts/${id}/ack`),
+
   // FAQ (P2-E1)
   getFaq: lang => request('GET', `/faq?lang=${encodeURIComponent(lang || 'sr')}`),
   createFaq: body => request('POST', '/faq', body),

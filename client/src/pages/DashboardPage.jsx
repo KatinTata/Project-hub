@@ -202,12 +202,18 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
 
   async function handleMarkAllRead() {
     try {
-      await api.markAllRead()
+      await Promise.all([api.markAllRead(), api.markAlertsRead().catch(() => {})])
       queryClient.setQueryData(['notifications'], { count: 0, messages: [] })
     } catch {}
   }
 
   function handleNotificationClick(n) {
+    // Upozorenja (P3-3) vode na relevantan ekran, poruke u chat
+    if (n.kind === 'alert') {
+      if (n.type === 'new_release') navigate('/release-notes')
+      else navigate(n.project_id ? `/projects/${n.project_id}` : '/')
+      return
+    }
     goToMessages(n.project_id || activeId || null)
   }
 

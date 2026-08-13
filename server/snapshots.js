@@ -17,6 +17,7 @@ import { dayInBelgrade } from './dates.js'
 import { processEpicData, billableSecondsOf } from '../client/src/utils.js'
 import { buildStackMatrix } from '../client/src/utils/stacks.js'
 import { setCalcConfig } from '../client/src/utils/calcConfig.js'
+import { detectForProject } from './alerts/detector.js'
 
 function jiraFor(userId) {
   const user = db.prepare('SELECT jira_url, jira_email, jira_token FROM users WHERE id = ?').get(userId)
@@ -95,7 +96,7 @@ export async function runDailySnapshots() {
   loadCalcConfigFromSettings()
   const day = dayInBelgrade(new Date())
   const projects = db.prepare(`
-    SELECT id, user_id, epic_key, filter_type, filter_jql
+    SELECT id, user_id, epic_key, display_name, filter_type, filter_jql
     FROM projects WHERE archived IS NULL OR archived = 0
   `).all()
 
@@ -124,6 +125,13 @@ export async function runDailySnapshots() {
         totalEst: r.totalEst, totalSpent: r.totalSpent, remainingEst: sm.grand.remaining, billableSpent, stacks,
       }))
       ok++
+
+      // Proaktivna upozorenja (P3-3) — detekcija nad istim svežim taskovima;
+      // dedup_key u alerts sprečava ponavljanje, pa je best-effort dovoljan.
+      try {
+        const created = await detectForProject(project, { processed: r })
+        if (created.length) console.log(`[alerts] projekat ${project.id}: ${created.length} novih upozorenja`)
+      } catch (e) { console.error(`[alerts] projekat ${project.id}: ${e.message}`) }
     } catch (err) {
       failed++
       console.error(`[snapshot] projekat ${project.id}: ${err.message}`)

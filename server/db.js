@@ -519,6 +519,52 @@ db.exec(`
   )
 `)
 
+// Proaktivna upozorenja (P3-3). ai_usage_alerts OSTAJE zaseban izvor za AI
+// budžete (ne duplira se); ovde su projektna upozorenja: overrun, kašnjenje
+// faze, nema aktivnosti, nov release. dedup_key sprečava ponavljanje.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS alert_rules (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    scope      TEXT NOT NULL DEFAULT 'project',  -- 'project' | 'global'
+    project_id INTEGER,                          -- NULL za global
+    type       TEXT NOT NULL,                    -- 'overrun'|'phase_delay'|'no_activity'|'new_release'
+    threshold  REAL,
+    channel    TEXT NOT NULL DEFAULT 'in_app',   -- 'in_app' | 'email' | 'both'
+    audience   TEXT NOT NULL DEFAULT 'internal', -- 'internal' | 'client' | 'both'
+    enabled    INTEGER DEFAULT 1,
+    created_by INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(scope, project_id, type)
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS alerts (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    rule_id         INTEGER,
+    project_id      INTEGER NOT NULL,
+    type            TEXT NOT NULL,
+    severity        TEXT NOT NULL DEFAULT 'warning', -- 'info'|'warning'|'critical'
+    title           TEXT NOT NULL,
+    body            TEXT,
+    dedup_key       TEXT UNIQUE,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    acknowledged_by INTEGER,
+    acknowledged_at DATETIME
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS alert_deliveries (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    alert_id     INTEGER NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,
+    user_id      INTEGER NOT NULL,
+    channel      TEXT NOT NULL DEFAULT 'in_app',
+    delivered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    read_at      DATETIME
+  )
+`)
+
 // FAQ iz baze (P2-E1) — QAPage čita kroz API, admin menja bez deploya.
 // answer je sanitizovan HTML (upis kroz /api/faq prolazi sanitize-html).
 db.exec(`
@@ -551,6 +597,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_ap_exchange_rates_lookup ON ap_exchange_rates(currency_from, currency_to, rate_date);
   CREATE INDEX IF NOT EXISTS idx_ai_usage_alerts_month ON ai_usage_alerts(month);
   CREATE INDEX IF NOT EXISTS idx_faq_lang_cat ON faq(lang, category, position);
+  CREATE INDEX IF NOT EXISTS idx_alerts_project ON alerts(project_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_alert_deliveries_user ON alert_deliveries(user_id, read_at);
 `)
 
 export default db

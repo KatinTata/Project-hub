@@ -16,6 +16,7 @@ import PhaseBuilder, { PhaseCharts } from './PhaseBuilder.jsx'
 import StackMatrix from './StackMatrix.jsx'
 import PhaseForecast from './PhaseForecast.jsx'
 import ReportsPanel from './ReportsPanel.jsx'
+import AlertRulesPanel from './AlertRulesPanel.jsx'
 import ProjectEstimateSummary from './ProjectEstimateSummary.jsx'
 import TeamRoster from './TeamRoster.jsx'
 import ProjectTrend from './ProjectTrend.jsx'
@@ -823,7 +824,10 @@ export default function ProjectCard({
           <ProjectTrend projectId={project.id} />
         )}
         {activeTab === 'reports' && !isClient && (
-          <ReportsPanel projectId={project.id} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <ReportsPanel projectId={project.id} />
+            <AlertRulesPanel projectId={project.id} />
+          </div>
         )}
       </div>
     </div>
