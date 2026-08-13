@@ -43,7 +43,7 @@ export function PivotTable({ title, rows, childKey, childName, nameKey, idKey, e
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.total', { v: fmtMoney(total) })}</span>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.total', { v: fmtMoney(total) })}</span>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
@@ -91,7 +91,7 @@ export function SimpleTable({ title, rows, nameKey, costKey = 'cost', cur = 'USD
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
       <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.total', { v: fmtMoney(total, cur) })}</span>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.total', { v: fmtMoney(total, cur) })}</span>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
@@ -132,7 +132,7 @@ export function ModelsTable({ rows }) {
           <tr key={r.model}>
             <td style={tdStyle}>
               {r.model}
-              {!r.priced && <span title={t('ai2.model.noPriceTitle')} style={{ marginLeft: 8, fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'var(--amberTint)', color: 'var(--amber)', border: '1px solid var(--amber)' }}>{t('ai2.model.noPrice')}</span>}
+              {!r.priced && <span title={t('ai2.model.noPriceTitle')} style={{ marginLeft: 8, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'var(--amberTint)', color: 'var(--amber)', border: '1px solid var(--amber)' }}>{t('ai2.model.noPrice')}</span>}
             </td>
             <td style={{ ...tdMono, textAlign: 'right' }}>{fmtNum(r.requests)}</td>
             <td style={{ ...tdMono, textAlign: 'right' }}>{fmtTok(r.prompt_tokens)}</td>

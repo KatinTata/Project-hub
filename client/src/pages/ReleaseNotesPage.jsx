@@ -231,7 +231,7 @@ function NotesByProject({ notesList, isClient, onOpen, onRelease, onDelete }) {
                 {sectionName === NONE ? 'Ostalo' : sectionName}
               </span>
               <span style={{
-                fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)',
+                fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)',
                 background: 'var(--surfaceAlt)', border: '1px solid var(--border)',
                 borderRadius: 20, padding: '2px 9px',
               }}>
@@ -279,7 +279,7 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{
-          padding: '3px 9px', borderRadius: 6, fontSize: 10, fontFamily: "'Hanken Grotesk'", fontWeight: 600, letterSpacing: '0.04em',
+          padding: '3px 9px', borderRadius: 6, fontSize: 10, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, letterSpacing: '0.04em',
           background: isReleased ? 'var(--greenTint)' : 'rgba(79,142,247,0.1)',
           color: isReleased ? 'var(--green)' : 'var(--accent)',
           border: `1px solid ${isReleased ? 'rgba(34,197,94,0.35)' : 'rgba(79,142,247,0.3)'}`,
@@ -288,7 +288,7 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
         </span>
         {version && (
           <span style={{
-            fontFamily: "'Hanken Grotesk'", fontSize: 11, fontWeight: 500,
+            fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 500,
             color: 'var(--accent)', background: 'rgba(79,142,247,0.08)',
             border: '1px solid rgba(79,142,247,0.2)', borderRadius: 6, padding: '3px 9px',
           }}>
@@ -303,24 +303,24 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         {note.project_name && (
-          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
             {note.project_name}
           </div>
         )}
-        <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
+        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
           {t('rn.publishedOn', { date: createdDate })}
         </div>
         {isReleased && releasedDate ? (
-          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--green)' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--green)' }}>
             {t('rn.releasedOn', { date: releasedDate })}
           </div>
         ) : (
-          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textSubtle)' }}>
             {t('rn.notReleased')}
           </div>
         )}
         {!isClient && note.client_count !== undefined && (
-          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
+          <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
             {note.client_count} {note.client_count === 1 ? t('rn.client.singular') : t('rn.client.plural')}
           </div>
         )}
@@ -387,7 +387,7 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
             {version && (
               <div style={{
                 display: 'inline-block', marginTop: 8,
-                fontFamily: "'Hanken Grotesk'", fontSize: 13, fontWeight: 500,
+                fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, fontWeight: 500,
                 color: 'var(--accent)', background: 'rgba(79,142,247,0.1)',
                 border: '1px solid rgba(79,142,247,0.25)', borderRadius: 6, padding: '3px 10px',
               }}>{version}</div>
@@ -395,7 +395,7 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
           </div>
           <span style={{
             flexShrink: 0, padding: '4px 12px', borderRadius: 6, fontSize: 11,
-            fontFamily: "'Hanken Grotesk'", fontWeight: 600, letterSpacing: '0.04em',
+            fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, letterSpacing: '0.04em',
             background: isReleased ? 'var(--greenTint)' : 'rgba(79,142,247,0.1)',
             color: isReleased ? 'var(--green)' : 'var(--accent)',
             border: `1px solid ${isReleased ? 'rgba(34,197,94,0.35)' : 'rgba(79,142,247,0.3)'}`,
@@ -412,8 +412,8 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
             ...(!isClient && clientCount !== undefined ? [{ label: t('rn.clients'), value: `${clientCount}`, color: 'var(--text)' }] : []),
           ].map(({ label, value, color }) => (
             <div key={label}>
-              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>{label}</div>
-              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color }}>{value}</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>{label}</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color }}>{value}</div>
             </div>
           ))}
         </div>
@@ -463,7 +463,7 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{
           padding: '12px 20px', borderBottom: '1px solid var(--border)',
-          fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)',
+          fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)',
           textTransform: 'uppercase', letterSpacing: '0.07em',
         }}>
           {t('rn.contentPreview')}

@@ -108,9 +108,9 @@ export default function ComponentBreakdown({ data = [] }) {
         {arcs.map((arc, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: arc.color, flexShrink: 0 }} />
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', flex: 1 }}>{arc.name}</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: arc.color }}>{Math.round(arc.pct * 100)}%</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)', width: 36, textAlign: 'right' }}>{fmtHours(arc.totalSpent)}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', flex: 1 }}>{arc.name}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: arc.color }}>{Math.round(arc.pct * 100)}%</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textSubtle)', width: 36, textAlign: 'right' }}>{fmtHours(arc.totalSpent)}</span>
           </div>
         ))}
       </div>

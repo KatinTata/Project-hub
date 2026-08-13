@@ -108,7 +108,7 @@ export default function DonutChart({ segments = [], size = 200, innerRadius = 70
                 <span style={{ color: seg.color, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontWeight: 500, fontSize: horizontal ? 11 : 12 }}>
                   ● {seg.label}
                 </span>
-                <span style={{ fontFamily: "'Hanken Grotesk'", color: 'var(--textMuted)', fontSize: 11 }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", color: 'var(--textMuted)', fontSize: 11 }}>
                   {seg.displayValue ?? `${seg.value}/${total}`}
                   {clickable && <span style={{ marginLeft: 6, color: 'var(--accent)' }}>{isActive ? '▾' : '›'}</span>}
                 </span>

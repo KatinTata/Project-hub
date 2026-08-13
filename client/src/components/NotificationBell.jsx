@@ -44,7 +44,7 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
             position: 'absolute', top: 4, right: 4,
             minWidth: 15, height: 15, borderRadius: 8,
             background: 'var(--red)', color: '#fff',
-            fontSize: 9, fontFamily: "'Hanken Grotesk'", fontWeight: 700,
+            fontSize: 9, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '0 3px', lineHeight: 1, pointerEvents: 'none',
           }}>
@@ -73,7 +73,7 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
               {t('notif.title')}
             </span>
             {unreadCount > 0 && (
-              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', borderRadius: 10, padding: '2px 8px' }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', borderRadius: 10, padding: '2px 8px' }}>
                 {t('notif.new', { n: unreadCount })}
               </span>
             )}
@@ -97,12 +97,12 @@ export default function NotificationBell({ unreadCount = 0, notifications = [], 
                   <span style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>
                     {n.project_name || n.epic_key}
                   </span>
-                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>
+                  <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)' }}>
                     {fmtTime(n.created_at, t)}
                   </span>
                 </div>
                 {n.task_key && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 4, padding: '1px 6px', marginBottom: 4 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 4, padding: '1px 6px', marginBottom: 4 }}>
                     <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M5 6.5a2.5 2.5 0 003.5.3l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M7 5.5a2.5 2.5 0 00-3.5-.3l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></svg>
                     {n.task_key}
                   </span>

@@ -30,17 +30,17 @@ function TaskChip({ task, faded, jiraUrl }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
         {link ? (
           <a href={link} target="_blank" rel="noopener noreferrer"
-            style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
+            style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
             onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
             onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
           >{task.key}</a>
         ) : (
-          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0 }}>
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0 }}>
             {task.key}
           </span>
         )}
         <span style={{
-          fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 5px',
+          fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 9, padding: '1px 5px',
           borderRadius: 3, background: `${statusColor}1A`, color: statusColor,
           border: `1px solid ${statusColor}33`, flexShrink: 0, marginLeft: 'auto',
         }}>
@@ -88,7 +88,7 @@ function DueDateBadge({ dueDate, isDone, small = false }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
-      fontFamily: "'Hanken Grotesk'", fontSize: small ? 9 : 10,
+      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: small ? 9 : 10,
       color, background: bg, borderRadius: 4,
       padding: small ? '1px 5px' : '2px 6px',
       border: `1px solid ${status === 'ok' ? 'var(--border)' : color + '44'}`,
@@ -175,7 +175,7 @@ function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename
         )}
 
         <span style={{
-          fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)',
+          fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)',
           background: 'var(--surfaceAlt)', border: '1px solid var(--border)',
           borderRadius: 10, padding: '1px 6px', flexShrink: 0,
         }}>
@@ -230,14 +230,14 @@ function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename
             { label: 'Rok', value: phase.due_date, on: onUpdateDueDate },
           ].map(row => (
             <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 30, fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)' }}>{row.label}</span>
+              <span style={{ width: 30, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)' }}>{row.label}</span>
               <input
                 ref={row.ref}
                 type="date"
                 defaultValue={row.value || ''}
                 onBlur={e => row.on?.(e.target.value || null)}
                 onKeyDown={e => { if (e.key === 'Enter') setEditingDate(false); if (e.key === 'Escape') setEditingDate(false) }}
-                style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--accent)', borderRadius: 4, padding: '3px 6px', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 11, outline: 'none' }}
+                style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--accent)', borderRadius: 4, padding: '3px 6px', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, outline: 'none' }}
               />
               {row.value && (
                 <button
@@ -261,7 +261,7 @@ function DroppablePhaseColumn({ id, phase, tasks, isUnassigned = false, onRename
         <DueDateBadge dueDate={phase.due_date} isDone={donePct === 100} small />
       )}
       {!isUnassigned && phase.start_date && !editingDate && (
-        <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)' }}>
+        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)' }}>
           od {new Date(phase.start_date).toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'short' })}
         </div>
       )}
@@ -301,11 +301,11 @@ export function PhaseCharts({ phases, tasksByPhase }) {
           Napredak po fazama
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
             {totalDone}/{totalTasks} taskova
           </span>
           <span style={{
-            fontFamily: "'Hanken Grotesk'", fontSize: 11, fontWeight: 600,
+            fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 600,
             padding: '2px 8px', borderRadius: 4,
             background: overallPct === 100 ? 'var(--greenTint)' : 'var(--surfaceAlt)',
             color: overallPct === 100 ? 'var(--green)' : 'var(--accent)',
@@ -354,10 +354,10 @@ export function PhaseCharts({ phases, tasksByPhase }) {
                 {phase.due_date && (
                   <DueDateBadge dueDate={phase.due_date} isDone={donePct === 100} />
                 )}
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', flexShrink: 0 }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', flexShrink: 0 }}>
                   {done}/{total}
                 </span>
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, fontWeight: 600, color: donePct === 100 ? 'var(--green)' : 'var(--textMuted)', flexShrink: 0, minWidth: 34, textAlign: 'right' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 600, color: donePct === 100 ? 'var(--green)' : 'var(--textMuted)', flexShrink: 0, minWidth: 34, textAlign: 'right' }}>
                   {Math.round(donePct)}%
                 </span>
               </div>
@@ -382,11 +382,11 @@ export function PhaseCharts({ phases, tasksByPhase }) {
                 const elapsedColor = isOver ? 'var(--red)' : elapsed > (donePct / 100) ? 'var(--amber)' : 'var(--accent)'
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 9, color: 'var(--textSubtle)', flexShrink: 0, width: 34 }}>vreme</span>
+                    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 9, color: 'var(--textSubtle)', flexShrink: 0, width: 34 }}>vreme</span>
                     <div style={{ flex: 1, height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${elapsedPct}%`, background: elapsedColor, transition: 'width 0.5s' }} />
                     </div>
-                    <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 9, color: elapsedColor, flexShrink: 0, width: 28, textAlign: 'right' }}>
+                    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 9, color: elapsedColor, flexShrink: 0, width: 28, textAlign: 'right' }}>
                       {Math.round(elapsedPct)}%
                     </span>
                   </div>
@@ -395,8 +395,8 @@ export function PhaseCharts({ phases, tasksByPhase }) {
 
               {(inprog > 0 || todo > 0) && (
                 <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
-                  {inprog > 0 && <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--amber)' }}>● {inprog} u toku</span>}
-                  {todo > 0   && <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>● {todo} čeka</span>}
+                  {inprog > 0 && <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--amber)' }}>● {inprog} u toku</span>}
+                  {todo > 0   && <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)' }}>● {todo} čeka</span>}
                 </div>
               )}
             </div>
@@ -406,13 +406,13 @@ export function PhaseCharts({ phases, tasksByPhase }) {
 
       {/* Legend */}
       <div style={{ display: 'flex', gap: 16, marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--green)',     display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--green)',     display: 'flex', alignItems: 'center', gap: 4 }}>
           <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--green)',    display: 'inline-block' }} /> Završeno
         </span>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--amber)',     display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--amber)',     display: 'flex', alignItems: 'center', gap: 4 }}>
           <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--amber)',    display: 'inline-block' }} /> U toku
         </span>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)', display: 'flex', alignItems: 'center', gap: 4 }}>
           <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--textSubtle)', opacity: 0.5, display: 'inline-block' }} /> Čeka
         </span>
       </div>
@@ -461,7 +461,7 @@ function AddPhasePanel({ onAdd, onCancel }) {
         style={{
           background: 'var(--bg)', border: '1px solid var(--border)',
           borderRadius: 6, padding: '5px 8px', color: dueDate ? 'var(--text)' : 'var(--textSubtle)',
-          fontFamily: "'Hanken Grotesk'", fontSize: 11, outline: 'none', flexShrink: 0,
+          fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, outline: 'none', flexShrink: 0,
         }}
       />
       <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>

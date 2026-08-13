@@ -49,7 +49,7 @@ export default function OverrunHeatmap({ tasks = [] }) {
 
           return (
             <div key={task.key} style={{ ...cs, borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: task.overPct > 15 ? 'var(--red)' : 'var(--accent)', fontWeight: 600 }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: task.overPct > 15 ? 'var(--red)' : 'var(--accent)', fontWeight: 600 }}>
                 {task.key}
               </span>
               <div style={{
@@ -59,13 +59,13 @@ export default function OverrunHeatmap({ tasks = [] }) {
               }}>
                 {task.summary}
               </div>
-              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
+              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>
                 {fmtHours(task.spent)} / {fmtHours(task.est)}
               </div>
               <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${spentPct * 100}%`, background: barColor, borderRadius: 2, transition: 'width 0.4s ease' }} />
               </div>
-              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, fontWeight: 600, color: lbl.color }}>
+              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 600, color: lbl.color }}>
                 {lbl.text}
               </div>
             </div>

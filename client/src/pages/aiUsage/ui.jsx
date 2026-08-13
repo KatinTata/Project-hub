@@ -13,7 +13,7 @@ export const big = { fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 23
 export const sub = { fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 3 }
 export const thStyle = { padding: '8px 12px', fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--textMuted)', textAlign: 'left' }
 export const tdStyle = { padding: '8px 12px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)', borderTop: '1px solid var(--border)' }
-export const tdMono = { ...tdStyle, fontFamily: "'Hanken Grotesk'", fontSize: 12 }
+export const tdMono = { ...tdStyle, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }
 export const inputS = { background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, boxSizing: 'border-box' }
 export const btnS = { padding: '7px 16px', borderRadius: 8, fontSize: 13, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, border: '1px solid var(--borderHover)', background: 'var(--surfaceAlt)', color: 'var(--text)', cursor: 'pointer' }
 export const btnPrimary = { ...btnS, background: 'var(--accent)', color: '#fff', border: 'none' }
@@ -46,7 +46,7 @@ export function AlertNotes({ alerts, onAck, compact }) {
         {alerts.map(a => (
           <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>
             <span style={{
-              fontFamily: "'Hanken Grotesk'", fontSize: 9, padding: '1px 7px', borderRadius: 4, flexShrink: 0,
+              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 9, padding: '1px 7px', borderRadius: 4, flexShrink: 0,
               background: a.level === 'limit' ? 'var(--red)' : 'var(--amber)', color: '#fff',
             }}>{a.level === 'limit' ? t('ai2.alerts.limit') : t('ai2.alerts.warning')}</span>
             <span style={{ flex: 1 }}>
@@ -54,7 +54,7 @@ export function AlertNotes({ alerts, onAck, compact }) {
               {fmtMoney(a.spent_eur, 'EUR')} {t('ai2.of')} {fmtMoney(a.limit_eur, 'EUR')} ({Math.round(a.pct)}%) · {a.month}
               {a.mail_sent ? '' : ' · ' + t('ai2.alerts.mailNotSent')}
             </span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)' }}>{String(a.created_at).slice(0, 16)}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)' }}>{String(a.created_at).slice(0, 16)}</span>
             {onAck && <button onClick={() => onAck(a.id)} title={t('ai2.alerts.markRead')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.fg, fontSize: 15, lineHeight: 1, padding: '0 2px' }}>×</button>}
           </div>
         ))}
@@ -131,7 +131,7 @@ export function FilterBar({ preset, setPreset, range, setRange, onExport, onExpo
           {t('ai2.filter.pdfReport')}
         </Button>
       )}
-      {loading && <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{t('ai2.filter.loadingInline')}</span>}
+      {loading && <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{t('ai2.filter.loadingInline')}</span>}
     </div>
   )
 }

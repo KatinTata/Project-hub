@@ -87,12 +87,12 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
               </div>
 
               {/* Hours */}
-              <div style={{ width: 44, flexShrink: 0, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', textAlign: 'right' }}>
+              <div style={{ width: 44, flexShrink: 0, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', textAlign: 'right' }}>
                 {fmtHours(d.totalSpent)}
               </div>
 
               {/* Task count */}
-              <div style={{ width: 40, flexShrink: 0, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)', textAlign: 'right' }}>
+              <div style={{ width: 40, flexShrink: 0, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textSubtle)', textAlign: 'right' }}>
                 {d.totalTasks}t
               </div>
             </div>
@@ -113,22 +113,22 @@ export default function AssigneeWorkload({ data = [], tasks = [], jiraUrl }) {
                       <div key={task.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '1px solid var(--border)' }}>
                         {jiraUrl ? (
                           <a href={`https://${jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}/browse/${task.key}`} target="_blank" rel="noopener noreferrer"
-                            style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
+                            style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0, textDecoration: 'none' }}
                             onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                             onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
                           >{task.key}</a>
                         ) : (
-                          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0 }}>
+                          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, fontWeight: 600, color: 'var(--accent)', flexShrink: 0 }}>
                             {task.key}
                           </span>
                         )}
                         <span style={{ flex: 1, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {task.summary}
                         </span>
-                        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, fontWeight: 600, color: seconds > 0 ? 'var(--text)' : 'var(--textSubtle)', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 600, color: seconds > 0 ? 'var(--text)' : 'var(--textSubtle)', flexShrink: 0, whiteSpace: 'nowrap' }}>
                           {seconds > 0 ? `${fmtHours(seconds)}${sharePct > 0 ? ` · ${sharePct}%` : ''}` : '—'}
                         </span>
-                        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, padding: '2px 7px', borderRadius: 4, background: sc.bg, color: sc.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, padding: '2px 7px', borderRadius: 4, background: sc.bg, color: sc.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
                           {task.status}
                         </span>
                       </div>

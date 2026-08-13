@@ -48,7 +48,7 @@ export default function TeamRoster({ team, tasks, onAdd, onRemove }) {
             <div key={s} style={{ borderTop: '1px solid var(--border)', borderRight: '1px solid var(--border)', padding: '12px 14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 12, color: STACK_COLORS[s] || 'var(--text)' }}>{s}</span>
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{members.length} {members.length === 1 ? 'osoba' : 'ljudi'}</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{members.length} {members.length === 1 ? 'osoba' : 'ljudi'}</span>
               </div>
 
               {/* Current roster chips */}
@@ -72,7 +72,7 @@ export default function TeamRoster({ team, tasks, onAdd, onRemove }) {
                         <button key={n} onClick={() => { onAdd?.(n, s) }}
                           style={{ display: 'flex', justifyContent: 'space-between', gap: 6, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>
                           <span>+ {n}</span>
-                          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{fmtHours(spentByName[n] || 0)}</span>
+                          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{fmtHours(spentByName[n] || 0)}</span>
                         </button>
                       ))}
                     </div>

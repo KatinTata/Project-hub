@@ -60,7 +60,7 @@ export default function SettingsView() {
           <button onClick={saveConfig} disabled={busy} style={btnPrimary}>{t('settings.jira.save')}</button>
         </div>
         {(testMsg || cfg.last_test_message) && (
-          <div style={{ marginTop: 8, fontFamily: "'Hanken Grotesk'", fontSize: 12, color: (testMsg ? testMsg.ok : cfg.last_test_ok) ? 'var(--green)' : 'var(--red)' }}>
+          <div style={{ marginTop: 8, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: (testMsg ? testMsg.ok : cfg.last_test_ok) ? 'var(--green)' : 'var(--red)' }}>
             {testMsg ? testMsg.message : cfg.last_test_message}
           </div>
         )}
@@ -116,7 +116,7 @@ export default function SettingsView() {
         {histOpen && (
           <div style={{ marginTop: 8, maxHeight: 240, overflowY: 'auto' }}>
             {(history || []).map(h => (
-              <div key={h.id} style={{ display: 'flex', gap: 10, padding: '4px 0', borderTop: '1px solid var(--border)', fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', flexWrap: 'wrap' }}>
+              <div key={h.id} style={{ display: 'flex', gap: 10, padding: '4px 0', borderTop: '1px solid var(--border)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', flexWrap: 'wrap' }}>
                 <span style={{ color: 'var(--text)', minWidth: 110 }}>{h.model_name}</span>
                 <span>{t('ai2.in')} {h.old_input_per_1m ?? '—'} → {h.new_input_per_1m}</span>
                 <span>{t('ai2.out')} {h.old_output_per_1m ?? '—'} → {h.new_output_per_1m}</span>

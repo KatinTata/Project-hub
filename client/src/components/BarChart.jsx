@@ -61,7 +61,7 @@ export default function BarChart({ data = [], width = 600, height = 260 }) {
                 stroke="var(--border)" strokeWidth={1}
               />
               <text x={paddingLeft - 4} y={y + 4} textAnchor="end"
-                style={{ fontSize: 10, fill: 'var(--textMuted)', fontFamily: "'Hanken Grotesk'" }}>
+                style={{ fontSize: 10, fill: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif" }}>
                 {tick}h
               </text>
             </g>
@@ -107,7 +107,7 @@ export default function BarChart({ data = [], width = 600, height = 260 }) {
                 x={xCenter} y={paddingTop + chartH + 8}
                 textAnchor="end"
                 transform={`rotate(-45, ${xCenter}, ${paddingTop + chartH + 8})`}
-                style={{ fontSize: 10, fill: 'var(--textMuted)', fontFamily: "'Hanken Grotesk'" }}>
+                style={{ fontSize: 10, fill: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif" }}>
                 {d.label}
               </text>
             </g>

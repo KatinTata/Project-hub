@@ -93,7 +93,7 @@ function ModuleCard({ icon, iconBg, iconColor, label, subtitle, active, onClick,
           position: 'absolute', top: 6, right: 6,
           minWidth: 16, height: 16, borderRadius: 8,
           background: 'var(--red)', color: '#fff',
-          fontSize: 9, fontFamily: "'Hanken Grotesk'", fontWeight: 700,
+          fontSize: 9, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: '0 4px', lineHeight: 1,
         }}>{badge > 99 ? '99+' : badge}</span>
@@ -210,7 +210,7 @@ export default function Topbar({
                 {/* User info header */}
                 <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
                   <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{user?.name}</div>
-                  <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>{user?.email}</div>
+                  <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>{user?.email}</div>
                 </div>
                 {/* Users (admin only) */}
                 {onOpenUsers && (

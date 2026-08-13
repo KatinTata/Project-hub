@@ -419,7 +419,7 @@ function SettingsContent({
         borderRadius: 10,
         marginBottom: 20,
       }}>
-        <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
+        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
           {t('settings.appearance.theme')}
         </div>
         <div style={{
@@ -466,7 +466,7 @@ function SettingsContent({
         border: '1px solid var(--border)',
         borderRadius: 10,
       }}>
-        <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
+        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
           {t('settings.appearance.language')}
         </div>
         <div style={{
@@ -607,7 +607,7 @@ const fieldGroup = { marginBottom: 12 }
 const fieldLabel = {
   display: 'block',
   fontSize: 11,
-  fontFamily: "'Hanken Grotesk'",
+  fontFamily: "'Hanken Grotesk', sans-serif",
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
   color: 'var(--textMuted)',

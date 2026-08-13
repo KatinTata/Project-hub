@@ -46,7 +46,7 @@ export default function PhaseProgress({ phases, tasksByPhase }) {
                 {phase.name}
               </span>
               <span style={{
-                fontFamily: "'Hanken Grotesk'", fontSize: 10, padding: '3px 9px',
+                fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, padding: '3px 9px',
                 borderRadius: 20, background: statusBg, color: statusColor,
                 border: `1px solid ${statusBorder}`, fontWeight: 600, flexShrink: 0,
               }}>

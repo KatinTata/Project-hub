@@ -18,7 +18,7 @@ const CAP_STATUS = {
   nostaff: { bg: 'var(--redTint)', fg: 'var(--red)' },
   nocapacity: { bg: 'var(--amberTint)', fg: 'var(--amber)' },
 }
-const capChip = st => ({ fontFamily: "'Hanken Grotesk'", fontSize: 11, padding: '2px 8px', borderRadius: 6, background: (CAP_STATUS[st] || {}).bg || 'var(--surfaceAlt)', color: (CAP_STATUS[st] || {}).fg || 'var(--textMuted)', border: '1px solid var(--border)' })
+const capChip = st => ({ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, padding: '2px 8px', borderRadius: 6, background: (CAP_STATUS[st] || {}).bg || 'var(--surfaceAlt)', color: (CAP_STATUS[st] || {}).fg || 'var(--textMuted)', border: '1px solid var(--border)' })
 const capLabel = (c, t) => c.status === 'nostaff' ? t('pf.noStaff') : c.status === 'nocapacity' ? t('pf.noCapacity') : (c.load != null ? Math.round(c.load * 100) + '%' : '–')
 
 export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStackMap, canEditConfig }) {
@@ -107,14 +107,14 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
         {!editing ? (
           <>
             <span style={labelMuted}>Radni kalendar:</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }}>{settings.workdayHours} h/dan</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)' }}>{settings.workdayHours} h/dan</span>
             <span style={{ color: 'var(--textSubtle)' }}>·</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }}>{settings.workdaysPerWeek} dana/nedelji</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)' }}>{settings.workdaysPerWeek} dana/nedelji</span>
             <span style={{ color: 'var(--textSubtle)' }}>·</span>
             <span style={labelMuted}>Pragovi:</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }} title="Prag prekoračenja taska">over &gt;{settings.overrunThresholdPct ?? 15}%</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }} title="Load iznad ovoga je tight">tight &gt;{settings.capacityTightPct ?? 85}%</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 13, color: 'var(--text)' }} title="Rep preostalog rada za probijene otvorene taskove">rep {settings.overrunTailPct ?? 10}%</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)' }} title="Prag prekoračenja taska">over &gt;{settings.overrunThresholdPct ?? 15}%</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)' }} title="Load iznad ovoga je tight">tight &gt;{settings.capacityTightPct ?? 85}%</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, color: 'var(--text)' }} title="Rep preostalog rada za probijene otvorene taskove">rep {settings.overrunTailPct ?? 10}%</span>
             {canEditConfig && (
               <button onClick={() => setEditing(true)} style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--accent)', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600 }}>Izmeni</button>
             )}
@@ -125,31 +125,31 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
               Sati/dan
               <input type="number" step={0.5} min={1} max={24} value={draft.workdayHours}
                 onChange={e => setDraft(d => ({ ...d, workdayHours: e.target.value }))}
-                style={{ width: 64, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
+                style={{ width: 64, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }} />
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, ...labelMuted }}>
               Dana/nedelji
               <input type="number" min={1} max={7} value={draft.workdaysPerWeek}
                 onChange={e => setDraft(d => ({ ...d, workdaysPerWeek: e.target.value }))}
-                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
+                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }} />
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, ...labelMuted }} title="Task je prekoračen kad utrošeno pređe estimaciju za više od ovog procenta">
               Over %
               <input type="number" min={0} max={100} value={draft.overrunThresholdPct}
                 onChange={e => setDraft(d => ({ ...d, overrunThresholdPct: e.target.value }))}
-                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
+                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }} />
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, ...labelMuted }} title="Load kapaciteta iznad ovog procenta se označava kao tight">
               Tight %
               <input type="number" min={0} max={100} value={draft.capacityTightPct}
                 onChange={e => setDraft(d => ({ ...d, capacityTightPct: e.target.value }))}
-                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
+                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }} />
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, ...labelMuted }} title="Preostali rad probijenog otvorenog taska = ovaj procenat estimacije">
               Rep %
               <input type="number" min={0} max={100} value={draft.overrunTailPct}
                 onChange={e => setDraft(d => ({ ...d, overrunTailPct: e.target.value }))}
-                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }} />
+                style={{ width: 56, padding: '4px 6px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }} />
             </label>
             <button onClick={saveConfig} disabled={saving} style={{ background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif" }}>{saving ? 'Čuvam…' : 'Sačuvaj'}</button>
             <button onClick={() => { setEditing(false); setDraft(draftFrom(settings)) }} style={{ background: 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 7, padding: '5px 12px', fontSize: 12, cursor: 'pointer', fontFamily: "'Hanken Grotesk', sans-serif" }}>Otkaži</button>
@@ -175,13 +175,13 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
             <div key={p.phaseId} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '1px solid var(--border)', opacity: p.empty ? 0.5 : 1 }}>
               <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center' }}>{p.phaseName}</div>
               {stacks.map(s => (
-                <div key={s} style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk'", fontSize: 12, color: p.stackManDays[s] > 0 ? 'var(--text)' : 'var(--textSubtle)' }}>
+                <div key={s} style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: p.stackManDays[s] > 0 ? 'var(--text)' : 'var(--textSubtle)' }}>
                   {p.stackManDays[s] > 0 ? fmtDays(p.stackManDays[s]) : '–'}
                 </div>
               ))}
-              <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk'", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{fmtDays(p.totalManDays)}</div>
-              <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--text)' }}>{p.durationWorkingDays} {p.durationWorkingDays === 1 ? 'dan' : 'dana'}</div>
-              <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--text)', textAlign: 'right' }}>
+              <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{fmtDays(p.totalManDays)}</div>
+              <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>{p.durationWorkingDays} {p.durationWorkingDays === 1 ? 'dan' : 'dana'}</div>
+              <div style={{ padding: '8px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)', textAlign: 'right' }}>
                 {p.empty ? '—' : <>{fmtDate(p.start)} <span style={{ color: 'var(--textSubtle)' }}>→</span> {fmtDate(p.end)}</>}
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function PhaseForecast({ tasks, phases, createdAt, peoplePerStack
             <div key={r.phaseId} style={{ padding: '8px 16px', borderTop: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{r.name}</span>
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{fmtDate(r.start)}–{fmtDate(r.due)} · {r.workingDays} r.d.</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{fmtDate(r.start)}–{fmtDate(r.due)} · {r.workingDays} r.d.</span>
               </div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {stacks.map(s => {

@@ -148,11 +148,11 @@ function PdfThumbnail({ docId }) {
       {state !== 'done' && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--textSubtle)' }}>
           {state === 'loading' ? (
-            <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', letterSpacing: '0.08em', animation: 'pulse 1.5s ease-in-out infinite', opacity: 0.6 }}>···</div>
+            <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)', letterSpacing: '0.08em', animation: 'pulse 1.5s ease-in-out infinite', opacity: 0.6 }}>···</div>
           ) : (
             <>
               <IconPdf />
-              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, letterSpacing: '0.08em' }}>PDF</span>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.08em' }}>PDF</span>
             </>
           )}
         </div>
@@ -219,8 +219,8 @@ function DocCard({ doc, isAdmin, onDelete }) {
           {doc.name}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtDate(doc.created_at)}</span>
-          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtFileSize(doc.file_size)}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtDate(doc.created_at)}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtFileSize(doc.file_size)}</span>
         </div>
       </div>
     </div>
@@ -367,7 +367,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
             >
               <div style={{ color: 'var(--textSubtle)' }}><IconPdf /></div>
               <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{t('doc2.dropzone')}</div>
-              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)' }}>{t('doc2.dropzoneHint')}</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textSubtle)' }}>{t('doc2.dropzoneHint')}</div>
             </div>
           )}
 
@@ -379,7 +379,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
                 <div style={{ color: 'var(--textMuted)' }}><IconPdf /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file?.name}</div>
-                  <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{fmtFileSize(file?.size)}</div>
+                  <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{fmtFileSize(file?.size)}</div>
                 </div>
                 <button onClick={() => { setFile(null); setStep(1) }} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 16, padding: 4 }}>×</button>
               </div>
@@ -445,7 +445,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
                             <Checkbox checked={checked} />
                             <div>
                               <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)' }}>{c.name}</div>
-                              <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{c.email}</div>
+                              <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{c.email}</div>
                             </div>
                           </div>
                         )
@@ -458,7 +458,7 @@ function UploadModal({ sections, onClose, onUploaded }) {
               {/* Upload progress */}
               {uploading && (
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
                     <span>{t('docs.uploading')}</span><span>{progress}%</span>
                   </div>
                   <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
@@ -645,7 +645,7 @@ export default function DocumentsPage({ user, theme, onLogout, onOpenSettings, o
                     ) : (
                       <>
                         <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', flex: 1 }}>{section.name}</span>
-                        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 9px' }}>
+                        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 9px' }}>
                           {sectionDocs.length}
                         </span>
                         {isAdmin && !isConfirmingDelete && (
@@ -719,7 +719,7 @@ export default function DocumentsPage({ user, theme, onLogout, onOpenSettings, o
 }
 
 const labelStyle = {
-  display: 'block', fontSize: 11, fontFamily: "'Hanken Grotesk'",
+  display: 'block', fontSize: 11, fontFamily: "'Hanken Grotesk', sans-serif",
   textTransform: 'uppercase', letterSpacing: '0.06em',
   color: 'var(--textMuted)', marginBottom: 6,
 }

@@ -23,7 +23,7 @@ function MetricCard({ label, value, subtitle, valueColor, isMobile }) {
         e.currentTarget.style.boxShadow = ''
       }}>
       <div style={{
-        fontFamily: "'Hanken Grotesk'",
+        fontFamily: "'Hanken Grotesk', sans-serif",
         fontSize: isMobile ? 10 : 11,
         letterSpacing: '0.08em',
         textTransform: 'uppercase',

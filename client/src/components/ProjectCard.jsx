@@ -220,7 +220,7 @@ function ChangesFeed({ data, previousData, previousTime, jiraUrl, projectId }) {
           </span>
         </div>
         {time && (
-          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)' }}>
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textSubtle)' }}>
             {fmtLastRefresh(time, t)}
           </span>
         )}
@@ -246,18 +246,18 @@ function ChangesFeed({ data, previousData, previousTime, jiraUrl, projectId }) {
                   href={link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}
+                  style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}
                   onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                   onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
                 >{c.key}</a>
               ) : (
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>{c.key}</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>{c.key}</span>
               )}
               <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                 {c.summary}
               </span>
               {author && (
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--text)', flexShrink: 0, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 6px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--text)', flexShrink: 0, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 6px' }}>
                   {author}
                 </span>
               )}
@@ -464,7 +464,7 @@ export default function ProjectCard({
                   {t('pc.edit')}
                 </button>
               )}
-              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>
                 {t('pc.tasksCount', { n: total })}
               </span>
             </div>
@@ -506,7 +506,7 @@ export default function ProjectCard({
                 <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
                   <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{s.label}</span>
-                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: s.color }}>{s.count}</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: s.color }}>{s.count}</span>
                 </div>
               ))}
             </div>
@@ -582,7 +582,7 @@ export default function ProjectCard({
             </button>
 
             {lastRefresh && (
-              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textSubtle)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textSubtle)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                 {refreshing || loading ? t('pc.refreshing') : `${fmtLastRefresh(lastRefresh, t)}`}
                 {!refreshing && !loading && autoRefreshTime && (
                   <span style={{ background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 6px', fontSize: 11, color: 'var(--textMuted)' }}>
@@ -671,7 +671,7 @@ export default function ProjectCard({
                     <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginTop: 2 }}>{t('pc.modulesDesc')}</div>
                   </div>
                 </div>
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {t('pc.modulesCount', { n: moduleData.filter(d => d.name !== 'Bez modula').length })}
                 </span>
               </div>
@@ -689,14 +689,14 @@ export default function ProjectCard({
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
                     <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>Billable</span>
                   </div>
-                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{(billableSpent / 3600).toFixed(1)}h</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{(billableSpent / 3600).toFixed(1)}h</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--textSubtle)', flexShrink: 0 }} />
                     <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--text)' }}>Non-billable</span>
                   </div>
-                  <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{(nonBillableSpent / 3600).toFixed(1)}h</span>
+                  <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{(nonBillableSpent / 3600).toFixed(1)}h</span>
                 </div>
                 {billableOverflow && (
                   <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--amber)', marginTop: 4 }} title={t('pc.billableOverflowHint')}>
@@ -729,7 +729,7 @@ export default function ProjectCard({
                   </div>
                 </div>
               </div>
-              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                 {t('pc.membersCount', { n: assigneeData.filter(d => d.name !== 'Neraspoređeno').length })}
               </span>
             </div>
@@ -751,7 +751,7 @@ export default function ProjectCard({
                     </div>
                   </div>
                 </div>
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {t('pc.componentsCount', { n: componentData.length })}
                 </span>
               </div>
@@ -771,7 +771,7 @@ export default function ProjectCard({
                     </div>
                   </div>
                 </div>
-                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                   {t('pc.withEstimateCount', { n: tasks.filter(task => task.est > 0).length })}
                 </span>
               </div>
@@ -841,7 +841,7 @@ function FilterBadge({ project }) {
 
   if (ft === 'epic') {
     return (
-      <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px' }}>
+      <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px' }}>
         Epic {project.epicKey}
       </span>
     )
@@ -856,7 +856,7 @@ function FilterBadge({ project }) {
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 4, padding: '2px 6px', cursor: 'default' }}>
+      <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 4, padding: '2px 6px', cursor: 'default' }}>
         {label}
       </span>
       {showTooltip && tooltip && (
@@ -865,7 +865,7 @@ function FilterBadge({ project }) {
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
           padding: '8px 12px', minWidth: 260, maxWidth: 400,
           boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-          fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)',
+          fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)',
           lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-all',
         }}>
           {tooltip}

@@ -328,7 +328,7 @@ function TestResult({ t, result, error, jql }) {
     return (
       <div style={{ marginTop: 8, borderRadius: 6, overflow: 'hidden' }}>
         <div style={{ padding: '8px 12px', background: 'var(--redTint)', border: '1px solid #EF444430', color: 'var(--red)', fontSize: 12, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-          <span style={{ fontFamily: "'Hanken Grotesk'", marginRight: 6 }}>✗</span>{error}
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", marginRight: 6 }}>✗</span>{error}
         </div>
         {hints.length > 0 && (
           <div style={{ padding: '8px 12px', background: 'var(--amberTint)', border: '1px solid rgba(245,158,11,0.25)', borderTop: 'none', display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -346,14 +346,14 @@ function TestResult({ t, result, error, jql }) {
   if (!result) return null
   return (
     <div style={{ marginTop: 8, padding: '10px 12px', background: 'var(--greenTint)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 6 }}>
-      <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--green)', marginBottom: result.preview.length ? 8 : 0 }}>
+      <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--green)', marginBottom: result.preview.length ? 8 : 0 }}>
         ✓ {t('addProject.found', { count: result.count })}
       </div>
       {result.preview.map(p => (
         <div key={p.key} style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
-          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{p.key}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{p.key}</span>
           <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.summary}</span>
-          <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', flexShrink: 0 }}>{p.status}</span>
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)', flexShrink: 0 }}>{p.status}</span>
         </div>
       ))}
     </div>
@@ -440,7 +440,7 @@ function buildCombinedJql({ epicKey, project, fixVersion, clientScope, clientReq
 const labelStyle = {
   display: 'block',
   fontSize: 11,
-  fontFamily: "'Hanken Grotesk'",
+  fontFamily: "'Hanken Grotesk', sans-serif",
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
   color: 'var(--textMuted)',

@@ -48,7 +48,7 @@ export default function ClientNotificationModal({ notifications, onClose, onOpen
                   {n.project_name || n.epic_key}
                 </span>
                 {n.task_key && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 4, padding: '1px 6px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 4, padding: '1px 6px' }}>
                     <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M5 6.5a2.5 2.5 0 003.5.3l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M7 5.5a2.5 2.5 0 00-3.5-.3l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></svg>
                     {n.task_key}
                   </span>

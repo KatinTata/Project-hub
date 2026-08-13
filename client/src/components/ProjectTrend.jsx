@@ -116,7 +116,7 @@ export default function ProjectTrend({ projectId }) {
       <div style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
           <div style={title}>Trend ({spanDays} {spanDays === 1 ? 'dan' : 'dana'} · {snaps.length} tačaka)</div>
-          <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)' }}>{fmtDay(first.day)} → {fmtDay(last.day)}</div>
+          <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{fmtDay(first.day)} → {fmtDay(last.day)}</div>
         </div>
 
         {/* KPI strip */}

@@ -123,7 +123,7 @@ export default function ArchiveModal({ onClose, onRestore }) {
                       </div>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         <span style={{
-                          fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textSubtle)',
+                          fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textSubtle)',
                           background: 'var(--border)', borderRadius: 4, padding: '1px 6px',
                         }}>
                           {p.epicKey}

@@ -63,8 +63,8 @@ export function PieChart({ data, size = 170, thickness = 26, centerLabel, center
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
             <span style={{ width: 9, height: 9, borderRadius: 2, background: d.color || colorAt(i), flexShrink: 0 }} />
             <span style={{ color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={d.label}>{d.label}</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{Math.round(d.value / total * 100)}%</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--text)', minWidth: 54, textAlign: 'right' }}>{valueFmt(d.value)}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{Math.round(d.value / total * 100)}%</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--text)', minWidth: 54, textAlign: 'right' }}>{valueFmt(d.value)}</span>
           </div>
         ))}
       </div>
@@ -83,7 +83,7 @@ export function HBars({ data, valueFmt = v => v, max = 10, color }) {
         <div key={i}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, marginBottom: 3 }}>
             <span style={{ color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.label}>{d.label}</span>
-            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)', flexShrink: 0 }}>{valueFmt(d.value)}</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', flexShrink: 0 }}>{valueFmt(d.value)}</span>
           </div>
           <div style={{ height: 7, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{ width: `${(d.value / peak) * 100}%`, height: '100%', background: color || colorAt(i), transition: 'width 0.4s ease' }} />
@@ -146,7 +146,7 @@ export function BudgetGauge({ name, spent, limit, pct, level }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
         <span style={{ color: 'var(--text)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color }}>{fmtMoney(spent, 'EUR')} / {fmtMoney(limit, 'EUR')} · {p}%</span>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color }}>{fmtMoney(spent, 'EUR')} / {fmtMoney(limit, 'EUR')} · {p}%</span>
       </div>
       <div style={{ height: 9, background: 'var(--border)', borderRadius: 5, overflow: 'hidden' }}>
         <div style={{ width: `${p}%`, height: '100%', background: color, transition: 'width 0.4s ease' }} />

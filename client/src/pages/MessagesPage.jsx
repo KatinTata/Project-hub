@@ -184,7 +184,7 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
   const activeProject = projects.find(p => p.id === activeId) || null
 
   // ── Sidebar label style ─────────────────────────────────────────────────────
-  const sideLabel = { padding: '0 16px 8px', fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textSubtle)' }
+  const sideLabel = { padding: '0 16px 8px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textSubtle)' }
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative', overflow: 'hidden' }}>
@@ -229,7 +229,7 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
                       {p.displayName || p.epicKey}
                     </div>
                     {p.id === activeId && (
-                      <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)', marginTop: 2 }}>
+                      <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)', marginTop: 2 }}>
                         {t('msg2.messagesCount', { n: messages.length })}
                       </div>
                     )}
@@ -265,7 +265,7 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
                         onMouseLeave={e => { e.currentTarget.style.background = threadFilter === th.id ? 'rgba(79,142,247,0.08)' : 'transparent' }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: th.subject ? "'Hanken Grotesk', sans-serif" : (th.id === 'all' ? "'Hanken Grotesk', sans-serif" : "'Hanken Grotesk'"), fontSize: 12, color: threadFilter === th.id ? 'var(--accent)' : 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontFamily: th.subject ? "'Hanken Grotesk', sans-serif" : (th.id === 'all' ? "'Hanken Grotesk', sans-serif" : "'Hanken Grotesk', sans-serif"), fontSize: 12, color: threadFilter === th.id ? 'var(--accent)' : 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {th.subject && <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:3,opacity:0.6,flexShrink:0}}><path d="M1 2.5A1 1 0 012 1.5h8a1 1 0 011 1v5a1 1 0 01-1 1H7L5.5 10 4 8.5H2a1 1 0 01-1-1z"/></svg>}
                             {th.taskKey && !th.subject && <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:3,opacity:0.6,flexShrink:0}}><path d="M5 6.5a2.5 2.5 0 003.5.3l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M7 5.5a2.5 2.5 0 00-3.5-.3l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></svg>}
                             {th.label}
@@ -276,7 +276,7 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
                             </div>
                           )}
                         </div>
-                        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', flexShrink: 0, marginTop: 2 }}>{th.count}</span>
+                        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)', flexShrink: 0, marginTop: 2 }}>{th.count}</span>
                       </button>
                     ))}
                   </div>
@@ -302,7 +302,7 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
                   <div style={{ padding: '0 12px 8px', display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' }}>
                     {[{ id: 'all', label: `${t('msg.all')} (${messages.length})` }, ...threads.map(th => ({ id: th.id, label: th.subject || th.taskKey }))].map(th => (
                       <button key={th.id} onClick={() => setThreadFilter(th.id)}
-                        style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, padding: '3px 10px', borderRadius: 12, border: threadFilter === th.id ? '1px solid var(--accent)' : '1px solid var(--border)', background: threadFilter === th.id ? 'rgba(79,142,247,0.1)' : 'transparent', color: threadFilter === th.id ? 'var(--accent)' : 'var(--textMuted)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                        style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, padding: '3px 10px', borderRadius: 12, border: threadFilter === th.id ? '1px solid var(--accent)' : '1px solid var(--border)', background: threadFilter === th.id ? 'rgba(79,142,247,0.1)' : 'transparent', color: threadFilter === th.id ? 'var(--accent)' : 'var(--textMuted)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
                       >{th.label}</button>
                     ))}
                   </div>
@@ -368,13 +368,13 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
                                 {isMe ? t('msg.me') : m.sender_name}
                               </span>
                               {!isClient && !isMe && m.recipient_name && (
-                                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px' }}>→ {m.recipient_name}</span>
+                                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px' }}>→ {m.recipient_name}</span>
                               )}
                               {!isClient && !isMe && !m.recipient_name && (
-                                <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px' }}>→ {t('msg.toAllClients')}</span>
+                                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px' }}>→ {t('msg.toAllClients')}</span>
                               )}
                             </div>
-                            <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtTime(m.created_at, t)}</span>
+                            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)' }}>{fmtTime(m.created_at, t)}</span>
                           </div>
                         </div>
                       )}
@@ -390,7 +390,7 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
                           )}
                           {m.task_key && (
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 6, padding: '3px 10px' }}>
-                              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--accent)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                 <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M5 6.5a2.5 2.5 0 003.5.3l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M7 5.5a2.5 2.5 0 00-3.5-.3l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></svg>
                                 {m.task_key}
                               </span>
@@ -424,14 +424,14 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
                       value={topicInput}
                       onChange={handleTopicChange}
                       placeholder={t('msg.topicPlaceholder')}
-                      style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, fontFamily: topicType === 'task' ? "'Hanken Grotesk'" : "'Hanken Grotesk', sans-serif", outline: 'none', transition: 'border-color 0.15s' }}
+                      style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, fontFamily: topicType === 'task' ? "'Hanken Grotesk', sans-serif" : "'Hanken Grotesk', sans-serif", outline: 'none', transition: 'border-color 0.15s' }}
                       onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                       onBlur={e => e.target.style.borderColor = 'var(--border)'}
                     />
                     {topicInput.trim() && topicType && (
                       <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                         {topicType === 'task' ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 6, padding: '3px 10px' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--accent)', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 6, padding: '3px 10px' }}>
                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M5 6.5a2.5 2.5 0 003.5.3l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M7 5.5a2.5 2.5 0 00-3.5-.3l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></svg>
                             {topicInput.trim().toUpperCase()}
                             {taskFetchLoading && <span style={{ opacity: 0.6 }}>…</span>}
@@ -472,11 +472,11 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
                       onFocus={e => e.target.style.borderColor = 'var(--accent)'}
                       onBlur={e => e.target.style.borderColor = 'var(--border)'}
                     />
-                    {text.length > 0 && <span style={{ position: 'absolute', bottom: 8, right: 12, fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)', pointerEvents: 'none' }}>{text.length}</span>}
+                    {text.length > 0 && <span style={{ position: 'absolute', bottom: 8, right: 12, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)', pointerEvents: 'none' }}>{text.length}</span>}
                   </div>
                   {/* Hint + Send */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, color: 'var(--textSubtle)' }}>{t('msg.hint')}</span>
+                    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textSubtle)' }}>{t('msg.hint')}</span>
                     <button type="submit" disabled={!text.trim() || sending}
                       style={{ display: 'flex', alignItems: 'center', gap: 6, background: !text.trim() || sending ? 'var(--surfaceAlt)' : 'var(--accent)', color: !text.trim() || sending ? 'var(--textMuted)' : '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, fontSize: 14, cursor: !text.trim() || sending ? 'not-allowed' : 'pointer', transition: 'all 0.2s ease' }}
                     >{sending ? t('msg.sending') : t('msg.send')}</button>

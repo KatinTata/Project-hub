@@ -251,7 +251,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
           {isSuperAdmin && (
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)' }}>
+                <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)' }}>
                   {t('um.organizations')}
                 </div>
                 {!creatingOrg && (
@@ -325,8 +325,8 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
               </div>
 
               <div style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textMuted)', marginBottom: 14, lineHeight: 1.6 }}>
-                {t('um.csvColumnsLabel')} <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>name, email, organization, role</code><br />
-                {t('um.csvColumnWord')} <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>role</code> {t('um.csvRoleNote')}
+                {t('um.csvColumnsLabel')} <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11 }}>name, email, organization, role</code><br />
+                {t('um.csvColumnWord')} <code style={{ background: 'var(--bg)', padding: '1px 6px', borderRadius: 4, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11 }}>role</code> {t('um.csvRoleNote')}
               </div>
 
               <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
@@ -343,7 +343,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
 
               {importRows.length > 0 && (
                 <>
-                  <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)', marginBottom: 8 }}>
+                  <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textMuted)', marginBottom: 8 }}>
                     {t('um.preview')} — {importRows.length} {importRows.length === 1 ? t('um.rowSingular') : t('um.rowPlural')}
                   </div>
                   <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 14 }}>
@@ -351,7 +351,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                       <thead>
                         <tr style={{ background: 'var(--bg)' }}>
                           {[t('um.colName'), 'Email', t('um.colOrganization'), t('um.colRole')].map(h => (
-                            <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                            <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -359,10 +359,10 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                         {importRows.map((r, i) => (
                           <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                             <td style={{ padding: '6px 10px', color: 'var(--text)' }}>{r.name || <span style={{ color: 'var(--red)' }}>!</span>}</td>
-                            <td style={{ padding: '6px 10px', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>{r.email || <span style={{ color: 'var(--red)' }}>!</span>}</td>
+                            <td style={{ padding: '6px 10px', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11 }}>{r.email || <span style={{ color: 'var(--red)' }}>!</span>}</td>
                             <td style={{ padding: '6px 10px', color: 'var(--textMuted)' }}>{r.organization || '—'}</td>
                             <td style={{ padding: '6px 10px' }}>
-                              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, padding: '2px 7px', borderRadius: 20, background: (ROLE_COLORS[r.role] || ROLE_COLORS.user).bg, color: (ROLE_COLORS[r.role] || ROLE_COLORS.user).text }}>
+                              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, padding: '2px 7px', borderRadius: 20, background: (ROLE_COLORS[r.role] || ROLE_COLORS.user).bg, color: (ROLE_COLORS[r.role] || ROLE_COLORS.user).text }}>
                                 {roleLabel(t, r.role || 'user')}
                               </span>
                             </td>
@@ -408,7 +408,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                   <thead>
                     <tr style={{ background: 'var(--bg)' }}>
                       {['Status', t('um.colName'), 'Email', t('um.colOrg'), t('um.colTempPassword')].map(h => (
-                        <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                        <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', borderBottom: '1px solid var(--border)' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -416,16 +416,16 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                     {importResults.map((r, i) => (
                       <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: r.status === 'error' ? 'var(--redTint)' : r.status === 'skipped' ? 'var(--amberTint)' : 'transparent' }}>
                         <td style={{ padding: '6px 10px' }}>
-                          <span style={{ color: r.status === 'created' ? 'var(--green)' : r.status === 'skipped' ? 'var(--amber)' : 'var(--red)', fontFamily: "'Hanken Grotesk'", fontSize: 10 }}>
+                          <span style={{ color: r.status === 'created' ? 'var(--green)' : r.status === 'skipped' ? 'var(--amber)' : 'var(--red)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10 }}>
                             {r.status === 'created' ? t('um.resultOk') : r.status === 'skipped' ? t('um.resultSkip') : t('um.resultErr')}
                           </span>
                         </td>
                         <td style={{ padding: '6px 10px', color: 'var(--text)' }}>{r.name}</td>
-                        <td style={{ padding: '6px 10px', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk'", fontSize: 11 }}>{r.email}</td>
+                        <td style={{ padding: '6px 10px', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11 }}>{r.email}</td>
                         <td style={{ padding: '6px 10px', color: 'var(--textMuted)' }}>{r.organization || '—'}</td>
                         <td style={{ padding: '6px 10px' }}>
                           {r.tempPassword
-                            ? <code style={{ background: 'var(--bg)', padding: '2px 7px', borderRadius: 4, fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--text)', userSelect: 'all' }}>{r.tempPassword}</code>
+                            ? <code style={{ background: 'var(--bg)', padding: '2px 7px', borderRadius: 4, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--text)', userSelect: 'all' }}>{r.tempPassword}</code>
                             : <span style={{ color: 'var(--textMuted)', fontSize: 11 }}>{r.reason || '—'}</span>
                           }
                         </td>
@@ -567,7 +567,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{user.name}</span>
-              <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '2px 7px', borderRadius: 20, background: roleColors.bg, color: roleColors.text, border: `1px solid ${roleColors.border}` }}>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '2px 7px', borderRadius: 20, background: roleColors.bg, color: roleColors.text, border: `1px solid ${roleColors.border}` }}>
                 {roleLabel(t, user.role)}
               </span>
               {user.organizationName && (
@@ -576,7 +576,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
                 </span>
               )}
             </div>
-            <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--textMuted)' }}>{user.email}</div>
+            <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{user.email}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -642,7 +642,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
       {isUserRole && !editMode && (
         <>
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 6 }}>
+            <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 6 }}>
               {t('um.projects')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -650,7 +650,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
                 <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, color: 'var(--textSubtle)', fontStyle: 'italic' }}>{t('dash.noProjects')}</span>
               ) : (
                 (user.projects || []).map(p => (
-                  <span key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 20, padding: '3px 10px', fontFamily: "'Hanken Grotesk'", fontSize: 11, color: 'var(--accent)' }}>
+                  <span key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 20, padding: '3px 10px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--accent)' }}>
                     {p.displayName || p.epicKey}
                     <button onClick={() => onUnassign(p.id)} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center' }}
                       onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
@@ -681,7 +681,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
 }
 
 const labelStyle = {
-  display: 'block', fontSize: 10, fontFamily: "'Hanken Grotesk'",
+  display: 'block', fontSize: 10, fontFamily: "'Hanken Grotesk', sans-serif",
   textTransform: 'uppercase', letterSpacing: '0.08em',
   color: 'var(--textMuted)', marginBottom: 5,
 }

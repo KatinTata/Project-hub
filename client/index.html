@@ -9,10 +9,33 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Project Insight Hub" />
     <title>Intelisale Project Insight Hub</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
+      /* Hanken Grotesk se servira SA NAŠEG domena (client/public/fonts, OFL
+         licenca). Ranije je stizao samo sa Google CDN-a — kad ga mreža/firewall
+         blokira ili kasni, tekst je padao na podrazumevani serif (Times).
+         `font-display: swap` + sans-serif fallback znače da najgori slučaj sada
+         izgleda kao Arial, nikad kao Times. */
+      @font-face {
+        font-family: 'Hanken Grotesk';
+        src: url('/fonts/HankenGrotesk-Regular.ttf') format('truetype');
+        font-weight: 400 500; font-style: normal; font-display: swap;
+      }
+      @font-face {
+        font-family: 'Hanken Grotesk';
+        src: url('/fonts/HankenGrotesk-SemiBold.ttf') format('truetype');
+        font-weight: 600; font-style: normal; font-display: swap;
+      }
+      @font-face {
+        font-family: 'Hanken Grotesk';
+        src: url('/fonts/HankenGrotesk-Bold.ttf') format('truetype');
+        font-weight: 700; font-style: normal; font-display: swap;
+      }
+      @font-face {
+        font-family: 'Hanken Grotesk';
+        src: url('/fonts/HankenGrotesk-ExtraBold.ttf') format('truetype');
+        font-weight: 800 900; font-style: normal; font-display: swap;
+      }
+
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       body { font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif; transition: background 0.3s, color 0.3s; }
       * { transition: background-color 0.3s, border-color 0.3s, color 0.3s; }

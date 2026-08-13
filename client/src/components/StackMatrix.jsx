@@ -29,7 +29,7 @@ function budgetLabel(plan, spent) {
 // Secondary = budget delta (utrošeno vs plan). Full numbers on hover.
 function Cell({ plan, spent, remaining }) {
   if (plan === 0 && spent === 0) {
-    return <div style={{ padding: '8px 10px', textAlign: 'center', color: 'var(--textSubtle)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }}>–</div>
+    return <div style={{ padding: '8px 10px', textAlign: 'center', color: 'var(--textSubtle)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>–</div>
   }
   const donePct = plan > 0 ? Math.max(0, Math.min(1, (plan - remaining) / plan)) * 100 : (spent > 0 ? 100 : 0)
   const bColor = budgetColor(plan, spent)
@@ -37,8 +37,8 @@ function Cell({ plan, spent, remaining }) {
   return (
     <div style={{ padding: '8px 10px' }} title={title}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, alignItems: 'baseline' }}>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{Math.round(donePct)}%</span>
-        <span style={{ fontFamily: "'Hanken Grotesk'", fontSize: 11, color: bColor }}>{budgetLabel(plan, spent)}</span>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{Math.round(donePct)}%</span>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: bColor }}>{budgetLabel(plan, spent)}</span>
       </div>
       <div style={{ height: 5, background: 'var(--border)', borderRadius: 3, marginTop: 5, overflow: 'hidden', display: 'flex' }}>
         <div style={{ width: `${donePct}%`, height: '100%', background: 'var(--green)', transition: 'width 0.4s ease' }} />
@@ -65,7 +65,7 @@ export default function StackMatrix({ tasks, phases }) {
             <span style={{ color: 'var(--green)' }}>Bar = urađeno</span> (po statusu) · desno = utrošeno vs plan · atribucija po komponenti
           </div>
         </div>
-        <div style={{ fontFamily: "'Hanken Grotesk'", fontSize: 12, color: 'var(--textMuted)', textAlign: 'right' }}>
+        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', textAlign: 'right' }}>
           <span style={{ color: 'var(--green)', fontWeight: 600 }}>{grandDonePct}% urađeno</span><br />
           Σ {fmtHours(m.grand.plan)} plan · {fmtHours(m.grand.spent)} utroš
         </div>
@@ -111,7 +111,7 @@ export default function StackMatrix({ tasks, phases }) {
           {showOstalo && (
             <div style={{ padding: '0 16px 12px' }}>
               {m.ostalo.map(o => (
-                <div key={o.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderTop: '1px solid var(--border)', fontFamily: "'Hanken Grotesk'", fontSize: 12 }}>
+                <div key={o.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderTop: '1px solid var(--border)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12 }}>
                   <span style={{ color: 'var(--text)' }}>{o.name}</span>
                   <span style={{ color: 'var(--textMuted)' }}>{fmtHours(o.plan)} plan · {fmtHours(o.spent)} utroš</span>
                 </div>
