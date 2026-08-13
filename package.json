@@ -17,7 +17,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"client/src/**/*.{js,jsx}\" \"server/**/*.js\" \"tests/**/*.js\"",
-    "prepare": "husky"
+    "prepare": "node scripts/prepare.js"
   },
   "lint-staged": {
     "*.{js,jsx}": "eslint --max-warnings=9999"

@@ -12,9 +12,9 @@ export default [
 
   js.configs.recommended,
 
-  // Server (Node ESM)
+  // Server + build/util skripte (Node ESM)
   {
-    files: ['server/**/*.js'],
+    files: ['server/**/*.js', 'scripts/**/*.js'],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
