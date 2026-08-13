@@ -218,6 +218,35 @@ router.post('/tasks', async (req, res) => {
 })
 
 // ── Route: JQL field value suggestions (for quick-filter dropdowns) ───────────
+// Vrednosti polja koje se pojavljuju na samim izdanjima (poslednji fallback).
+// Jira autocomplete ne pokriva sve tipove custom polja (npr. checkbox/select
+// bez indeksiranih sugestija), pa vrednosti čitamo iz stvarnih zadataka.
+async function valuesFromIssues(jira, fieldKey, scopeJql, query) {
+  const { fetchByJql } = await import('../jiraClient.js')
+  const jql = `${scopeJql ? `(${scopeJql}) AND ` : ''}"${fieldKey.replace(/"/g, '')}" IS NOT EMPTY ORDER BY updated DESC`
+  let issues = []
+  try {
+    issues = await fetchByJql(jira.jiraUrl, jql, jira.auth, [fieldKey])
+  } catch {
+    return []
+  }
+  const seen = new Map()
+  const push = v => {
+    if (v == null) return
+    const val = typeof v === 'object' ? (v.value ?? v.name ?? v.displayName) : String(v)
+    if (!val) return
+    if (!seen.has(val)) seen.set(val, { value: val, label: val })
+  }
+  for (const issue of issues.slice(0, 300)) {
+    const raw = issue.fields?.[fieldKey]
+    if (Array.isArray(raw)) raw.forEach(push)
+    else push(raw)
+  }
+  const all = [...seen.values()]
+  const q = (query || '').trim().toLowerCase()
+  return (q ? all.filter(o => o.label.toLowerCase().includes(q)) : all).slice(0, 100)
+}
+
 router.post('/field-suggestions', async (req, res) => {
   try {
     const { projectId, fieldName, query } = req.body
@@ -225,14 +254,56 @@ router.post('/field-suggestions', async (req, res) => {
     const jira = projectId ? getOwnerJiraForProject(req.userId, projectId) : (getUserJira(req.userId) || getSuperAdminJira())
     if (!jira) return res.status(422).json({ error: 'Jira konfiguracija nije podešena' })
     const { jiraGet } = await import('../jiraClient.js')
-    const params = new URLSearchParams({ fieldName })
-    if (query) params.set('fieldValue', query)
-    const data = await jiraGet(jira.jiraUrl, `/jql/autocompletedata/suggestions?${params.toString()}`, jira.auth)
-    const results = (data.results || []).map(r => ({
+
+    const mapResults = data => (data?.results || []).map(r => ({
       value: r.value,
       label: (r.displayName || r.value || '').replace(/<\/?b>/gi, ''),
-    }))
-    res.json({ results })
+    })).filter(o => o.value)
+
+    async function suggest(name) {
+      const params = new URLSearchParams({ fieldName: name })
+      if (query) params.set('fieldValue', query)
+      try {
+        return mapResults(await jiraGet(jira.jiraUrl, `/jql/autocompletedata/suggestions?${params.toString()}`, jira.auth))
+      } catch { return [] }
+    }
+
+    // 1) Ime polja kako ga UI šalje
+    let results = await suggest(fieldName)
+    let source = 'name'
+
+    // 2) Pronađi polje u Jira šemi pa probaj cf[ID] i tačno ime iz Jire —
+    //    autocomplete često radi samo za jedan od ta dva oblika.
+    let field = null
+    if (!results.length) {
+      const wanted = String(fieldName).trim().toLowerCase()
+      const fields = await jiraGet(jira.jiraUrl, '/field', jira.auth).catch(() => [])
+      field = (fields || []).find(f => f.name?.trim().toLowerCase() === wanted)
+        || (fields || []).find(f => f.name?.trim().toLowerCase().includes(wanted))
+      if (field) {
+        const numericId = String(field.id || '').match(/\d+/)?.[0]
+        if (numericId) { results = await suggest(`cf[${numericId}]`); if (results.length) source = 'cf-id' }
+        if (!results.length && field.name && field.name !== fieldName) {
+          results = await suggest(field.name)
+          if (results.length) source = 'jira-name'
+        }
+      }
+    }
+
+    // 3) Poslednji fallback: pokupi stvarne vrednosti sa zadataka projekta
+    if (!results.length && field?.id) {
+      const project = projectId
+        ? db.prepare('SELECT epic_key, filter_type, filter_jql FROM projects WHERE id = ?').get(projectId)
+        : null
+      const scopeJql = project
+        ? (project.filter_type === 'epic' || !project.filter_jql ? `parent = ${project.epic_key}` : project.filter_jql)
+        : ''
+      results = await valuesFromIssues(jira, field.id, scopeJql, query)
+      if (results.length) source = 'issues'
+    }
+
+    if (!results.length) req.log?.info({ fieldName, projectId }, 'field-suggestions: nema vrednosti ni posle fallback-a')
+    res.json({ results, source })
   } catch (err) {
     console.error('field-suggestions error:', err)
     { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
