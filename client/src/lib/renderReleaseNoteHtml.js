@@ -6,8 +6,47 @@ export function esc(s) {
   return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-export function todayStr() {
-  return new Date().toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'long', year: 'numeric' })
+// Jezik OBJAVE (nezavisan od jezika aplikacije): isti tim pravi objave i za
+// domaće i za strane klijente, pa se bira po objavi. 'sr' ostaje podrazumevan.
+export const RN_LANGS = ['sr', 'en']
+
+const RN_STRINGS = {
+  sr: {
+    htmlLang: 'sr',
+    locale: 'sr-Latn-RS',
+    eyebrow: 'PREGLED NOVIH FUNKCIONALNOSTI I ISPRAVKI',
+    title: 'Release Notes',
+    client: 'Klijent',
+    version: 'Verzija',
+    date: 'Datum',
+    product: 'Proizvod',
+    noTasks: 'Nema taskova.',
+    toggleTitle: 'Prikaži/sakrij detalje',
+    exportHtml: '⤓ Izvezi HTML',
+    exportPdf: '↓ Izvezi PDF',
+    footer: 'INTELISALE · Empowering Sales Excellence · www.intelisale.com',
+  },
+  en: {
+    htmlLang: 'en',
+    locale: 'en-GB',
+    eyebrow: 'OVERVIEW OF NEW FEATURES AND FIXES',
+    title: 'Release Notes',
+    client: 'Client',
+    version: 'Version',
+    date: 'Date',
+    product: 'Product',
+    noTasks: 'No items.',
+    toggleTitle: 'Show/hide details',
+    exportHtml: '⤓ Export HTML',
+    exportPdf: '↓ Export PDF',
+    footer: 'INTELISALE · Empowering Sales Excellence · www.intelisale.com',
+  },
+}
+
+export const rnStrings = lang => RN_STRINGS[lang] || RN_STRINGS.sr
+
+export function todayStr(lang = 'sr') {
+  return new Date().toLocaleDateString(rnStrings(lang).locale, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 // Build the rich body HTML for a task: prefer stored bodyHtml, otherwise migrate
@@ -81,8 +120,9 @@ const BRAIN_BG_HTML = `<div class="bg-anim" aria-hidden="true">
 </div>`
 
 export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { sectionOverrides = {}, sectionLabels = {}, expanded = false, hideBar = false } = {}) {
-  const dateStr = esc(meta.date || todayStr())
-  const title = esc(`${meta.clientName || 'Release Notes'} ${config.version || ''}`.trim())
+  const L = rnStrings(config.lang)
+  const dateStr = esc(meta.date || todayStr(config.lang))
+  const title = esc(`${meta.clientName || L.title} ${config.version || ''}`.trim())
   const jiraBase = meta.jiraUrl ? 'https://' + meta.jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '') : null
 
   const groups = {}
@@ -124,7 +164,7 @@ export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { se
       return `<div class="task-card${isSimple ? ' task-card--simple' : ''}" id="${cardId}" data-key="${key}" style="border-left:4px solid ${cfg.color} !important">
         <div class="task-row">
           ${titleHtml}
-          ${hasExpand ? `<button class="expand-btn${expanded ? ' open' : ''}" onclick="toggle('${cardId}')" title="Prikaži/sakrij detalje">▾</button>` : ''}
+          ${hasExpand ? `<button class="expand-btn${expanded ? ' open' : ''}" onclick="toggle('${cardId}')" title="${esc(L.toggleTitle)}">▾</button>` : ''}
         </div>
         ${hasExpand ? `<div class="task-desc${expanded ? ' open' : ''}" id="${cardId}-d">
           <div class="task-desc-inner rn-body">${bodyHtml}</div>
@@ -143,7 +183,7 @@ export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { se
   }).join('')
 
   return `<!DOCTYPE html>
-<html lang="sr">
+<html lang="${L.htmlLang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -314,7 +354,7 @@ export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { se
   <div class="print-header">
     <div class="print-header-left">
       <img src="/logo-dark.png" alt="Intelisale" style="height:20px">
-      <div class="print-header-title">Release Notes</div>
+      <div class="print-header-title">${esc(L.title)}</div>
     </div>
     <div class="print-header-right">
       ${meta.clientName ? `<span class="print-header-client">${esc(meta.clientName)}</span>` : ''}
@@ -330,10 +370,10 @@ export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { se
   </div>
 
   ${hideBar ? '' : `<div class="pbar">
-    <span class="pbar-left">${esc(meta.clientName || 'Intelisale')}${config.version ? ' · ' + esc(config.version) : ''} Release Notes</span>
+    <span class="pbar-left">${esc(meta.clientName || 'Intelisale')}${config.version ? ' · ' + esc(config.version) : ''} ${esc(L.title)}</span>
     <div style="display:flex;gap:8px">
-      <button class="pbtn pbtn--html" onclick="exportHtml()">⤓ Export HTML</button>
-      <button class="pbtn pbtn--pdf" onclick="window.print()">↓ Export PDF</button>
+      <button class="pbtn pbtn--html" onclick="exportHtml()">${esc(L.exportHtml)}</button>
+      <button class="pbtn pbtn--pdf" onclick="window.print()">${esc(L.exportPdf)}</button>
     </div>
   </div>`}
   ${BRAIN_BG_HTML}
@@ -342,18 +382,18 @@ export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { se
       <div class="hero-top">
         <img class="hero-logo-img" src="${esc(meta.origin || '')}/logo-white.png" alt="intelisale">
       </div>
-      <div class="hero-eyebrow"><span class="dot"></span> PREGLED NOVIH FUNKCIONALNOSTI I ISPRAVKI</div>
-      <div class="hero-title">Release Notes</div>
+      <div class="hero-eyebrow"><span class="dot"></span> ${esc(L.eyebrow)}</div>
+      <div class="hero-title">${esc(L.title)}</div>
       <div class="hero-divider"></div>
       <div class="hero-meta">
-        ${meta.clientName ? `<div><div class="hm-l">Klijent</div><div class="hm-v">${esc(meta.clientName)}</div></div>` : ''}
-        ${config.version ? `<div><div class="hm-l">Verzija</div><div class="hm-v">${esc(config.version)}</div></div>` : ''}
-        <div><div class="hm-l">Datum</div><div class="hm-v">${dateStr}</div></div>
-        ${meta.productName ? `<div><div class="hm-l">Proizvod</div><div class="hm-v">${esc(meta.productName)}</div></div>` : ''}
+        ${meta.clientName ? `<div><div class="hm-l">${esc(L.client)}</div><div class="hm-v">${esc(meta.clientName)}</div></div>` : ''}
+        ${config.version ? `<div><div class="hm-l">${esc(L.version)}</div><div class="hm-v">${esc(config.version)}</div></div>` : ''}
+        <div><div class="hm-l">${esc(L.date)}</div><div class="hm-v">${dateStr}</div></div>
+        ${meta.productName ? `<div><div class="hm-l">${esc(L.product)}</div><div class="hm-v">${esc(meta.productName)}</div></div>` : ''}
       </div>
     </div>
     <div class="groups">
-      ${sectionsHtml || '<p style="color:var(--muted);font-family:Hanken Grotesk,sans-serif;text-align:center;padding:40px 0">Nema taskova.</p>'}
+      ${sectionsHtml || `<p style="color:var(--muted);font-family:Hanken Grotesk,sans-serif;text-align:center;padding:40px 0">${esc(L.noTasks)}</p>`}
     </div>
     <div class="footer">INTELISALE · Empowering Sales Excellence · www.intelisale.com</div>
   </div>

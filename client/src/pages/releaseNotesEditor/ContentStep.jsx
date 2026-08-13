@@ -13,7 +13,7 @@ const EMPTY_EDIT = {}
 // re-renderuju. Svi handleri iz hook-ova su stabilni (useCallback + ref).
 const ContentTaskCard = memo(function ContentTaskCard({
   task, edit, prefix, cfgColor, isInsertTarget,
-  aiLoading, aiCooldown, bulkActive, hasBackup, hasAiKey, jiraUrl,
+  aiLoading, aiCooldown, bulkActive, hasBackup, hasAiKey, jiraUrl, langIsEn,
   updateEdit, updateBody, generateTaskDesc, translateTask, revertAi,
   removeFromSelection, showToast, applyDrop, setDragOverTaskId, setDragOverPrefix,
 }) {
@@ -47,7 +47,7 @@ const ContentTaskCard = memo(function ContentTaskCard({
             disabled={aiLoading || aiCooldown || bulkActive}
             title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
             style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldown || bulkActive) ? 0.45 : 1 }}>
-            {t('rne.translate')}
+            {t('rne.translateTo', { lang: t(langIsEn ? 'rne.langNameEn' : 'rne.langNameSr') })}
           </button>
           {hasBackup && (
             <button onClick={() => revertAi(task.id)} title={t('rne.revertTitle')}
@@ -125,7 +125,9 @@ export default function ContentStep({ user, source, edits, sections, config, pre
           </button>
           <button onClick={translateAll} disabled={!!bulkProgress || !hasAiKey}
             style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
-            {bulkProgress?.action === 'translate' ? t('rne.translatingProgress', { current: bulkProgress.current, total: bulkProgress.total }) : t('rne.translateAll')}
+            {bulkProgress?.action === 'translate'
+              ? t('rne.translatingProgress', { current: bulkProgress.current, total: bulkProgress.total })
+              : t('rne.translateAllTo', { lang: t(config.lang === 'en' ? 'rne.langNameEn' : 'rne.langNameSr') })}
           </button>
           {Object.keys(aiBackup).length > 0 && (
             <button onClick={revertAllAi} title={t('rne.revertAllTitle')}
@@ -215,6 +217,7 @@ export default function ContentStep({ user, source, edits, sections, config, pre
                       hasBackup={!!aiBackup[task.id]}
                       hasAiKey={hasAiKey}
                       jiraUrl={user?.jiraUrl}
+                      langIsEn={config.lang === 'en'}
                       updateEdit={updateEdit}
                       updateBody={updateBody}
                       generateTaskDesc={generateTaskDesc}

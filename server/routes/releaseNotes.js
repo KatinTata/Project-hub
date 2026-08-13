@@ -316,8 +316,12 @@ function infoTableCell(text, bold = false) {
 // [{ key, name, text, helpLinks: [{ key, summary }] }] }] }
 router.post('/export/xlsx', async (req, res) => {
   try {
-    const { title = 'Release Notes', clientName = '', version = '', date = '', sections = [] } = req.body
+    const { title = 'Release Notes', clientName = '', version = '', date = '', sections = [], lang = 'sr' } = req.body
     if (!Array.isArray(sections) || !sections.length) return res.status(400).json({ error: 'sections je obavezan' })
+    // Zaglavlja kolona prate jezik objave (isti izbor kao HTML/PDF)
+    const XLSX_HEADS = lang === 'en'
+      ? ['Key', 'Title', 'Description', 'Help desk']
+      : ['Ključ', 'Naziv', 'Opis', 'Help desk']
 
     const wb = new ExcelJS.Workbook()
     const ws = wb.addWorksheet('Release Notes', { views: [{ showGridLines: false }] })
@@ -360,7 +364,7 @@ router.post('/export/xlsx', async (req, res) => {
       r++
 
       // Table header
-      const heads = ['Ključ', 'Naziv', 'Opis', 'Help desk']
+      const heads = XLSX_HEADS
       heads.forEach((t2, i) => {
         const c = ws.getCell(r, i + 1)
         c.value = t2
@@ -506,8 +510,28 @@ router.post('/export/docx', async (req, res) => {
 const AI_PROMPTS = {
   summarize: (text) => `Ti si tehnički pisac. Rezimiri sledeći sadržaj release notes-a u jasne, kratke tačke koje su razumljive i tehničkim i netehničkim korisnicima. Zadrži strukturu ako postoji.\n\n${text}`,
   simplify: (text) => `Ti si tehnički pisac. Uprosti sledeći tekst release notes-a tako da ga mogu razumeti i korisnici koji nisu tehnički. Izbegavaj žargon, koristi jasne i kratke rečenice.\n\n${text}`,
-  translate_sr: (text) => `Prevedi sledeći tekst na srpski jezik (latinica). Zadrži formatiranje (Markdown, bullet liste, naslovi).\n\n${text}`,
-  translate_en: (text) => `Translate the following text to English. Keep the exact same labels and structure (e.g. Summary:, Description:, Image1:, etc.) — only translate the values after the colon. Do not add any explanation or extra text.\n\n${text}`,
+  // Prevod radi u OBA smera: izvorni jezik se ne pretpostavlja (taskovi znaju
+  // biti već na engleskom). Struktura labela (Summary:, Description:, Image1:)
+  // mora ostati netaknuta jer je klijent parsira red po red.
+  translate_sr: (text) => `Prevedi sledeći tekst na srpski jezik. Izvorni tekst može biti na bilo kom jeziku (najčešće engleski ili srpski) — ako je deo teksta već na srpskom, ostavi ga kakav jeste.
+
+PRAVILA:
+- Zadrži POTPUNO ISTE labele i strukturu (Summary:, Description:, Image1:, itd.) — prevodi SAMO vrednosti posle dvotačke.
+- Zadrži formatiranje (Markdown, bullet liste, naslovi).
+- Srpski, ekavica, latinica. NE koristi hrvatske reči i oblike: piši „trougao" (ne „trokut"), „prilagođavanje" (ne „prilagodba"), „nedelja" (ne „tjedan"), „hiljada" (ne „tisuća"), „izveštaj" (ne „izvješće").
+- Zadrži nazive proizvoda, Jira ključeve (npr. PP-1804) i tehničke termine koji se ne prevode.
+- Ne dodaji nikakvo objašnjenje ni dodatni tekst.
+
+${text}`,
+  translate_en: (text) => `Translate the following text to English. The source may be in any language (usually Serbian or English) — if part of it is already in English, leave it as is.
+
+RULES:
+- Keep the exact same labels and structure (e.g. Summary:, Description:, Image1:, etc.) — only translate the values after the colon.
+- Keep formatting (Markdown, bullet lists, headings).
+- Keep product names, Jira keys (e.g. PP-1804) and technical terms that are not translated.
+- Do not add any explanation or extra text.
+
+${text}`,
   generate_description: (text) => `# ULOGA
 Ti si senior product manager u kompaniji Intelisale. Pišeš release notes namenjene
 klijentima — poslovnim korisnicima koji nisu tehnička lica i koje zanima šta se za

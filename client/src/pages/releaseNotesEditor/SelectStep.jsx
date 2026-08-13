@@ -44,6 +44,16 @@ export default function SelectStep({ source, config, setConfigField, isMobile, o
             <input value={config.version} onChange={e => setConfigField('version', e.target.value)} placeholder={t('rne.versionPlaceholder')}
               style={inputStyle} />
           </div>
+          <div>
+            {/* Jezik OBJAVE — nezavisan od jezika aplikacije (klijenti u
+                inostranstvu dobijaju engleski header/labele) */}
+            <label style={labelStyle} htmlFor="rne-lang">{t('rne.outputLang')}</label>
+            <select id="rne-lang" value={config.lang || 'sr'} onChange={e => setConfigField('lang', e.target.value)}
+              style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>
+              <option value="sr">{t('rne.outputLang.sr')}</option>
+              <option value="en">{t('rne.outputLang.en')}</option>
+            </select>
+          </div>
         </div>
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, alignItems: 'flex-start' }}>
           {/* JQL column */}

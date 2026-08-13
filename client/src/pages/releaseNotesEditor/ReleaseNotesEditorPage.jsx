@@ -38,7 +38,8 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
   }
 
   // config (step 1)
-  const [config, setConfig] = useState({ clientName: '', version: '' })
+  // `lang` je jezik OBJAVE (header/labele u HTML-u i Excel-u), ne jezik aplikacije
+  const [config, setConfig] = useState({ clientName: '', version: '', lang: 'sr' })
 
   // step 3
   const [previewTitle, setPreviewTitle] = useState('')
@@ -59,7 +60,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
 
   const source = useTaskSource({ t, showToast, setConfig })
   const { tasks, selectedIds, selectedProject, copiedEdits } = source
-  const edits = useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits, t, showToast })
+  const edits = useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits, outputLang: config.lang, t, showToast })
   const sections = useSections({ tasks, selectedIds })
 
   const hasAiKey = true // server either uses user's key or ANTHROPIC_API_KEY env var
@@ -86,7 +87,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
 
   function goToPreviewStep() {
     setPreviewTitle(`${config.clientName || ''} ${config.version || ''}`.trim() || selectedProject?.displayName || selectedProject?.epicKey || 'Release Notes')
-    setPreviewDate(todayStr())
+    setPreviewDate(todayStr(config.lang))
     setWizardStep(3)
     setMaxStep(s => Math.max(s, 3))
   }
@@ -114,7 +115,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
       version: config.version,
       productName: selectedProject?.displayName || selectedProject?.epicKey || '',
       jiraUrl: user?.jiraUrl || '',
-      date: previewDate || todayStr(),
+      date: previewDate || todayStr(config.lang),
       origin: typeof window !== 'undefined' ? window.location.origin : '',
     }, { sectionOverrides: sections.sectionOverrides, sectionLabels: sections.sectionLabels, expanded, hideBar })
   }
@@ -179,7 +180,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
     const res = await fetch('/api/release-notes/export/xlsx', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ title: name, clientName: config.clientName, version: config.version, date: previewDate || todayStr(), sections: excelSections }),
+      body: JSON.stringify({ title: name, clientName: config.clientName, version: config.version, lang: config.lang || 'sr', date: previewDate || todayStr(config.lang), sections: excelSections }),
     })
     if (!res.ok) { const d = await res.json().catch(() => ({})); showToast(t('rne.excelError', { error: d.error || res.status })); return }
     const blob = await res.blob()

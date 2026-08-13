@@ -16,7 +16,7 @@ async function aiEnhance(action, content) {
 
 // Content-editing domain: per-task edits (name/body), fetched Jira details,
 // AI generate/translate (single + bulk) with undo backups.
-export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits, t, showToast }) {
+export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits, outputLang = 'sr', t, showToast }) {
   const [taskEdits, setTaskEdits] = useState({})
   const [taskJiraDetails, setTaskJiraDetails] = useState({}) // { [id]: { description, loading, error } }
   const [aiLoadingIds, setAiLoadingIds] = useState(new Set())
@@ -31,6 +31,8 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
   detailsRef.current = taskJiraDetails
   const backupRef = useRef(aiBackup)
   backupRef.current = aiBackup
+  const langRef = useRef(outputLang)
+  langRef.current = outputLang
 
   // Seed edits for the current selection (called when entering the content step).
   function seedEditsForSelection() {
@@ -150,7 +152,9 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
       const parts = [`Summary: ${edit.name}`]
       if (edit.description) parts.push(`Description: ${edit.description}`)
       images.forEach((img, i) => { if (img.desc) parts.push(`Image${i + 1}: ${img.desc}`) })
-      const result = await aiEnhance('translate_en', parts.join('\n'))
+      // Prevodi se u JEZIK OBJAVE, ne uvek na engleski — izvorni jezik taska
+      // može biti bilo koji (npr. Jira opis već na engleskom, objava na srpskom).
+      const result = await aiEnhance(langRef.current === 'en' ? 'translate_en' : 'translate_sr', parts.join('\n'))
 
       const lines = result.split('\n')
       const get = (prefix) => {
