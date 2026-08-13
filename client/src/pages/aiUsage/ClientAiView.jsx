@@ -56,7 +56,7 @@ export default function ClientAiView({ user, onLogout, onOpenSettings, onOpenUse
             </div>
           </div>
 
-          {data?.not_mapped ? (
+          {data?.not_mapped || (!data && !loading) ? (
             <div style={{ ...card, textAlign: 'center', padding: 40, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>
               {t('ai2.client.notMapped')}
             </div>

@@ -7,6 +7,7 @@ import BrainAnimation from './components/BrainAnimation.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import UserManagementModal from './components/UserManagementModal.jsx'
 import { setCalcConfig } from './utils/calcConfig.js'
+import { isClientRole } from './utils/roles.js'
 
 // Pages are code-split: each loads its own chunk on first navigation, so the
 // login/initial load no longer ships the whole app (pdfjs, tiptap, dnd-kit).
@@ -118,15 +119,20 @@ export default function App() {
 
   const dashboard = <DashboardPage {...shared} onSetTheme={handleSetTheme} />
 
+  // Klijent (rola user) nema pristup internim rutama ni direktnim URL-om —
+  // server ionako odbija te API-je, ali ni ekran ne sme da se prikaže.
+  const isClient = isClientRole(user.role)
+  const internalOnly = element => (isClient ? <Navigate to="/" replace /> : element)
+
   return (
     <>
       <Routes>
         <Route path="/" element={dashboard} />
-        <Route path="/projects/new" element={dashboard} />
+        <Route path="/projects/new" element={internalOnly(dashboard)} />
         <Route path="/projects/:projectId" element={dashboard} />
         <Route path="/projects/:projectId/:tab" element={dashboard} />
         <Route path="/release-notes" element={<ReleaseNotesPage {...shared} />} />
-        <Route path="/release-notes/editor" element={<ReleaseNotesEditorPage {...shared} />} />
+        <Route path="/release-notes/editor" element={internalOnly(<ReleaseNotesEditorPage {...shared} />)} />
         <Route path="/release-notes/:noteId" element={<ReleaseNotesPage {...shared} />} />
         <Route path="/documents" element={<DocumentsPage {...shared} />} />
         <Route path="/messages" element={<MessagesPage {...shared} />} />
