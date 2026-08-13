@@ -45,7 +45,9 @@ export function useTaskSource({ t, showToast, setConfig }) {
   const [customJql, setCustomJql] = useState('')
   // Quick filters that compose JQL (multi-select values + in/not-in operator per field)
   const [qf, setQf] = useState({ version: [], impact: [], requested: [] })
-  const [qfOp, setQfOp] = useState({ version: 'in', impact: 'in', requested: 'not in' })
+  // Svi filteri podrazumevano uključuju izabrane vrednosti ('in'); 'not in' je
+  // izuzetak koji korisnik svesno bira po polju.
+  const [qfOp, setQfOp] = useState({ version: 'in', impact: 'in', requested: 'in' })
   const [fetchTrigger, setFetchTrigger] = useState(0)
 
   const [search, setSearch] = useState('')
@@ -124,6 +126,9 @@ export function useTaskSource({ t, showToast, setConfig }) {
     })
     if (!res.ok) return []
     const d = await res.json()
+    // `reason` stiže samo kad je prazno — prosleđujemo ga UI-ju da korisnik vidi
+    // da li polje uopšte postoji u Jiri ili nema vrednosti (P3 dijagnostika).
+    if (!d.results?.length && d.reason) return { results: [], reason: d.reason }
     return d.results || []
   }
 

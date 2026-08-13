@@ -8,6 +8,7 @@ export default function JqlFieldSelect({ label, fieldName, values, onChange, op,
   const [open, setOpen] = useState(false)
   const [opts, setOpts] = useState([])     // accumulated suggestions (merged across fetches)
   const [loading, setLoading] = useState(false)
+  const [emptyReason, setEmptyReason] = useState(null)
   const tRef = useRef(null)
   const mergeIn = list => setOpts(prev => { const m = new Map(prev.map(o => [o.value, o])); for (const o of (list || [])) m.set(o.value, o); return [...m.values()] })
   // Fetch base list on open, then more as the user types — merge so values stay
@@ -17,7 +18,11 @@ export default function JqlFieldSelect({ label, fieldName, values, onChange, op,
     clearTimeout(tRef.current)
     tRef.current = setTimeout(async () => {
       setLoading(true)
-      try { mergeIn(await fetchSuggestions(fieldName, q)) } catch { /* keep what we have */ } finally { setLoading(false) }
+      try {
+        const r = await fetchSuggestions(fieldName, q)
+        if (Array.isArray(r)) { mergeIn(r); setEmptyReason(null) }
+        else { mergeIn(r?.results); setEmptyReason(r?.reason || null) }
+      } catch { /* keep what we have */ } finally { setLoading(false) }
     }, 200)
     return () => clearTimeout(tRef.current)
   }, [q, open]) // eslint-disable-line
@@ -58,7 +63,13 @@ export default function JqlFieldSelect({ label, fieldName, values, onChange, op,
             </button>
           ))}
           {!loading && free.length === 0 && (
-            <div style={{ padding: '8px 10px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)' }}>{t('rne.noSuggestions')}</div>
+            <div style={{ padding: '8px 10px', fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', lineHeight: 1.5 }}>
+              {emptyReason === 'field-not-found'
+                ? t('rne.fieldNotFound', { field: fieldName })
+                : emptyReason === 'no-values'
+                  ? t('rne.fieldNoValues')
+                  : t('rne.noSuggestions')}
+            </div>
           )}
         </div>
       )}

@@ -221,15 +221,26 @@ router.post('/tasks', async (req, res) => {
 // Vrednosti polja koje se pojavljuju na samim izdanjima (poslednji fallback).
 // Jira autocomplete ne pokriva sve tipove custom polja (npr. checkbox/select
 // bez indeksiranih sugestija), pa vrednosti čitamo iz stvarnih zadataka.
-async function valuesFromIssues(jira, fieldKey, scopeJql, query) {
+async function valuesFromIssues(jira, field, scopeJql, query) {
   const { fetchByJql } = await import('../jiraClient.js')
-  const jql = `${scopeJql ? `(${scopeJql}) AND ` : ''}"${fieldKey.replace(/"/g, '')}" IS NOT EMPTY ORDER BY updated DESC`
+  const fieldKey = field.id                                   // customfield_10123 — za `fields`
+  const numericId = String(field.id || '').match(/\d+/)?.[0]  // 10123 — za JQL
+  // JQL NE prihvata "customfield_10123"; ispravni oblici su cf[10123] ili
+  // ime polja pod navodnicima. Probamo oba (neka polja rade samo sa imenom).
+  const jqlRefs = [
+    ...(numericId ? [`cf[${numericId}]`] : []),
+    ...(field.name ? [`"${field.name.replace(/"/g, '')}"`] : []),
+  ]
+
   let issues = []
-  try {
-    issues = await fetchByJql(jira.jiraUrl, jql, jira.auth, [fieldKey])
-  } catch {
-    return []
+  for (const ref of jqlRefs) {
+    const jql = `${scopeJql ? `(${scopeJql}) AND ` : ''}${ref} IS NOT EMPTY ORDER BY updated DESC`
+    try {
+      issues = await fetchByJql(jira.jiraUrl, jql, jira.auth, [fieldKey])
+      if (issues.length) break
+    } catch { /* probaj sledeći oblik reference */ }
   }
+  if (!issues.length) return []
   const seen = new Map()
   const push = v => {
     if (v == null) return
@@ -298,12 +309,19 @@ router.post('/field-suggestions', async (req, res) => {
       const scopeJql = project
         ? (project.filter_type === 'epic' || !project.filter_jql ? `parent = ${project.epic_key}` : project.filter_jql)
         : ''
-      results = await valuesFromIssues(jira, field.id, scopeJql, query)
+      results = await valuesFromIssues(jira, field, scopeJql, query)
       if (results.length) source = 'issues'
     }
 
-    if (!results.length) req.log?.info({ fieldName, projectId }, 'field-suggestions: nema vrednosti ni posle fallback-a')
-    res.json({ results, source })
+    // Kad je prazno, vrati i RAZLOG — bez toga se ne vidi da li je ime polja
+    // pogrešno ili Jira jednostavno nema vrednosti za njega.
+    let reason = null
+    if (!results.length) {
+      reason = field ? 'no-values' : 'field-not-found'
+      req.log?.info({ fieldName, projectId, reason, jiraFieldName: field?.name, jiraFieldId: field?.id },
+        'field-suggestions: nema vrednosti ni posle fallback-a')
+    }
+    res.json({ results, source, reason, matchedField: field ? { id: field.id, name: field.name } : null })
   } catch (err) {
     console.error('field-suggestions error:', err)
     { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
