@@ -153,7 +153,8 @@ export default function Topbar({
           />
           {!isMobile && (
             <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 16, color: 'var(--text)', flexShrink: 0 }}>
-              Project Insight Hub
+              {/* P3-1: klijent vidi naziv svoje organizacije umesto naziva alata */}
+              {isClient && user?.organizationName ? user.organizationName : 'Project Insight Hub'}
             </span>
           )}
         </div>

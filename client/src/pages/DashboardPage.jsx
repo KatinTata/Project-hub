@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import Topbar from '../components/Topbar.jsx'
 import ProjectTabs from '../components/ProjectTabs.jsx'
 import ProjectCard from '../components/ProjectCard.jsx'
+import ClientOverview from '../components/portal/ClientOverview.jsx'
 import ArchiveModal from '../components/ArchiveModal.jsx'
 import BrainAnimation from '../components/BrainAnimation.jsx'
 import ClientNotificationModal from '../components/ClientNotificationModal.jsx'
@@ -300,7 +301,17 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
             </div>
           )}
 
-          {activeProject && (
+          {activeProject && isClient ? (
+            // P3-1: klijent dobija namenski portal-pregled, ne admin karticu
+            <ClientOverview
+              key={activeProject.id}
+              project={activeProject}
+              data={projectData[activeProject.id]}
+              loading={!!loadingProjects[activeProject.id]}
+              error={errorProjects[activeProject.id]}
+              unreadCount={unreadCount}
+            />
+          ) : activeProject && (
             <ProjectCard
               key={activeProject.id}
               project={activeProject}

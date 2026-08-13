@@ -66,6 +66,30 @@ function getClientOwnerJiraByProjectId(clientUserId, projectId) {
   return getUserJira(assignment.ownerId) || getSuperAdminJira()
 }
 
+// P3-1: polja koja rola `user` nikad ne sme da dobije sa servera (interni
+// sati, imena izvršilaca, worklogovi, sirova custom polja). Naplativi sati
+// ostaju samo ako je politika clientShowsBillableHours = 'true'.
+const CLIENT_STRIPPED_FIELDS = [
+  'worklog', 'worklogEntries', 'assignee', 'reporter',
+  'timespent', 'timeoriginalestimate', 'timeestimate',
+  'aggregatetimespent', 'aggregatetimeoriginalestimate', 'aggregatetimeestimate',
+  'timetracking',
+]
+
+function stripInternalFields(issue, { showBillable = false } = {}) {
+  if (!issue?.fields) return issue
+  for (const f of CLIENT_STRIPPED_FIELDS) delete issue.fields[f]
+  if (!showBillable) {
+    delete issue.fields.billable
+    delete issue.fields.hoursToBill
+  }
+  for (const key of Object.keys(issue.fields)) {
+    if (key.startsWith('customfield_')) delete issue.fields[key]
+  }
+  delete issue.changelog
+  return issue
+}
+
 router.get('/epic/:epicKey', async (req, res) => {
   try {
     if (!isValidJiraKey(req.params.epicKey)) return res.status(400).json({ error: 'Nevalidan Jira ključ' })
@@ -75,6 +99,7 @@ router.get('/epic/:epicKey', async (req, res) => {
       : getUserJira(req.userId) || getSuperAdminJira()
     if (!jira) return res.status(400).json({ error: 'Jira nije konfigurisan' })
     const data = await jiraGet(jira.jiraUrl, `/issue/${encodeURIComponent(req.params.epicKey)}`, jira.auth)
+    if (role === 'user') stripInternalFields(data)
     res.json(data)
   } catch (err) {
     { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
@@ -197,6 +222,19 @@ router.post('/tasks', async (req, res) => {
           }
         }
       } catch { /* epic fetch is best-effort */ }
+    }
+
+    // P3-1: client-safe DTO — rola `user` NE dobija interne brojeve ni imena.
+    // UI skrivanje nije zaštita: strip se radi na serveru, pre slanja.
+    if (role === 'user') {
+      const showBillable = db.prepare("SELECT v FROM app_settings WHERE k = 'clientShowsBillableHours'").get()?.v === 'true'
+      for (const issue of [...parents, ...subtasks]) stripInternalFields(issue, { showBillable })
+      return res.json({
+        parents, subtasks,
+        epicSelf: null, // sati na samom epiku su interni podatak
+        hasBillableField: showBillable && !!billableKey,
+        hasModuleField: !!moduleKey,
+      })
     }
 
     res.json({ parents, subtasks, epicSelf, hasBillableField: !!billableKey, hasModuleField: !!moduleKey })
