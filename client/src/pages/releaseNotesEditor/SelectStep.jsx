@@ -63,7 +63,7 @@ export default function SelectStep({ source, config, setConfigField, isMobile, o
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 <JqlFieldSelect label="Fix Version" fieldName="fixVersion" values={qf.version} onChange={v => setQf(p => ({ ...p, version: v }))} op={qfOp.version} onOpChange={o => setQfOp(p => ({ ...p, version: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder={t('rne.egVersion')} />
                 <JqlFieldSelect label="Client - Impact Scope" fieldName="Client - Impact Scope" values={qf.impact} onChange={v => setQf(p => ({ ...p, impact: v }))} op={qfOp.impact} onOpChange={o => setQfOp(p => ({ ...p, impact: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder={t('rne.egImpact')} />
-                <JqlFieldSelect label="Client Requested" fieldName="Client Requested" values={qf.requested} onChange={v => setQf(p => ({ ...p, requested: v }))} op={qfOp.requested} onOpChange={o => setQfOp(p => ({ ...p, requested: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder={t('rne.egRequested')} />
+                <JqlFieldSelect label="Client - Requesting" fieldName="Client - Requesting" values={qf.requested} onChange={v => setQf(p => ({ ...p, requested: v }))} op={qfOp.requested} onOpChange={o => setQfOp(p => ({ ...p, requested: o }))} fetchSuggestions={fetchFieldSuggestions} placeholder={t('rne.egRequested')} />
                 <button onClick={applyQuickFilters} style={{ ...smallBtnStyle, height: 34 }}>{t('rne.buildJql')}</button>
               </div>
             </div>

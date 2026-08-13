@@ -110,7 +110,10 @@ export function useTaskSource({ t, showToast, setConfig }) {
     const parts = [
       clause('fixVersion', qfOp.version, qf.version),
       clause('"Client - Impact Scope"', qfOp.impact, qf.impact),
-      clause('"Client Requested"', qfOp.requested, qf.requested),
+      // Tačan naziv polja u Jiri je "Client - Requesting" (cf[11793]); pod
+      // starim nazivom "Client Requested" polje ne postoji, pa su sugestije
+      // i JQL uvek bili prazni.
+      clause('"Client - Requesting"', qfOp.requested, qf.requested),
     ].filter(Boolean)
     if (!parts.length) { showToast(t('rne.quickFilterEmpty')); return }
     setCustomJql(parts.join(' AND '))

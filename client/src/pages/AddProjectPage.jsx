@@ -211,7 +211,8 @@ function CombinedTab({ t, epicKey, setEpicKey, project, setProject, status, setS
         </div>
         <div>
           <label style={labelStyle}>{t('addProject.combined.clientRequested')}</label>
-          <FieldSelect fieldName="Client Requested" values={clientRequested} onChange={setClientRequested} placeholder={t('ap.ph.clientRequested')} />
+          {/* Tačan naziv polja u Jiri je "Client - Requesting" (cf[11793]) */}
+          <FieldSelect fieldName="Client - Requesting" values={clientRequested} onChange={setClientRequested} placeholder={t('ap.ph.clientRequested')} />
         </div>
         <div>
           <label style={labelStyle}>{t('ap.field.status')}</label>
@@ -429,7 +430,7 @@ function buildCombinedJql({ epicKey, project, fixVersion, clientScope, clientReq
   if (epicKey?.trim()) parts.push(`parent = ${epicKey.trim().toUpperCase()}`)
   if (fixVersion?.length) parts.push(`fixVersion in (${jqlList(fixVersion)})`)
   if (clientScope?.length) parts.push(`"Client - Impact Scope" in (${jqlList(clientScope)})`)
-  if (clientRequested?.length) parts.push(`"Client Requested" in (${jqlList(clientRequested)})`)
+  if (clientRequested?.length) parts.push(`"Client - Requesting" in (${jqlList(clientRequested)})`)
   if (sprints?.length) parts.push(`Sprint in (${jqlList(sprints)})`)
   if (status?.length) parts.push(`status in (${jqlList(status)})`)
   if (dateFrom) parts.push(`created >= "${dateFrom}"`)
