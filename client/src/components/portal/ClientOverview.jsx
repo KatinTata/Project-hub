@@ -5,11 +5,11 @@ import { api } from '../../api.js'
 import { usePhasesQuery } from '../../queries.js'
 import { useT } from '../../lang.jsx'
 import { fmtDateLong } from '../../utils/format.js'
-import PhaseProgress from '../PhaseProgress.jsx'
 import TaskTable from '../TaskTable.jsx'
 import Card from '../../ui/Card.jsx'
 import Button from '../../ui/Button.jsx'
-import { useCollapsedSections, CollapseToggle } from '../../ui/collapse.jsx'
+import { CollapseToggle } from '../../ui/collapse.jsx'
+import { StatusDonut, ProgressTrend, PhaseBars } from './ClientCharts.jsx'
 
 // P3-1: klijentski pregled projekta — "story", ne dashboard. Prikazuje SAMO
 // klijentu relevantno: napredak, status na putu/kasni (iz faza, bez internih
@@ -108,7 +108,6 @@ function OnboardingCard({ t, onDismiss }) {
 export default function ClientOverview({ project, data, loading, error, unreadCount }) {
   const t = useT()
   const navigate = useNavigate()
-  const { collapsed: sec, toggle: toggleSec } = useCollapsedSections('jt_portal_sections')
   const [introDismissed, setIntroDismissed] = useState(() => localStorage.getItem('jt_portal_intro') === '1')
   // Taskovi su default SKLOPLJENI ("story, ne dashboard") — zaseban ključ
   const [tasksOpen, setTasksOpen] = useState(() => localStorage.getItem('jt_portal_tasks_open') === '1')
@@ -210,16 +209,14 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
         />
       </div>
 
-      {/* Faze */}
-      <Card style={{ padding: '20px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: sec.phases ? 0 : 14 }}>
-          <CollapseToggle open={!sec.phases} onClick={() => toggleSec('phases')} label={t('portal.section.phases')} />
-          <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>
-            {t('portal.section.phases')}
-          </span>
-        </div>
-        {!sec.phases && <PhaseProgress phases={phases} tasksByPhase={tasksByPhase} />}
-      </Card>
+      {/* Grafikoni: raspodela statusa + trend napretka */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, alignItems: 'start' }}>
+        <StatusDonut data={data} />
+        <ProgressTrend projectId={project.id} />
+      </div>
+
+      {/* Napredak po fazama (trake) */}
+      <PhaseBars phases={phases} tasksByPhase={tasksByPhase} />
 
       {/* Izveštaji poslati klijentu (P3-2) */}
       {myReports.length > 0 && (

@@ -51,9 +51,14 @@ router.post('/login', async (req, res) => {
     // sharedJira must ship at login too (not only /me) — otherwise admins who
     // inherit the org connection look "unconnected" until a manual refresh.
     const sharedJira = !!db.prepare("SELECT 1 FROM users WHERE role = 'super_admin' AND jira_url IS NOT NULL AND jira_token IS NOT NULL LIMIT 1").get()
+    // organizationName isto mora u login odgovor (ne samo /me) — klijentski
+    // Topbar prikazuje naziv firme odmah, bez čekanja na refresh.
+    const orgName = user.organization_id
+      ? db.prepare('SELECT name FROM organizations WHERE id = ?').get(user.organization_id)?.name || null
+      : null
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira, organizationName: orgName },
     })
   } catch (err) {
     console.error(err)

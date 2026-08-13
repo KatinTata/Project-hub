@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import Badge from '../ui/Badge.jsx'
 import ProgressBar from '../ui/ProgressBar.jsx'
@@ -458,11 +458,31 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
 // skrolbara); measureElement meri stvarnu visinu pa expand/collapse radi.
 function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isClient, onOpenMessages, jiraUrl }) {
   const listRef = useRef(null)
+  // scrollMargin mora biti APSOLUTNA pozicija liste u dokumentu. Ranije se
+  // čitao offsetTop pri prvom renderu (ref još null → 0) i nikad se nije
+  // ažurirao, pa je iznad prvih redova ostajala velika prazna površina.
+  // Sada merimo pravu poziciju i re-merimo kad se layout iznad liste promeni
+  // (sklapanje sekcija, promena taba, resize).
+  const [scrollMargin, setScrollMargin] = useState(0)
+  useLayoutEffect(() => {
+    function measure() {
+      const el = listRef.current
+      if (!el) return
+      const top = el.getBoundingClientRect().top + window.scrollY
+      setScrollMargin(prev => (Math.abs(prev - top) > 1 ? top : prev))
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    const ro = new ResizeObserver(measure)
+    ro.observe(document.body)
+    return () => { window.removeEventListener('resize', measure); ro.disconnect() }
+  }, [])
+
   const virtualizer = useWindowVirtualizer({
     count: filtered.length,
     estimateSize: () => 56,
     overscan: 12,
-    scrollMargin: listRef.current?.offsetTop ?? 0,
+    scrollMargin,
     getItemKey: i => filtered[i].key,
   })
 

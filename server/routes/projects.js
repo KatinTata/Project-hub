@@ -229,9 +229,16 @@ router.get('/:id/snapshots', (req, res) => {
   // sa višegodišnjom istorijom ne šalje sve. ?limit menja opseg.
   const limit = Math.min(2000, Math.max(1, parseInt(req.query.limit, 10) || 366))
   const rows = db.prepare('SELECT day, payload FROM (SELECT day, payload FROM project_snapshots WHERE project_id = ? ORDER BY day DESC LIMIT ?) ORDER BY day ASC').all(req.params.id, limit)
+  const isClient = !isAdminRole(role)
   res.json(rows.map(r => {
     let payload = {}
-    try { payload = JSON.parse(r.payload) } catch {}
+    try { payload = JSON.parse(r.payload) } catch { /* pokvaren payload — prazan dan */ }
+    // Klijent (rola user) dobija SAMO brojeve stavki po statusu; interni sati
+    // (totalEst/totalSpent/billableSpent/stacks) se ne šalju (P3-1 politika).
+    if (isClient) {
+      const { total = 0, done = 0, inprog = 0, testing = 0, todo = 0, unknown = 0 } = payload
+      return { day: r.day, total, done, inprog, testing, todo, unknown }
+    }
     return { day: r.day, ...payload }
   }))
 })
