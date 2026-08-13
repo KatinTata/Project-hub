@@ -36,7 +36,7 @@ npm run lint       # eslint (0 errors obavezno; warnings dozvoljeni)
 ```
 server/
   index.js            # Express entry: helmet, CORS, rate limiti, /health, /rn/:token, global error handler
-  db.js               # SQLite setup, CREATE TABLE + aditivne migracije + indeksi (29 tabela)
+  db.js               # SQLite setup, CREATE TABLE + aditivne migracije + indeksi (36 tabela)
   auth.js             # authMiddleware: JWT verify (HS256) + postojanje korisnika + token_version + req.userRole
   rbac.js             # getRole, roleFrom, isAdminRole, isSuperAdmin, requireAdmin, requireSuperAdmin
   logger.js           # pino + pino-http (request ID, JSON logovi)
@@ -102,13 +102,19 @@ tests/                # vitest: utils, stacks, forecast, capacity, pricing, fx, 
 
 **audit** (`/api/audit`): GET `/` SA
 
+**faq** (`/api/faq`): GET `/` U (po `?lang=`) · POST/PUT/DELETE A (sanitize-html na odgovoru)
+
+**alerts** (`/api/alerts`, P3-3): GET `/my` U (in-app upozorenja kroz alert_deliveries) · PUT `/my/read-all` U · GET+PUT `/:projectId/rules` A (vlasnik; efektivna pravila projekat>global>default) · GET `/:projectId/history` A · POST `/:id/ack` A
+
+**reports — automatski (P3-2, u `/api/reports`)**: GET+POST `/:projectId/schedules`, PUT+DELETE `/schedules/:id`, POST `/schedules/:id/run-now`, GET `/:projectId/runs` A (vlasnik) · GET `/my/runs` + GET `/runs/:id/download` U (klijent: samo audience=clients na dodeljenim projektima)
+
 **ai-usage** (`/api/ai-usage`; pregled A, upravljanje SA, `/my*` za klijente):
 GET `/dashboard`, `/trends`, `/by-client`, `/by-source`, `/by-app`, `/by-model`, `/tenants`, `/tenant-report`, `/filter-options` A ·
 GET+PUT `/admin/config`, POST `/admin/test`, PUT `/admin/pricing-config`, GET `/admin/models`, PUT `/admin/models/:modelName`, GET `/admin/history`, POST `/admin/sync` (Azure cene), POST `/admin/fx-fetch` (NBS kursevi), GET `/admin/mappings`, POST `/admin/mappings/discover`, PUT `/admin/mappings/:tenantId` SA ·
 GET `/alerts`, POST `/alerts/:id/ack` A · GET `/budgets` A, PUT `/budgets/:tenantId` SA, POST `/budgets/check` SA · GET `/packages` A, POST+PUT+DELETE `/admin/packages*` SA ·
 GET `/my`, `/my-budget` U (klijent preko `client_tenant_users`) · GET `/export/xlsx`, `/export/html` A
 
-## Baza (29 tabela u server/db.js — aditivne migracije, NIKAD destruktivne)
+## Baza (36 tabela u server/db.js — aditivne migracije, NIKAD destruktivne)
 
 | Tabela | Svrha / ključne kolone |
 |---|---|
@@ -141,8 +147,22 @@ GET `/my`, `/my-budget` U (klijent preko `client_tenant_users`) · GET `/export/
 | `tenant_budgets` | tenant_id PK, monthly_limit_eur, warning_pct, package_id, sent_* mesečni markeri |
 | `ai_packages` | paketi: monthly_fee_eur, included_eur |
 | `ai_usage_alerts` | budžet alarmi: tenant, level, month (UNIQUE trojka), acked_at |
+| `faq` | FAQ iz baze (P2-E1): category, lang, question, answer (sanitizovan HTML), keywords, position |
+| `report_schedules` | automatski izveštaji (P3-2): project_id, cadence, day/hour, recipients_mode |
+| `report_recipients` | custom email primaoci po rasporedu |
+| `report_runs` | istorija slanja; UNIQUE(schedule_id, period) = dedup; period NULL za ručno |
+| `alert_rules` | pravila upozorenja (P3-3): scope project/global, type, threshold, channel, audience; UNIQUE(scope, project_id, type) |
+| `alerts` | nastali alarmi; dedup_key UNIQUE sprečava ponavljanje; ack polja |
+| `alert_deliveries` | in-app isporuke po korisniku (read_at) |
 
-## Obračunska logika (testirana — tests/, 160+ testova)
+## Politike klijentskog portala (P3 odluke)
+
+- **Klijent NE vidi utrošene/naplative sate** — server strip u `jira.js` (client-safe DTO za rolu `user`: bez worklogova, imena, estimacija, sirovih custom polja). Izuzetak: `app_settings.clientShowsBillableHours = 'true'` vraća SAMO naplative sate (nikad estimacije/overrun). Default: isključeno.
+- **Podrazumevana kadenca izveštaja**: nedeljno, ponedeljak 08:00 (Beograd) — default vrednosti forme.
+- **Upozorenja klijentu**: samo `new_release` (default publika client); `overrun`/`phase_delay`/`no_activity` idu internom timu. AI budžeti ostaju u `ai_usage_alerts` (ne dupliraju se).
+- **Mejl po alarmu je trenutan uz dedup** (bez dnevnog digest-a za sada) — kanal po pravilu (in_app/email/both).
+
+## Obračunska logika (testirana — tests/, 180+ testova)
 
 - `processEpicData` (utils.js): kategorije done/testing/inprog/todo/**unknown** (nepoznat status NE pada u inprog), prag prekoračenja 15%, orphan subtaskovi, epicSelf red, hoursToBill sati→sekunde
 - `stacks.js`: STACKS = Backend/Frontend/Mobile/Database/Testing/Ostalo; `remainingOf` — otvoren task preko plana zadržava rep 10% estimacije (OVERRUN_TAIL_PCT); `buildRoster` — jedini izvor broja ljudi po steku
