@@ -223,12 +223,13 @@ export default function SelectStep({ source, config, setConfigField, isMobile, o
             <div style={{ padding: 24, margin: 16, borderRadius: 8, background: 'var(--redTint)', border: '1px solid var(--red)', color: 'var(--red)', fontFamily: 'Hanken Grotesk', fontSize: 13 }}>
               <strong>{t('rne.errorLabel')}:</strong> {taskError}
             </div>
-          ) : (!selectedProject && !customJql.trim()) ? (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
           ) : filteredTasks.length === 0 ? (
+            // Bez uslova na projekat/JQL — kopirani taskovi postoje i kad je
+            // projekat prazan a JQL očišćen (kopija bez projekta).
             <div style={{ padding: 40, textAlign: 'center', color: 'var(--textMuted)', fontFamily: 'Hanken Grotesk', fontSize: 14 }}>{t('rne.noTasksEmpty')}</div>
           ) : filteredTasks.map(task => (
-            <Step1Row key={task.id} task={task} selected={selectedIds.has(task.id)} onToggle={() => toggleSelected(task.id)} />
+            <Step1Row key={task.id} task={task} selected={selectedIds.has(task.id)} onToggle={() => toggleSelected(task.id)}
+              origin={copiedEdits ? (copiedEdits[task.key] ? 'copied' : 'new') : null} />
           ))}
         </div>
       </div>

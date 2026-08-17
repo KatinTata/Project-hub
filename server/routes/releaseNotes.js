@@ -926,7 +926,7 @@ router.get('/:id/detail', (req, res) => {
     if (role === 'user') {
       note = db.prepare(`
         SELECT pn.id, pn.token, pn.title, pn.version, pn.status, pn.created_at, pn.released_at, pn.html,
-               p.display_name as project_name, p.epic_key
+               pn.project_id, p.display_name as project_name, p.epic_key
         FROM release_note_clients rnc
         JOIN published_notes pn ON pn.id = rnc.note_id
         LEFT JOIN projects p ON p.id = pn.project_id
@@ -935,7 +935,7 @@ router.get('/:id/detail', (req, res) => {
     } else {
       note = db.prepare(`
         SELECT pn.id, pn.token, pn.title, pn.version, pn.status, pn.created_at, pn.released_at, pn.html,
-               p.display_name as project_name, p.epic_key,
+               pn.project_id, p.display_name as project_name, p.epic_key,
                (SELECT COUNT(*) FROM release_note_clients WHERE note_id = pn.id) as client_count
         FROM published_notes pn
         LEFT JOIN projects p ON p.id = pn.project_id

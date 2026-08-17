@@ -145,9 +145,11 @@ export function useTaskSource({ t, showToast, setConfig }) {
       const keys = Object.keys(edits)
       if (keys.length === 0) { showToast(t('rne.noTasks')); return }
 
+      // Projekat je OPCION: release notes može biti objavljen bez projekta
+      // (bare-JQL tok) ili je projekat u međuvremenu arhiviran — tada taskove
+      // vučemo čistim JQL-om preko sopstvenih Jira kredencijala.
       const pid = noteData.project_id || note.project_id
-      const proj = pid ? projects.find(p => p.id === pid) : selectedProject
-      if (!proj) { showToast(t('rne.projectNotFound')); return }
+      const proj = (pid ? projects.find(p => p.id === pid) : null) || selectedProject || null
 
       // Fetch only the copied tasks directly (bypass useEffect)
       setLoadingTasks(true)
@@ -155,7 +157,7 @@ export function useTaskSource({ t, showToast, setConfig }) {
       const res = await fetch('/api/release-notes/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ projectId: proj.id, customJql: `issuekey IN (${keys.join(', ')})` }),
+        body: JSON.stringify({ ...(proj ? { projectId: proj.id } : {}), customJql: `issuekey IN (${keys.join(', ')})` }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
@@ -167,14 +169,20 @@ export function useTaskSource({ t, showToast, setConfig }) {
       setConfig({ clientName, version })
 
       // Skip the useEffect that would fire if project changes
-      if (proj.id !== selectedProject?.id) skipNextFetchRef.current = true
-      setSelectedProject(proj)
+      if (proj && proj.id !== selectedProject?.id) {
+        skipNextFetchRef.current = true
+        setSelectedProject(proj)
+      }
       setCopiedEdits(edits)
       setTasks(loaded)
       setSelectedIds(new Set(loaded.filter(t => edits[t.key]).map(t => t.id)))
       setCustomJql('') // clear JQL — user can add more via JQL below
       setCopyDropOpen(false)
-      showToast(t('rne.copyLoaded') + `: ${loaded.length} / "${noteData.title || 'release notes'}"`)
+      // Jedan toast — showToast zamenjuje prethodni, pa se poruke spajaju.
+      // Bez (vidljivog) projekta korisnik mora znati zašto je polje projekta
+      // prazno i da nove taskove dodaje JQL-om.
+      showToast(t('rne.copyLoaded') + `: ${loaded.length} / "${noteData.title || 'release notes'}"`
+        + (proj ? '' : ` — ${t('rne.copyNoProject')}`))
     } catch (err) {
       showToast(t('rne.errorLabel') + ': ' + (err.message || t('rne.unknownError')))
     } finally {
@@ -183,9 +191,11 @@ export function useTaskSource({ t, showToast, setConfig }) {
     }
   }
 
-  // Adds more tasks via JQL on top of existing list (merge mode when copiedEdits active)
+  // Adds more tasks via JQL on top of existing list (merge mode when copiedEdits active).
+  // Projekat nije obavezan — bez njega server koristi sopstvene Jira kredencijale,
+  // pa se dodavanje radi i kad je kopirano iz release notes-a bez projekta.
   async function handleAddByJql() {
-    if (!selectedProject || !customJql.trim()) return
+    if (!customJql.trim()) return
     setLoadingTasks(true)
     setTaskError(null)
     try {
@@ -193,22 +203,29 @@ export function useTaskSource({ t, showToast, setConfig }) {
       const res = await fetch('/api/release-notes/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ projectId: selectedProject.id, customJql: customJql.trim() }),
+        body: JSON.stringify({ ...(selectedProject ? { projectId: selectedProject.id } : {}), customJql: customJql.trim() }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
       const newTasks = data.tasks || []
       // Merge: only add tasks not already in the list
+      const existingKeys = new Set(tasks.map(t => t.key))
+      const toAdd = newTasks.filter(t => !existingKeys.has(t.key))
+      const addedCount = toAdd.length
       setTasks(prev => {
-        const existingKeys = new Set(prev.map(t => t.key))
-        const toAdd = newTasks.filter(t => !existingKeys.has(t.key))
-        return [...prev, ...toAdd]
+        const prevKeys = new Set(prev.map(t => t.key))
+        return [...prev, ...newTasks.filter(t => !prevKeys.has(t.key))]
       })
       setSelectedIds(prev => {
         const n = new Set(prev)
         newTasks.forEach(t => n.add(t.id))
         return n
       })
+      // Bez povratne informacije korisnik ne zna da li se nešto dodalo (npr. kad
+      // JQL vrati samo taskove koji su već u listi).
+      showToast(newTasks.length === 0
+        ? t('rne.addNoResults')
+        : t('rne.addedTasks', { added: addedCount, total: newTasks.length }))
     } catch (err) {
       setTaskError(err.message)
     } finally {
