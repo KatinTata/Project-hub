@@ -1,4 +1,9 @@
 import { sanitizeBodyHtml, textToHtml } from '../components/RichBodyEditor.jsx'
+// Logoi se ugrađuju kao data URI (?inline) da exportovani/objavljeni HTML bude
+// samostalan fajl — slika sa origin-a puca lokalno (CORP: same-origin header).
+import logoWhite from '../assets/logo-white.png?inline'
+import logoDark from '../assets/logo-dark.png?inline'
+import faviconPng from '../assets/favicon.png?inline'
 
 // ── Pure helpers ───────────────────────────────────────────────────────────────
 
@@ -353,7 +358,7 @@ export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { se
   <!-- Print-only: fixed header (hidden on screen) -->
   <div class="print-header">
     <div class="print-header-left">
-      <img src="/logo-dark.png" alt="Intelisale" style="height:20px">
+      <img src="${logoDark}" alt="Intelisale" style="height:20px">
       <div class="print-header-title">${esc(L.title)}</div>
     </div>
     <div class="print-header-right">
@@ -366,7 +371,7 @@ export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { se
   <!-- Print-only: fixed footer (hidden on screen) -->
   <div class="print-footer">
     <span class="print-footer-text">${dateStr}${meta.clientName ? ' &middot; ' + esc(meta.clientName) : ''}${config.version ? ' &middot; ' + esc(config.version) : ''} &middot; INTELISALE</span>
-    <img src="/favicon.png" alt="" class="print-footer-logo" style="height:18px;opacity:0.35">
+    <img src="${faviconPng}" alt="" class="print-footer-logo" style="height:18px;opacity:0.35">
   </div>
 
   ${hideBar ? '' : `<div class="pbar">
@@ -380,7 +385,7 @@ export function generatePublishHtml(selectedTasks, taskEdits, config, meta, { se
   <div class="wrap">
     <div class="hero">
       <div class="hero-top">
-        <img class="hero-logo-img" src="${esc(meta.origin || '')}/logo-white.png" alt="intelisale">
+        <img class="hero-logo-img" src="${logoWhite}" alt="intelisale">
       </div>
       <div class="hero-eyebrow"><span class="dot"></span> ${esc(L.eyebrow)}</div>
       <div class="hero-title">${esc(L.title)}</div>

@@ -9,8 +9,34 @@
 // ne izvršava čak i ako nekako preživi upis.
 
 import crypto from 'node:crypto'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const LEGACY_TASK_LINK_RE = /<a class="task-summary task-link"[^>]*>([\s\S]*?)<\/a>/g
+
+// Logoi kao data URI za retrofit starih note-ova: sačuvani HTML referencira
+// slike URL-om ka aplikaciji, a helmet-ov Cross-Origin-Resource-Policy header
+// blokira te slike u preuzetom fajlu (file:// je drugi origin). Novi note-ovi
+// ih već nose ugrađene (generator na klijentu, ?inline), pa se regexi ispod
+// na njih ne poklapaju.
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+function loadLogoDataUri(name) {
+  for (const dir of ['../client/public', '../client/dist']) {
+    try {
+      const buf = fs.readFileSync(path.join(__dirname, dir, name))
+      return `data:image/png;base64,${buf.toString('base64')}`
+    } catch { /* probaj sledeću lokaciju */ }
+  }
+  return null // fajl nedostaje — ostavi postojeći URL, ne ruši serviranje
+}
+const LOGO_WHITE_URI = loadLogoDataUri('logo-white.png')
+const LOGO_DARK_URI = loadLogoDataUri('logo-dark.png')
+const FAVICON_URI = loadLogoDataUri('favicon.png')
+
+const LEGACY_LOGO_WHITE_RE = /(<img[^>]*\bsrc=")[^"]*\/logo-white\.png(")/g
+const LEGACY_LOGO_DARK_RE = /(<img[^>]*\bsrc=")[^"]*\/logo-dark\.png(")/g
+const LEGACY_FAVICON_RE = /(<img[^>]*\bsrc=")[^"]*\/favicon\.png(")/g
 
 // Jedini skript koji javna strana sme da izvrši. Sadrži toggle + export logiku
 // (istu koju je generator ranije ugrađivao inline) i delegira klikove po
@@ -72,7 +98,13 @@ export function preparePublishedHtml(html) {
     }
   }
 
-  // 4. Jedini dozvoljeni skript (CSP hash) ide na kraj body-ja.
+  // 4. Retrofit logoa u note-ove objavljene dok je generator koristio URL-ove:
+  //    ugradi slike kao data URI da i preuzeti HTML fajl radi bez mreže.
+  if (LOGO_WHITE_URI) out = out.replace(LEGACY_LOGO_WHITE_RE, `$1${LOGO_WHITE_URI}$2`)
+  if (LOGO_DARK_URI) out = out.replace(LEGACY_LOGO_DARK_RE, `$1${LOGO_DARK_URI}$2`)
+  if (FAVICON_URI) out = out.replace(LEGACY_FAVICON_RE, `$1${FAVICON_URI}$2`)
+
+  // 5. Jedini dozvoljeni skript (CSP hash) ide na kraj body-ja.
   out = out.includes('</body>')
     ? out.replace('</body>', `<script>${BOOTSTRAP_JS}</script></body>`)
     : out + `<script>${BOOTSTRAP_JS}</script>`

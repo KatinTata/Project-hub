@@ -116,7 +116,6 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
       productName: selectedProject?.displayName || selectedProject?.epicKey || '',
       jiraUrl: user?.jiraUrl || '',
       date: previewDate || todayStr(config.lang),
-      origin: typeof window !== 'undefined' ? window.location.origin : '',
     }, { sectionOverrides: sections.sectionOverrides, sectionLabels: sections.sectionLabels, expanded, hideBar })
   }
 
