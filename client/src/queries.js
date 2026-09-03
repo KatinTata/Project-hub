@@ -95,7 +95,11 @@ export function useProjectDataQueries(projects, { isClient, enabled = true } = {
       enabled,
       initialData: () => {
         const cached = loadProjectCache(p.id)
-        return cached ? { data: cached.data, fetchedAt: cached.ts } : undefined
+        if (!cached) return undefined
+        // Klijentski jezik je uključen, a keš je iz vremena pre prevoda
+        // (nema clientTexts) → preskoči keš da svež fetch donese tekstove.
+        if (p.clientLang && cached.data && cached.data.clientTexts == null) return undefined
+        return { data: cached.data, fetchedAt: cached.ts }
       },
       initialDataUpdatedAt: () => loadProjectCache(p.id)?.ts,
     })),

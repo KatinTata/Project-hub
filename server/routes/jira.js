@@ -235,7 +235,8 @@ router.post('/tasks', async (req, res) => {
     // vidljivo pri sledećem učitavanju.
     let clientTexts = null
     if (projectRow?.client_lang) {
-      const taskList = [...parents, ...subtasks].map(i => ({ key: i.key, summary: i.fields?.summary }))
+      // Samo glavni taskovi (redovi tabele) — subtaskovi se klijentu ne prevode.
+      const taskList = parents.map(i => ({ key: i.key, summary: i.fields?.summary }))
       queueGeneration({ project: projectRow, jira, tasks: taskList })
       clientTexts = getTextsMap(projectRow.id, projectRow.client_lang)
     }

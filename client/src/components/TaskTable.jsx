@@ -270,7 +270,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
               flexWrap: 'wrap',
             }}>
               <span style={{ flexShrink: 0 }}><TaskKey taskKey={sub.key} jiraUrl={jiraUrl} over={false} isClient={isClient} /></span>
-              <span title={clientTexts?.[sub.key]?.one_liner || ''} style={{ fontSize: 12, color: 'var(--textMuted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isClient && clientTexts?.[sub.key]?.title ? clientTexts[sub.key].title : sub.summary}</span>
+              <span style={{ fontSize: 12, color: 'var(--textMuted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.summary}</span>
               <Badge color={statusColor(sub.status)}>{sub.status}</Badge>
             </div>
           ))}
@@ -290,12 +290,9 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           background: 'var(--surfaceAlt)',
         }}>
           <div><TaskKey taskKey={sub.key} jiraUrl={jiraUrl} over={false} isClient={isClient} /></div>
-          <div style={{ overflow: 'hidden', paddingRight: 8 }}>
-            <div style={{ fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', gap: 6, alignItems: 'center' }}>
-              {sub.components?.length > 0 && <Badge color="gray">{sub.components[0]}</Badge>}
-              <span>{isClient && clientTexts?.[sub.key]?.title ? clientTexts[sub.key].title : sub.summary}</span>
-            </div>
-            <ClientTextLine ct={clientTexts?.[sub.key]} isClient={isClient} onEdit={onEditClientText ? () => onEditClientText(sub.key, sub.summary) : undefined} />
+          <div style={{ fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', gap: 6, alignItems: 'center' }}>
+            {sub.components?.length > 0 && <Badge color="gray">{sub.components[0]}</Badge>}
+            <span>{sub.summary}</span>
           </div>
           <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={sub.status}><Badge color={statusColor(sub.status)}>{sub.status}</Badge></div>
           <div />

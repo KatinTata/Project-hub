@@ -19,7 +19,7 @@ router.get('/', (req, res) => {
   if (role === 'user') {
     const projects = db.prepare(`
       SELECT p.id, p.epic_key as epicKey, p.display_name as displayName, p.position, p.user_id as ownerId,
-             p.filter_type as filterType, p.filter_jql as filterJql, p.filter_meta as filterMeta, p.created_at as createdAt
+             p.filter_type as filterType, p.filter_jql as filterJql, p.filter_meta as filterMeta, p.client_lang as clientLang, p.created_at as createdAt
       FROM project_clients pc
       JOIN projects p ON p.id = pc.project_id
       WHERE pc.client_user_id = ? AND (p.archived IS NULL OR p.archived = 0)
