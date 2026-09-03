@@ -54,7 +54,7 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
       </div>
       ${table(t('ai2.section.byModel'), head, rowsHtml((report.models || []).map(r => ({ ...r, name: r.model })), cols))}
       ${table(t('ai2.section.bySource'), head, rowsHtml((report.bySource || []).map(r => ({ ...r, name: r.source })), cols))}
-      ${table(t('ai2.section.byApp'), head, rowsHtml((report.byApp || []).map(r => ({ ...r, name: r.app })), cols))}
+      ${table(t('ai2.section.byApp'), head, rowsHtml((report.byApp || []).map(r => ({ ...r, name: r.app || t('ai2.apps.other') })), cols))}
       <div style="margin-top:32px;padding-top:14px;border-top:1px solid #E2E6F0;font-size:10px;color:#A0AABF;text-align:center;letter-spacing:0.1em">INTELISALE · EMPOWERING SALES EXCELLENCE</div>
     </body></html>`
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
@@ -80,9 +80,10 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
             background: preset === k ? 'var(--accent)' : 'var(--surfaceAlt)', color: preset === k ? '#fff' : 'var(--text)',
           }}>{t(l)}</button>
         ))}
+        <input type="date" value={range.from} onChange={e => { setPreset(null); setRange(r => ({ ...r, from: e.target.value })) }} style={{ ...inputS, width: 138 }} />
+        <input type="date" value={range.to} onChange={e => { setPreset(null); setRange(r => ({ ...r, to: e.target.value })) }} style={{ ...inputS, width: 138 }} />
         <button onClick={load} disabled={!tenantGuid || busy} style={btnPrimary}>{busy ? t('ai2.loading') : t('ai2.load')}</button>
         {report && <button onClick={exportPdf} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>{t('ai2.exportPdf')}</button>}
-        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{range.from} — {range.to}</span>
       </div>
 
       {report && (
@@ -105,11 +106,11 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(430px, 1fr))', gap: 14 }}>
             <Section title={t('ai2.section.byModel')}><PieChart data={(report.models || []).map(m => ({ label: m.model, value: m.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={fmtMoney(report.totals?.cost, cur)} centerLabel={t('ai2.center.total')} /></Section>
-            <Section title={t('ai2.section.byApp')}><PieChart data={(report.byApp || []).map(a => ({ label: a.app, value: a.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${(report.byApp || []).length}`} centerLabel={t('ai2.center.apps')} /></Section>
+            <Section title={t('ai2.section.byApp')}><PieChart data={(report.byApp || []).map(a => ({ label: a.app || t('ai2.apps.other'), value: a.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${(report.byApp || []).length}`} centerLabel={t('ai2.center.apps')} /></Section>
           </div>
           <SimpleTable title={t('ai2.section.byModel')} rows={(report.models || []).map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
           <SimpleTable title={t('ai2.section.bySource')} rows={(report.bySource || []).map(s => ({ ...s, name: s.source }))} nameKey="name" cur={cur} />
-          <SimpleTable title={t('ai2.section.byApp')} rows={(report.byApp || []).map(a => ({ ...a, name: a.app }))} nameKey="name" cur={cur} />
+          <SimpleTable title={t('ai2.section.byApp')} rows={(report.byApp || []).map(a => ({ ...a, name: a.app || t('ai2.apps.other') }))} nameKey="name" cur={cur} />
         </>
       )}
     </div>
