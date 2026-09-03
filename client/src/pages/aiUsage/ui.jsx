@@ -32,6 +32,17 @@ export function presetRange(key) {
 }
 export const PRESETS = [['7d', 'ai2.preset.7d'], ['30d', 'ai2.preset.30d'], ['month', 'ai2.preset.month'], ['prevMonth', 'ai2.preset.prevMonth'], ['quarter', 'ai2.preset.quarter'], ['year', 'ai2.preset.year']]
 
+// Date polje koje otvara kalendar na klik bilo gde u polju (native picker se
+// inače otvara samo na ikonicu); showPicker traži korisnički gest i nije
+// podržan svuda, pa try/catch — fallback je obično ponašanje polja.
+export function DateInput({ value, onChange, style }) {
+  const open = e => { try { e.currentTarget.showPicker?.() } catch { /* stariji browser */ } }
+  return (
+    <input type="date" value={value} onChange={onChange} onClick={open}
+      style={{ ...inputS, width: 138, cursor: 'pointer', ...style }} />
+  )
+}
+
 // Prijateljsko ime servisa: prevod pod ključem 'ai2.svc.<ime>' ako postoji,
 // inače sirovo ime iz API-ja; null (red „Ostalo") ima svoj prevod.
 export function svcLabel(t, service) {
@@ -125,8 +136,8 @@ export function FilterBar({ preset, setPreset, range, setRange, onExport, onExpo
           background: preset === k ? 'var(--accent)' : 'var(--surfaceAlt)', color: preset === k ? '#fff' : 'var(--text)',
         }}>{t(l)}</button>
       ))}
-      <input type="date" value={range.from} onChange={e => { setPreset(null); setRange(r => ({ ...r, from: e.target.value })) }} style={{ ...inputS, width: 138 }} />
-      <input type="date" value={range.to} onChange={e => { setPreset(null); setRange(r => ({ ...r, to: e.target.value })) }} style={{ ...inputS, width: 138 }} />
+      <DateInput value={range.from} onChange={e => { setPreset(null); setRange(r => ({ ...r, from: e.target.value })) }} />
+      <DateInput value={range.to} onChange={e => { setPreset(null); setRange(r => ({ ...r, to: e.target.value })) }} />
       {setCurrency && (
         <select value={currency} onChange={e => setCurrency(e.target.value)} title={t('ai2.filter.currencyTitle')} style={{ ...inputS, width: 82 }}>
           {['USD', 'EUR', 'RSD'].map(c => <option key={c} value={c}>{c}</option>)}

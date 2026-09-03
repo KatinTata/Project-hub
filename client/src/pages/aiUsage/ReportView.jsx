@@ -3,7 +3,7 @@ import { api } from '../../api.js'
 import { useT } from '../../lang.jsx'
 import { PieChart, fmtTok, fmtNum, fmtMoney } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
-import { card, inputS, btnS, btnPrimary, presetRange, PRESETS, Section, Kpi, svcLabel } from './ui.jsx'
+import { card, inputS, btnS, btnPrimary, presetRange, PRESETS, Section, Kpi, svcLabel, DateInput } from './ui.jsx'
 import { SimpleTable, PivotTable } from './tables.jsx'
 
 // Izveštaj po kupcu (PDF): izbor tenanta + perioda, pregled i klijentski PDF.
@@ -81,8 +81,8 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
             background: preset === k ? 'var(--accent)' : 'var(--surfaceAlt)', color: preset === k ? '#fff' : 'var(--text)',
           }}>{t(l)}</button>
         ))}
-        <input type="date" value={range.from} onChange={e => { setPreset(null); setRange(r => ({ ...r, from: e.target.value })) }} style={{ ...inputS, width: 138 }} />
-        <input type="date" value={range.to} onChange={e => { setPreset(null); setRange(r => ({ ...r, to: e.target.value })) }} style={{ ...inputS, width: 138 }} />
+        <DateInput value={range.from} onChange={e => { setPreset(null); setRange(r => ({ ...r, from: e.target.value })) }} />
+        <DateInput value={range.to} onChange={e => { setPreset(null); setRange(r => ({ ...r, to: e.target.value })) }} />
         <button onClick={load} disabled={!tenantGuid || busy} style={btnPrimary}>{busy ? t('ai2.loading') : t('ai2.load')}</button>
         {report && <button onClick={exportPdf} style={{ ...btnS, background: '#7C3AED', color: '#fff', border: 'none' }}>{t('ai2.exportPdf')}</button>}
       </div>
