@@ -132,6 +132,74 @@ export default function SettingsView() {
       <MappingsCard />
       <PackagesCard />
       <BudgetsCard />
+      <ProbeCard />
     </div>
+  )
+}
+
+// Sirovi pozivi Agentic Admin API-ja (samo super_admin) — dijagnostika: šta
+// tačno vraća API za dati alat/period, npr. akcije koje ne upisuju model.
+const PROBE_PATHS = [
+  '/api/admin/usage/ai/summary',
+  '/api/admin/usage/ai/actions',
+  '/api/admin/usage/ai/service-names',
+  '/api/admin/usage/ai/models',
+  '/api/admin/tenants',
+]
+const GROUP_BYS = ['Model', 'None', 'Tenant', 'ModelTenant', 'ModelDay']
+
+function ProbeCard() {
+  const t = useT()
+  const iso = d => d.toISOString().slice(0, 10)
+  const [form, setForm] = useState({
+    path: PROBE_PATHS[0],
+    from: iso(new Date(Date.now() - 30 * 86400000)),
+    to: iso(new Date()),
+    groupBy: 'Model', action: '', tenantId: '',
+  })
+  const [out, setOut] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const isSummary = form.path.endsWith('/summary')
+
+  async function run() {
+    setBusy(true)
+    try {
+      const q = new URLSearchParams({ path: form.path })
+      if (isSummary) {
+        q.set('from', form.from); q.set('to', form.to); q.set('groupBy', form.groupBy)
+        if (form.action.trim()) q.set('action', form.action.trim())
+        if (form.tenantId.trim()) q.set('tenantId', form.tenantId.trim())
+      }
+      setOut(await api.aiUsageProbe(q.toString()))
+    } catch (e) { setOut({ error: e.message }) } finally { setBusy(false) }
+  }
+
+  return (
+    <Section title={t('ai2.probe.title')} hint={t('ai2.probe.hint')}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <select value={form.path} onChange={e => set('path', e.target.value)} style={{ ...inputS, minWidth: 280 }}>
+          {PROBE_PATHS.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        {isSummary && (
+          <>
+            <input type="date" value={form.from} onChange={e => set('from', e.target.value)} style={{ ...inputS, width: 138 }} />
+            <input type="date" value={form.to} onChange={e => set('to', e.target.value)} style={{ ...inputS, width: 138 }} />
+            <select value={form.groupBy} onChange={e => set('groupBy', e.target.value)} title="groupBy" style={{ ...inputS, width: 130 }}>
+              {GROUP_BYS.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+            <input value={form.action} onChange={e => set('action', e.target.value)} placeholder={t('ai2.probe.actionPh')} style={{ ...inputS, flex: '1 1 230px' }} />
+            <input value={form.tenantId} onChange={e => set('tenantId', e.target.value)} placeholder={t('ai2.probe.tenantPh')} style={{ ...inputS, flex: '1 1 230px' }} />
+          </>
+        )}
+        <button onClick={run} disabled={busy} style={btnPrimary}>{busy ? t('ai2.loading') : t('ai2.probe.run')}</button>
+      </div>
+      {out && (
+        <pre style={{
+          marginTop: 12, maxHeight: 420, overflow: 'auto', background: 'var(--bg)', border: '1px solid var(--border)',
+          borderRadius: 8, padding: 12, fontSize: 11.5, lineHeight: 1.5, color: 'var(--text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+        }}>{JSON.stringify(out, null, 2)}</pre>
+      )}
+    </Section>
   )
 }

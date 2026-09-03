@@ -158,11 +158,30 @@ router.get('/by-source', async (req, res) => {
 })
 
 // ── By app/action — fan-out, capped (§7.4) ────────────────────────────────────
+// Fan-out po akcijama ne pokriva sve zahteve (limit od 40 akcija + upisi bez
+// akcije), pa se razlika do ukupnog zbira prikazuje kao red „Ostalo"
+// (is_other) — zbir tabele se uvek slaže sa KPI ukupnim brojevima.
+function appendOtherRow(apps, totals, costKey) {
+  const covered = apps.reduce((s, a) => ({ req: s.req + a.requests, tok: s.tok + a.tokens, cost: s.cost + (a[costKey] || 0) }), { req: 0, tok: 0, cost: 0 })
+  const rest = (totals.requests || 0) - covered.req
+  if (rest > 0) {
+    apps.push({
+      app: null, is_other: true, requests: rest,
+      tokens: Math.max(0, (totals.tokens || 0) - covered.tok),
+      [costKey]: Math.max(0, (totals.cost || 0) - covered.cost),
+    })
+  }
+  return apps
+}
+
 router.get('/by-app', async (req, res) => {
   if (!requireView(req, res)) return
   const { fromDate, toDate } = normalizeRange(req.query.from, req.query.to)
   try {
-    const actions = await getActions()
+    const [actions, overall] = await Promise.all([
+      getActions(),
+      getUsageSummary({ fromDate, toDate, groupBy: 'Model' }),
+    ])
     const limited = (actions || []).slice(0, MAX_APP_FILTERS)
     const rows = await Promise.all(limited.map(action =>
       getUsageSummary({ fromDate, toDate, action, groupBy: 'Model' })
@@ -173,10 +192,13 @@ router.get('/by-app', async (req, res) => {
         })
         .catch(() => null)
     ))
+    const apps = rows.filter(r => r && r.requests > 0).sort(bySort)
+    const ot = overall.totals || {}
+    appendOtherRow(apps, { requests: ot.requests, tokens: ot.totalTokens, cost: costModelGroups(overall.groups).totalCost }, 'cost_usd')
     res.json({
       cost_basis: 'exact',
       truncated: (actions || []).length > MAX_APP_FILTERS,
-      apps: rows.filter(r => r && r.requests > 0).sort(bySort),
+      apps,
     })
   } catch (err) { handleErr(res, err, { apps: [], truncated: false }) }
 })
@@ -284,6 +306,13 @@ router.get('/tenant-report', async (req, res) => {
     }
 
     const modelRows = Object.values(models).sort((a, b) => b.cost - a.cost)
+    const totals = {
+      requests: sourceRows.reduce((s, r) => s + r.requests, 0),
+      tokens: sourceRows.reduce((s, r) => s + r.tokens, 0),
+      cost: modelRows.reduce((s, r) => s + r.cost, 0),
+    }
+    const appRows = Object.values(apps).sort((a, b) => b.cost - a.cost)
+    appendOtherRow(appRows, totals, 'cost')
     res.json({
       cost_basis: 'exact',
       customer: { tenant_guid: tenant?.tenantGuid || tenantGuid, name: tenant?.name || tenantGuid, code: tenant?.eProcurementTenantCode || null },
@@ -294,12 +323,8 @@ router.get('/tenant-report', async (req, res) => {
       rate_age_days: conv.rateAgeDays ?? null,
       models: modelRows,
       bySource: sourceRows.sort((a, b) => b.cost - a.cost),
-      byApp: Object.values(apps).sort((a, b) => b.cost - a.cost),
-      totals: {
-        requests: sourceRows.reduce((s, r) => s + r.requests, 0),
-        tokens: sourceRows.reduce((s, r) => s + r.tokens, 0),
-        cost: modelRows.reduce((s, r) => s + r.cost, 0),
-      },
+      byApp: appRows,
+      totals,
     })
   } catch (err) { handleErr(res, err, { models: [], bySource: [], byApp: [], totals: null }) }
 })
@@ -367,6 +392,41 @@ router.post('/admin/test', async (req, res) => {
     const msg = String(err.message || err).slice(0, 490)
     db.prepare("UPDATE integration_api_configs SET last_tested_at = CURRENT_TIMESTAMP, last_test_ok = 0, last_test_message = ? WHERE service_key = 'agentic_admin'").run(msg)
     res.json({ ok: false, message: msg })
+  }
+})
+
+// ── Admin: probe — sirovi odgovor Agentic Admin API-ja (samo super_admin) ────
+// Dijagnostika: kad treba videti šta API tačno vraća (npr. za alate koji ne
+// upisuju model). GET-only, dozvoljene su samo poznate putanje i parametri.
+const PROBE_PATHS = [
+  '/api/admin/tenants',
+  '/api/admin/usage/ai/summary',
+  '/api/admin/usage/ai/service-names',
+  '/api/admin/usage/ai/actions',
+  '/api/admin/usage/ai/models',
+]
+const PROBE_PARAMS = ['groupBy', 'tenantId', 'action', 'serviceName', 'model']
+
+router.get('/admin/probe', async (req, res) => {
+  if (!requireManage(req, res)) return
+  const path = String(req.query.path || '')
+  if (!PROBE_PATHS.includes(path)) return res.status(400).json({ error: 'Nepoznata putanja', allowed: PROBE_PATHS })
+  const params = {}
+  if (req.query.from || req.query.to) {
+    const { fromDate, toDate } = normalizeRange(req.query.from, req.query.to)
+    params.fromDate = fromDate
+    params.toDate = toDate
+  }
+  for (const k of PROBE_PARAMS) if (req.query[k]) params[k] = String(req.query[k]).slice(0, 200)
+  try {
+    const data = await adminGet(path, params)
+    logAudit(req.userId, 'aiusage.probe', `${path} ${JSON.stringify(params)}`.slice(0, 300), req)
+    res.json({ path, params, data })
+  } catch (err) {
+    if (err instanceof AdminApiNotConfiguredError) return res.status(400).json({ error: 'Admin API nije konfigurisan' })
+    // Dijagnostički alat za super_admina — poruka Admin API-ja je ovde poenta
+    // (isto kao /admin/test), pa se ne skriva iza generičke greške.
+    res.status(502).json({ error: String(err.message || err).slice(0, 300) })
   }
 })
 
@@ -603,6 +663,9 @@ router.get('/my', async (req, res) => {
     }
 
     const modelRows = Object.values(models).sort((a, b) => b.cost - a.cost)
+    const totals = { requests, tokens, cost: modelRows.reduce((s, r) => s + r.cost, 0) }
+    const appRows = Object.values(apps).sort((a, b) => b.cost - a.cost)
+    appendOtherRow(appRows, totals, 'cost')
     res.json({
       cost_basis: 'exact',
       customer: { name: mappings[0].tenant_name || 'Vaša organizacija' },
@@ -611,9 +674,9 @@ router.get('/my', async (req, res) => {
       rate_available: conv.rateAvailable,
       rate_stale: conv.rateStale || false,
       rate_age_days: conv.rateAgeDays ?? null,
-      totals: { requests, tokens, cost: modelRows.reduce((s, r) => s + r.cost, 0) },
+      totals,
       models: modelRows,
-      byApp: Object.values(apps).sort((a, b) => b.cost - a.cost),
+      byApp: appRows,
       days: Object.values(days).sort((a, b) => a.date.localeCompare(b.date)),
     })
   } catch (err) { handleErr(res, err, empty) }

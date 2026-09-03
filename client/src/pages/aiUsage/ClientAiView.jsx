@@ -39,7 +39,7 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
   const exportPdf = () => openReportPdf(`from=${range.from}&to=${range.to}&currency=${currency}`, setExporting, t)
 
   const cur = data?.currency || currency
-  const apps = data?.byApp || []
+  const apps = (data?.byApp || []).map(a => (a.is_other ? { ...a, app: t('ai2.apps.other') } : a))
   const models = data?.models || []
   const tot = data?.totals
 
@@ -144,7 +144,7 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
                 </Section>
               </div>
 
-              <SimpleTable title={t('ai2.table.byApp')} rows={apps.map(a => ({ ...a, name: a.app }))} nameKey="name" cur={cur} />
+              <SimpleTable title={t('ai2.table.byApp')} rows={apps.map(a => ({ ...a, name: a.app || t('ai2.apps.other') }))} nameKey="name" cur={cur} />
               <SimpleTable title={t('ai2.table.byModel')} rows={models.map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
             </div>
           )}

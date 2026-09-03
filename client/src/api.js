@@ -207,6 +207,7 @@ export const api = {
   aiUsageHistory: (q = '') => request('GET', `/ai-usage/admin/history?${q}`),
   aiUsageSync: () => request('POST', '/ai-usage/admin/sync', {}),
   aiUsageFxFetch: () => request('POST', '/ai-usage/admin/fx-fetch', {}),
+  aiUsageProbe: (q) => request('GET', `/ai-usage/admin/probe?${q}`),
   aiUsageMappings: () => request('GET', '/ai-usage/admin/mappings'),
   aiUsageDiscover: () => request('POST', '/ai-usage/admin/mappings/discover', {}),
   aiUsageSaveMapping: (tenantId, clientUserIds) => request('PUT', `/ai-usage/admin/mappings/${encodeURIComponent(tenantId)}`, { client_user_ids: clientUserIds }),

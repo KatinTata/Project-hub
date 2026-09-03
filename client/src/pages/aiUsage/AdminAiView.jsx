@@ -56,7 +56,7 @@ export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onO
   const tot = d.dash?.totals
   const clients = d.byClient?.clients || []
   const sources = d.bySource?.sources || []
-  const apps = d.byApp?.apps || []
+  const apps = (d.byApp?.apps || []).map(a => (a.is_other ? { ...a, app: t('ai2.apps.other') } : a))
   const models = d.byModel?.models || []
   const alerts = (budgets?.budgets || []).filter(b => b.status && (b.status.level === 'warning' || b.status.level === 'limit'))
   const gauges = (budgets?.budgets || []).filter(b => b.status?.limit_eur > 0)
