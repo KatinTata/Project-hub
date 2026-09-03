@@ -98,6 +98,7 @@ function ClientTextLine({ ct, isClient, preview, onEdit }) {
 }
 
 function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpenQuickMsg, jiraUrl, clientTexts, onEditClientText, clientPreview }) {
+  const t = useT()
   const clientText = clientTexts?.[task.key]
   const showAsClient = isClient || clientPreview
   const [hovered, setHovered] = useState(false)
@@ -128,7 +129,19 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {onOpenQuickMsg && !isMobile && hovered && (
+        {clientPreview && onEditClientText && !isMobile && (
+          <button
+            onClick={e => { e.stopPropagation(); onEditClientText(task.key, task.summary) }}
+            style={{
+              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', zIndex: 2,
+              background: 'var(--surface)', border: '1px solid var(--accent)', borderRadius: 6, padding: '3px 10px',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--accent)',
+              fontFamily: "'Hanken Grotesk', sans-serif",
+            }}>
+            {t('table.ct.editBtn')}
+          </button>
+        )}
+        {onOpenQuickMsg && !isMobile && hovered && !clientPreview && (
           <button
             onClick={e => { e.stopPropagation(); onOpenQuickMsg(task) }}
             title="Pošalji poruku vezanu za ovaj task"
@@ -170,8 +183,11 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           {task.billable && !isMobile && <BillableBadge />}
         </div>
 
-        {/* Summary */}
-        <div style={{ overflow: 'hidden', paddingRight: 8 }}>
+        {/* Summary — u pregledu kao klijent klik na naslov/opis otvara izmenu */}
+        <div
+          onClick={clientPreview && onEditClientText ? e => { e.stopPropagation(); onEditClientText(task.key, task.summary) } : undefined}
+          title={clientPreview && onEditClientText ? t('table.ct.clickToEdit') : undefined}
+          style={{ overflow: 'hidden', paddingRight: clientPreview ? 90 : 8, cursor: clientPreview && onEditClientText ? 'pointer' : undefined }}>
           <div style={{
             fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
             fontSize: isMobile ? 12 : 13,
