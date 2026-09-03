@@ -441,6 +441,9 @@ db.exec(`
 // Manual "we actually work with this one" flag — survives tenant discovery
 // (is_active mirrors the Agentic API's enabled flag and gets overwritten).
 addColumn('client_tenant_mappings', 'is_tracked', `ALTER TABLE client_tenant_mappings ADD COLUMN is_tracked INTEGER DEFAULT 1`)
+// Cena po zahtevu za pozive bez modela (MCP alati ne upisuju model ni tokene,
+// pa bi im trošak bio 0) — USD, primenjuje se na svaki zahtev bez modelName.
+addColumn('ai_pricing_config', 'tool_price_per_request', `ALTER TABLE ai_pricing_config ADD COLUMN tool_price_per_request REAL NOT NULL DEFAULT 0`)
 
 // AI packages (tiers): fixed monthly access fee + included consumption.
 // A tenant on a package gets its consumption limit from included_eur.

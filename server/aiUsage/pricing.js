@@ -38,7 +38,9 @@ const activeRowsStmt = () => db.prepare(`
 export function makePriceResolver() {
   const memo = new Map()
   const rows = activeRowsStmt().all()
-  return function resolve(modelName) {
+  // Zahtevi bez modela (MCP alati) nemaju tokene — naplaćuju se po zahtevu.
+  const toolPerRequest = getPricingConfig()?.tool_price_per_request || 0
+  function resolve(modelName) {
     const name = String(modelName || '').toLowerCase().trim()
     if (memo.has(name)) return memo.get(name)
     let row = null
@@ -60,10 +62,14 @@ export function makePriceResolver() {
     memo.set(name, out)
     return out
   }
+  resolve.toolPerRequest = toolPerRequest
+  return resolve
 }
 
-// Cost of one usage group (tokens are per-model exact, §4)
+// Cost of one usage group (tokens are per-model exact, §4). Grupa bez modela
+// (MCP alat / poziv pao pre modela) nema tokene — cena po zahtevu iz configa.
 export function groupCost(resolve, group) {
+  if (!group.modelName) return (group.requests || 0) * (resolve.toolPerRequest || 0)
   const p = resolve(group.modelName)
   return (group.promptTokens || 0) / 1e6 * p.inputPer1m + (group.completionTokens || 0) / 1e6 * p.outputPer1m
 }
@@ -74,9 +80,8 @@ export function costModelGroups(groups) {
   let total = 0
   const unpriced = new Set()
   for (const g of (groups || [])) {
-    if (!g.modelName) continue
     total += groupCost(resolve, g)
-    if (!resolve(g.modelName).priced) unpriced.add(String(g.modelName).toLowerCase())
+    if (g.modelName && !resolve(g.modelName).priced) unpriced.add(String(g.modelName).toLowerCase())
   }
   return { totalCost: total, unpricedModels: [...unpriced], resolve }
 }

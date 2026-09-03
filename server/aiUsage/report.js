@@ -87,10 +87,10 @@ async function collect(guids, fromDate, toDate, { withApps = true } = {}) {
     if (t.avgDurationMs) { totals.durSum += t.avgDurationMs * (t.requests || 1); totals.durN += (t.requests || 1) }
     let gCost = 0
     for (const g of (data.groups || [])) {
-      if (!g.modelName) continue
+      const c = groupCost(resolve, g)
+      if (!g.modelName) { gCost += c; continue } // cena po zahtevu za MCP alate
       const key = String(g.modelName).toLowerCase()
       const m = (models[key] ||= { model: g.modelName, requests: 0, promptTokens: 0, completionTokens: 0, tokens: 0, cost: 0, priced: resolve(g.modelName).priced })
-      const c = groupCost(resolve, g)
       m.requests += g.requests || 0
       m.promptTokens += g.promptTokens || 0
       m.completionTokens += g.completionTokens || 0

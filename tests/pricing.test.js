@@ -10,6 +10,7 @@ vi.mock('../server/db.js', async () => {
     CREATE TABLE ai_pricing_config (
       id INTEGER PRIMARY KEY,
       global_markup_pct REAL DEFAULT 0,
+      tool_price_per_request REAL NOT NULL DEFAULT 0,
       pricing_source_url TEXT,
       last_synced_at TEXT, last_sync_ok INTEGER, last_sync_message TEXT
     );
@@ -42,7 +43,7 @@ import { makePriceResolver, groupCost, costModelGroups, pricePer1M, normalizeMet
 function seed(rows, globalMarkup = 0) {
   db.prepare('DELETE FROM ai_model_pricing').run()
   db.prepare('DELETE FROM ai_model_pricing_history').run()
-  db.prepare('UPDATE ai_pricing_config SET global_markup_pct = ? WHERE id = 1').run(globalMarkup)
+  db.prepare('UPDATE ai_pricing_config SET global_markup_pct = ?, tool_price_per_request = 0 WHERE id = 1').run(globalMarkup)
   const ins = db.prepare('INSERT INTO ai_model_pricing (model_name, input_price_per_1m, output_price_per_1m, model_markup_pct, is_active) VALUES (?, ?, ?, ?, ?)')
   for (const r of rows) ins.run(r.model, r.input, r.output, r.markup || 0, r.active === false ? 0 : 1)
 }
@@ -152,10 +153,26 @@ describe('groupCost i costModelGroups', () => {
     expect(unpricedModels).toEqual(['claude-opus-4'])
   })
 
-  it('grupe bez imena modela se preskaču', () => {
-    const { totalCost, unpricedModels } = costModelGroups([{ modelName: '', promptTokens: 1e6 }])
+  it('grupa bez modela košta 0 kad cena po zahtevu nije podešena', () => {
+    const { totalCost, unpricedModels } = costModelGroups([{ modelName: '', promptTokens: 1e6, requests: 50 }])
     expect(totalCost).toBe(0)
     expect(unpricedModels).toEqual([])
+  })
+
+  it('grupa bez modela se naplaćuje po zahtevu (tool_price_per_request)', () => {
+    seed([{ model: 'gpt-4o', input: 2, output: 8 }])
+    db.prepare('UPDATE ai_pricing_config SET tool_price_per_request = 0.002 WHERE id = 1').run()
+    const resolve = makePriceResolver()
+    // grupa bez modela: 50 zahteva × 0.002 = 0.1; tokeni se ignorišu
+    expect(groupCost(resolve, { modelName: null, requests: 50, promptTokens: 1e6 })).toBeCloseTo(0.1)
+    // grupa sa modelom se i dalje naplaćuje po tokenima, ne po zahtevu
+    expect(groupCost(resolve, { modelName: 'gpt-4o', requests: 50, promptTokens: 1_000_000, completionTokens: 0 })).toBeCloseTo(2)
+    const { totalCost, unpricedModels } = costModelGroups([
+      { modelName: 'gpt-4o', promptTokens: 1_000_000, completionTokens: 0, requests: 1 },
+      { modelName: null, requests: 100 },
+    ])
+    expect(totalCost).toBeCloseTo(2 + 0.2)
+    expect(unpricedModels).toEqual([]) // red bez modela nije „necenovan model"
   })
 })
 

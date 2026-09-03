@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { api } from '../../api.js'
 import { useT } from '../../lang.jsx'
 import { toast } from '../../ui/Toast.jsx'
-import { inputS, btnS, btnPrimary, thStyle, tdStyle, tdMono, Section } from './ui.jsx'
+import { inputS, btnS, btnPrimary, thStyle, tdStyle, tdMono, Section, DateInput } from './ui.jsx'
 import MappingsCard from './MappingsCard.jsx'
 import PackagesCard from './PackagesCard.jsx'
 import BudgetsCard from './BudgetsCard.jsx'
@@ -16,6 +16,7 @@ export default function SettingsView() {
   const [baseUrl, setBaseUrl] = useState('')
   const [keyInput, setKeyInput] = useState('')
   const [globalMarkup, setGlobalMarkup] = useState('')
+  const [toolPrice, setToolPrice] = useState('')
   const [testMsg, setTestMsg] = useState(null)
   const [busy, setBusy] = useState(false)
   const [histOpen, setHistOpen] = useState(false)
@@ -27,12 +28,13 @@ export default function SettingsView() {
     setCfg(c); setModels(m)
     setBaseUrl(c.base_url || '')
     setGlobalMarkup(String(c.pricing?.global_markup_pct ?? 20))
+    setToolPrice(String(c.pricing?.tool_price_per_request ?? 0))
   }, [])
   useEffect(() => { reload() }, [reload])
 
   const wrap = fn => async (...a) => { setBusy(true); try { await fn(...a); await reload() } catch (e) { toast.error(t('ai2.error', { msg: e.message })) } finally { setBusy(false) } }
   const saveConfig = wrap(async () => { await api.aiUsageSaveConfig({ base_url: baseUrl.trim(), is_active: true, service_password: keyInput || undefined }); setKeyInput('') })
-  const saveMarkup = wrap(() => api.aiUsageSavePricingConfig({ global_markup_pct: Number(globalMarkup) }))
+  const saveMarkup = wrap(() => api.aiUsageSavePricingConfig({ global_markup_pct: Number(globalMarkup), tool_price_per_request: Number(toolPrice) || 0 }))
   const runSync = wrap(() => api.aiUsageSync())
   const fetchFx = wrap(() => api.aiUsageFxFetch())
   const saveModel = wrap(async name => { await api.aiUsageSaveModel(name, edit[name]); setEdit(p => { const n = { ...p }; delete n[name]; return n }) })
@@ -74,6 +76,10 @@ export default function SettingsView() {
             <label style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               {t('ai2.settings.globalMarkup')}
               <input value={globalMarkup} onChange={e => setGlobalMarkup(e.target.value)} type="number" step="0.5" style={{ ...inputS, width: 74 }} />
+            </label>
+            <label title={t('ai2.settings.toolPriceTitle')} style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {t('ai2.settings.toolPrice')}
+              <input value={toolPrice} onChange={e => setToolPrice(e.target.value)} type="number" step="0.0001" min="0" style={{ ...inputS, width: 92 }} />
             </label>
             <button onClick={saveMarkup} disabled={busy} style={btnS}>{t('ai2.settings.saveMarkup')}</button>
             <button onClick={fetchFx} disabled={busy} style={btnS}>{t('ai2.settings.fetchRates')}</button>
@@ -183,8 +189,8 @@ function ProbeCard() {
         </select>
         {isSummary && (
           <>
-            <input type="date" value={form.from} onChange={e => set('from', e.target.value)} style={{ ...inputS, width: 138 }} />
-            <input type="date" value={form.to} onChange={e => set('to', e.target.value)} style={{ ...inputS, width: 138 }} />
+            <DateInput value={form.from} onChange={e => set('from', e.target.value)} />
+            <DateInput value={form.to} onChange={e => set('to', e.target.value)} />
             <select value={form.groupBy} onChange={e => set('groupBy', e.target.value)} title="groupBy" style={{ ...inputS, width: 130 }}>
               {GROUP_BYS.map(g => <option key={g} value={g}>{g}</option>)}
             </select>

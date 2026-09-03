@@ -292,15 +292,15 @@ router.get('/tenant-report', async (req, res) => {
       const t = data.totals || {}
       let srcCost = 0
       for (const g of (data.groups || [])) {
+        const c = groupCost(resolve, g)
+        srcCost += c // i grupe bez modela (cena po zahtevu za MCP alate)
         if (!g.modelName) continue
         const m = (models[String(g.modelName).toLowerCase()] ||= { model: g.modelName, requests: 0, prompt_tokens: 0, completion_tokens: 0, tokens: 0, cost: 0 })
         m.requests += g.requests || 0
         m.prompt_tokens += g.promptTokens || 0
         m.completion_tokens += g.completionTokens || 0
         m.tokens += g.totalTokens || 0
-        const c = groupCost(resolve, g)
         m.cost += c * conv.factor
-        srcCost += c
       }
       sourceRows.push({ source: guids[i].source, requests: t.requests || 0, tokens: t.totalTokens || 0, cost: srcCost * conv.factor })
     })
@@ -326,7 +326,9 @@ router.get('/tenant-report', async (req, res) => {
     const totals = {
       requests: sourceRows.reduce((s, r) => s + r.requests, 0),
       tokens: sourceRows.reduce((s, r) => s + r.tokens, 0),
-      cost: modelRows.reduce((s, r) => s + r.cost, 0),
+      // izvorni redovi uključuju i cenu po zahtevu za pozive bez modela,
+      // tabela po modelima pokriva samo LLM deo
+      cost: sourceRows.reduce((s, r) => s + r.cost, 0),
     }
     const appRows = Object.values(apps).sort((a, b) => b.cost - a.cost)
     appendOtherRow(appRows, totals, 'cost')
@@ -372,6 +374,7 @@ router.get('/admin/config', (req, res) => {
     last_tested_at: cfg?.last_tested_at || null,
     pricing: {
       global_markup_pct: pricing?.global_markup_pct ?? 20,
+      tool_price_per_request: pricing?.tool_price_per_request ?? 0,
       pricing_source_url: pricing?.pricing_source_url,
       last_synced_at: pricing?.last_synced_at, last_sync_ok: pricing?.last_sync_ok == null ? null : !!pricing.last_sync_ok,
       last_sync_message: pricing?.last_sync_message,
@@ -451,10 +454,20 @@ router.get('/admin/probe', async (req, res) => {
 // ── Admin: pricing (§7.10) ────────────────────────────────────────────────────
 router.put('/admin/pricing-config', (req, res) => {
   if (!requireManage(req, res)) return
-  const { global_markup_pct, pricing_source_url } = req.body
-  db.prepare('UPDATE ai_pricing_config SET global_markup_pct = COALESCE(?, global_markup_pct), pricing_source_url = COALESCE(?, pricing_source_url), updated_at = CURRENT_TIMESTAMP WHERE id = 1')
-    .run(global_markup_pct == null ? null : Number(global_markup_pct), pricing_source_url?.trim() || null)
-  logAudit(req.userId, 'aiusage.pricing.update', `globalna marža: ${global_markup_pct ?? '-'}%`, req)
+  const { global_markup_pct, pricing_source_url, tool_price_per_request } = req.body
+  db.prepare(`
+    UPDATE ai_pricing_config SET
+      global_markup_pct = COALESCE(?, global_markup_pct),
+      pricing_source_url = COALESCE(?, pricing_source_url),
+      tool_price_per_request = COALESCE(?, tool_price_per_request),
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = 1
+  `).run(
+    global_markup_pct == null ? null : Number(global_markup_pct),
+    pricing_source_url?.trim() || null,
+    tool_price_per_request == null ? null : Math.max(0, Number(tool_price_per_request) || 0),
+  )
+  logAudit(req.userId, 'aiusage.pricing.update', `globalna marža: ${global_markup_pct ?? '-'}%, cena po zahtevu bez modela: ${tool_price_per_request ?? '-'}`, req)
   res.json({ ok: true })
 })
 
@@ -639,17 +652,19 @@ router.get('/my', async (req, res) => {
     ])
 
     const models = {}
-    let requests = 0, tokens = 0
+    let requests = 0, tokens = 0, allCost = 0
     for (const data of modelSums) {
       if (!data) continue
       requests += data.totals?.requests || 0
       tokens += data.totals?.totalTokens || 0
       for (const g of (data.groups || [])) {
+        const c = groupCost(resolve, g) * conv.factor
+        allCost += c // i grupe bez modela (cena po zahtevu za MCP alate)
         if (!g.modelName) continue
         const m = (models[String(g.modelName).toLowerCase()] ||= { model: g.modelName, requests: 0, tokens: 0, cost: 0 })
         m.requests += g.requests || 0
         m.tokens += g.totalTokens || 0
-        m.cost += groupCost(resolve, g) * conv.factor
+        m.cost += c
       }
     }
 
@@ -682,7 +697,7 @@ router.get('/my', async (req, res) => {
     }
 
     const modelRows = Object.values(models).sort((a, b) => b.cost - a.cost)
-    const totals = { requests, tokens, cost: modelRows.reduce((s, r) => s + r.cost, 0) }
+    const totals = { requests, tokens, cost: allCost }
     const appRows = Object.values(apps).sort((a, b) => b.cost - a.cost)
     appendOtherRow(appRows, totals, 'cost')
     res.json({

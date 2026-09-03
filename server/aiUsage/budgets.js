@@ -32,7 +32,7 @@ export async function tenantSpendEur(guids, fromDate, toDate) {
     if (!data) continue
     requests += data.totals?.requests || 0
     tokens += data.totals?.totalTokens || 0
-    for (const g of (data.groups || [])) if (g.modelName) usd += groupCost(resolve, g)
+    for (const g of (data.groups || [])) usd += groupCost(resolve, g) // i grupe bez modela (cena po zahtevu)
   }
   return { eur: usd * conv.factor, usd, requests, tokens, currency: conv.currency, rateAvailable: conv.rateAvailable, rateStale: conv.rateStale || false }
 }
