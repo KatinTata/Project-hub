@@ -3,8 +3,8 @@ import { api } from '../../api.js'
 import { useT } from '../../lang.jsx'
 import { PieChart, fmtTok, fmtNum, fmtMoney } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
-import { card, inputS, btnS, btnPrimary, presetRange, PRESETS, Section, Kpi } from './ui.jsx'
-import { SimpleTable } from './tables.jsx'
+import { card, inputS, btnS, btnPrimary, presetRange, PRESETS, Section, Kpi, svcLabel } from './ui.jsx'
+import { SimpleTable, PivotTable } from './tables.jsx'
 
 // Izveštaj po kupcu (PDF): izbor tenanta + perioda, pregled i klijentski PDF.
 export default function ReportView({ range, preset, setPreset, setRange }) {
@@ -14,6 +14,7 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
   const [currency, setCurrency] = useState('EUR')
   const [report, setReport] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [expanded, setExpanded] = useState({})
 
   useEffect(() => { api.aiUsageTenants().then(d => setTenants(d.tenants || [])).catch(() => setTenants([])) }, [])
 
@@ -54,7 +55,7 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
       </div>
       ${table(t('ai2.section.byModel'), head, rowsHtml((report.models || []).map(r => ({ ...r, name: r.model })), cols))}
       ${table(t('ai2.section.bySource'), head, rowsHtml((report.bySource || []).map(r => ({ ...r, name: r.source })), cols))}
-      ${table(t('ai2.section.byApp'), head, rowsHtml((report.byApp || []).map(r => ({ ...r, name: r.app || t('ai2.apps.other') })), cols))}
+      ${table(t('ai2.section.byApp'), head, rowsHtml((report.services || []).map(r => ({ ...r, name: svcLabel(t, r.service) })), cols))}
       <div style="margin-top:32px;padding-top:14px;border-top:1px solid #E2E6F0;font-size:10px;color:#A0AABF;text-align:center;letter-spacing:0.1em">INTELISALE · EMPOWERING SALES EXCELLENCE</div>
     </body></html>`
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
@@ -106,11 +107,13 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(430px, 1fr))', gap: 14 }}>
             <Section title={t('ai2.section.byModel')}><PieChart data={(report.models || []).map(m => ({ label: m.model, value: m.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={fmtMoney(report.totals?.cost, cur)} centerLabel={t('ai2.center.total')} /></Section>
-            <Section title={t('ai2.section.byApp')}><PieChart data={(report.byApp || []).map(a => ({ label: a.app || t('ai2.apps.other'), value: a.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${(report.byApp || []).length}`} centerLabel={t('ai2.center.apps')} /></Section>
+            <Section title={t('ai2.section.byApp')}><PieChart data={(report.services || []).map(s => ({ label: svcLabel(t, s.service), value: s.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${(report.services || []).length}`} centerLabel={t('ai2.center.services')} /></Section>
           </div>
           <SimpleTable title={t('ai2.section.byModel')} rows={(report.models || []).map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
           <SimpleTable title={t('ai2.section.bySource')} rows={(report.bySource || []).map(s => ({ ...s, name: s.source }))} nameKey="name" cur={cur} />
-          <SimpleTable title={t('ai2.section.byApp')} rows={(report.byApp || []).map(a => ({ ...a, name: a.app || t('ai2.apps.other') }))} nameKey="name" cur={cur} />
+          <PivotTable title={t('ai2.section.byApp')} hint={t('ai2.table.byServiceHint')} rows={(report.services || []).map(s => ({ ...s, label: svcLabel(t, s.service) }))}
+            childKey="apps" childName={k => k.app || t('ai2.apps.other')} nameKey="label" idKey="label"
+            expanded={expanded} setExpanded={setExpanded} costKey="cost" cur={cur} />
         </>
       )}
     </div>

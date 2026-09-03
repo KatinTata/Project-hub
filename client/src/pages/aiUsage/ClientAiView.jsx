@@ -5,8 +5,8 @@ import Topbar from '../../components/Topbar.jsx'
 import BrainAnimation from '../../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
-import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf } from './ui.jsx'
-import { SimpleTable } from './tables.jsx'
+import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf, svcLabel } from './ui.jsx'
+import { SimpleTable, PivotTable } from './tables.jsx'
 
 // Klijentski pogled: sopstvena potrošnja (preko client_tenant_users), paket/budžet.
 export default function ClientAiView({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
@@ -39,9 +39,10 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
   const exportPdf = () => openReportPdf(`from=${range.from}&to=${range.to}&currency=${currency}`, setExporting, t)
 
   const cur = data?.currency || currency
-  const apps = (data?.byApp || []).map(a => (a.is_other ? { ...a, app: t('ai2.apps.other') } : a))
+  const services = (data?.services || []).map(s => ({ ...s, label: svcLabel(t, s.service) }))
   const models = data?.models || []
   const tot = data?.totals
+  const [expanded, setExpanded] = useState({})
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
@@ -122,7 +123,7 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
                 <Kpi title={t('ai2.requests')} value={fmtNum(tot?.requests)} />
                 <Kpi title={t('ai2.tokens')} value={fmtTok(tot?.tokens)} />
                 <Kpi title={t('ai2.costCur', { cur })} value={fmtMoney(tot?.cost, cur)} color="var(--accent)" />
-                <Kpi title={t('ai2.kpi.apps')} value={apps.length} subtitle={t('ai2.kpi.modelsCount', { n: models.length })} />
+                <Kpi title={t('ai2.kpi.apps')} value={services.length} subtitle={t('ai2.kpi.modelsCount', { n: models.length })} />
               </div>
 
               <Section title={t('ai2.section.dailyTrend')} hint={t('ai2.section.dailyTrendHint')}>
@@ -131,20 +132,22 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(430px, 1fr))', gap: 14 }}>
                 <Section title={t('ai2.section.costByApp')}>
-                  <PieChart data={apps.map(a => ({ label: a.app, value: a.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={fmtMoney(tot?.cost, cur)} centerLabel={t('ai2.center.total')} />
+                  <PieChart data={services.map(s => ({ label: s.label, value: s.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={fmtMoney(tot?.cost, cur)} centerLabel={t('ai2.center.total')} />
                 </Section>
                 <Section title={t('ai2.section.costByModel')}>
                   <PieChart data={models.map(m => ({ label: m.model, value: m.cost }))} valueFmt={v => fmtMoney(v, cur)} centerValue={`${models.length}`} centerLabel={t('ai2.center.models')} />
                 </Section>
                 <Section title={t('ai2.section.requestsByApp')} hint={t('ai2.top10')}>
-                  <HBars data={apps.map(a => ({ label: a.app, value: a.requests }))} valueFmt={fmtNum} color="#0D9488" />
+                  <HBars data={services.map(s => ({ label: s.label, value: s.requests }))} valueFmt={fmtNum} color="#0D9488" />
                 </Section>
                 <Section title={t('ai2.section.tokensByModel')} hint={t('ai2.top10')}>
                   <HBars data={models.map(m => ({ label: m.model, value: m.tokens }))} valueFmt={fmtTok} />
                 </Section>
               </div>
 
-              <SimpleTable title={t('ai2.table.byApp')} rows={apps.map(a => ({ ...a, name: a.app || t('ai2.apps.other') }))} nameKey="name" cur={cur} />
+              <PivotTable title={t('ai2.table.byApp')} hint={t('ai2.table.byServiceHint')} rows={services}
+                childKey="apps" childName={k => k.app || t('ai2.apps.other')} nameKey="label" idKey="label"
+                expanded={expanded} setExpanded={setExpanded} costKey="cost" cur={cur} />
               <SimpleTable title={t('ai2.table.byModel')} rows={models.map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
             </div>
           )}

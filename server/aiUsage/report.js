@@ -8,7 +8,7 @@ import ExcelJS from 'exceljs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import db from '../db.js'
-import { getUsageSummary, getActions, getTenants, buildIdentityMap, resolveTenant, normalizeRange } from './adminApi.js'
+import { getUsageSummary, getActions, getTenants, buildIdentityMap, resolveTenant, normalizeRange, groupAppsByService } from './adminApi.js'
 import { makePriceResolver, groupCost, costModelGroups, getPricingConfig } from './pricing.js'
 import { usdConversion } from './fx.js'
 import { budgetStatus, BUDGET_SELECT } from './budgets.js'
@@ -132,12 +132,14 @@ async function collect(guids, fromDate, toDate, { withApps = true } = {}) {
       a.tokens += c.d.totals.totalTokens || 0
       a.cost += costModelGroups(c.d.groups).totalCost
     }
-    apps = Object.values(acc).sort((a, b) => b.cost - a.cost)
+    const raw = Object.values(acc).sort((a, b) => b.cost - a.cost)
     // Red „Ostalo": zahtevi koje fan-out nije pokrio (akcije preko limita ili
     // upisi bez akcije) — zbir tabele se slaže sa ukupnim brojevima.
-    const covered = apps.reduce((s, a) => ({ req: s.req + a.requests, tok: s.tok + a.tokens, cost: s.cost + a.cost }), { req: 0, tok: 0, cost: 0 })
+    const covered = raw.reduce((s, a) => ({ req: s.req + a.requests, tok: s.tok + a.tokens, cost: s.cost + a.cost }), { req: 0, tok: 0, cost: 0 })
     const rest = totals.requests - covered.req
-    if (rest > 0) apps.push({ app: 'Ostalo (bez aplikacije)', requests: rest, tokens: Math.max(0, totals.tokens - covered.tok), cost: Math.max(0, totals.cost - covered.cost) })
+    if (rest > 0) raw.push({ app: null, requests: rest, tokens: Math.max(0, totals.tokens - covered.tok), cost: Math.max(0, totals.cost - covered.cost) })
+    // U izveštaju se prikazuje nivo servisa (serviceName), ne sirove akcije.
+    apps = groupAppsByService(raw, 'cost').map(g => ({ app: g.service || 'Ostalo (bez aplikacije)', requests: g.requests, tokens: g.tokens, cost: g.cost }))
   }
 
   return {

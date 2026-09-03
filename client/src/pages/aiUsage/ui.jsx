@@ -32,6 +32,15 @@ export function presetRange(key) {
 }
 export const PRESETS = [['7d', 'ai2.preset.7d'], ['30d', 'ai2.preset.30d'], ['month', 'ai2.preset.month'], ['prevMonth', 'ai2.preset.prevMonth'], ['quarter', 'ai2.preset.quarter'], ['year', 'ai2.preset.year']]
 
+// Prijateljsko ime servisa: prevod pod ključem 'ai2.svc.<ime>' ako postoji,
+// inače sirovo ime iz API-ja; null (red „Ostalo") ima svoj prevod.
+export function svcLabel(t, service) {
+  if (!service) return t('ai2.apps.other')
+  const key = 'ai2.svc.' + service
+  const v = t(key)
+  return v === key ? service : v
+}
+
 export function AlertNotes({ alerts, onAck, compact }) {
   const t = useT()
   if (!alerts?.length) return null

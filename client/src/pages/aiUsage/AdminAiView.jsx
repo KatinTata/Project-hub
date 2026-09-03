@@ -5,8 +5,8 @@ import Topbar from '../../components/Topbar.jsx'
 import BrainAnimation from '../../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney, colorAt } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
-import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf } from './ui.jsx'
-import { PivotTable, SimpleTable, ModelsTable } from './tables.jsx'
+import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf, svcLabel } from './ui.jsx'
+import { PivotTable, ModelsTable } from './tables.jsx'
 import ReportView from './ReportView.jsx'
 import SettingsView from './SettingsView.jsx'
 
@@ -56,7 +56,7 @@ export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onO
   const tot = d.dash?.totals
   const clients = d.byClient?.clients || []
   const sources = d.bySource?.sources || []
-  const apps = (d.byApp?.apps || []).map(a => (a.is_other ? { ...a, app: t('ai2.apps.other') } : a))
+  const services = (d.byApp?.services || []).map(s => ({ ...s, label: svcLabel(t, s.service) }))
   const models = d.byModel?.models || []
   const alerts = (budgets?.budgets || []).filter(b => b.status && (b.status.level === 'warning' || b.status.level === 'limit'))
   const gauges = (budgets?.budgets || []).filter(b => b.status?.limit_eur > 0)
@@ -155,7 +155,7 @@ export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onO
                   <HBars data={clients.map(c => ({ label: c.name, value: c.requests }))} valueFmt={fmtNum} />
                 </Section>
                 <Section collapseId="costByApp" title={t('ai2.section.costByApp')} hint={d.byApp?.truncated ? t('ai2.hint.first40') : t('ai2.top10')}>
-                  <HBars data={apps.map(a => ({ label: a.app, value: a.cost_usd }))} valueFmt={v => fmtMoney(v)} color="#0D9488" />
+                  <HBars data={services.map(s => ({ label: s.label, value: s.cost_usd }))} valueFmt={v => fmtMoney(v)} color="#0D9488" />
                 </Section>
               </div>
 
@@ -171,7 +171,7 @@ export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onO
 
               <PivotTable title={t('ai2.pivot.byClients')} rows={clients} childKey="sources" childName={r => r.source} nameKey="name" idKey="key" expanded={expanded} setExpanded={setExpanded} />
               <PivotTable title={t('ai2.pivot.bySource')} rows={sources} childKey="clients" childName={r => r.name} nameKey="source" idKey="source" expanded={expanded} setExpanded={setExpanded} />
-              <SimpleTable title={t('ai2.table.byApps')} rows={apps} nameKey="app" costKey="cost_usd" />
+              <PivotTable title={t('ai2.table.byApps')} hint={t('ai2.table.byServiceHint')} rows={services} childKey="apps" childName={k => k.app || t('ai2.apps.other')} nameKey="label" idKey="label" expanded={expanded} setExpanded={setExpanded} />
               <ModelsTable rows={models} />
             </div>
           )}

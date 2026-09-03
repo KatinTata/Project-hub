@@ -57,6 +57,51 @@ export function resolveTenant(identityMap, tenantId) {
   return identityMap.get(id) || { key: id, name: tenantId, source: 'unknown' }
 }
 
+// ── Grupisanje akcija u servise ───────────────────────────────────────────────
+// Prikaz ide po servisu (serviceName), ne po sirovim akcijama: prefiks pre
+// '__' je ime servisa (npr. SqlDataBI__read_records → SqlDataBI); samostalne
+// akcije su mapirane ručno — pripadnost utvrđena empirijski kombinovanim
+// filterom action+serviceName na Admin API-ju (probe, 03.09.2026). Napomena:
+// serviceName filter na API-ju radi kao case-insensitive contains, pa se za
+// grupisanje NE koristi fan-out po servisima (preklapali bi se: 'SqlData'
+// hvata i sve SqlData* podservise) nego se grupišu redovi dobijeni po akcijama.
+const STANDALONE_ACTION_SERVICE = {
+  AgentQuery: 'Intelisale.Agentic.Api',
+  agentic_query: 'Intelisale.Agentic.Api',
+  SpeechTranscribe: 'Intelisale.Agentic.Api',
+  DocumentAnalysis: 'PdfReaderService',
+  EmailDocumentAnalysis: 'PdfReaderService',
+  EmailPdfAnalysis: 'PdfReaderService',
+  ManualDocumentUpload: 'PdfReaderService',
+  ManualPdfUpload: 'PdfReaderService',
+  TranslateTexts: 'Translation',
+}
+
+export function serviceOfAction(action) {
+  if (!action) return null // red „Ostalo" (bez akcije / preko limita)
+  const i = action.indexOf('__')
+  if (i > 0) return action.slice(0, i)
+  return STANDALONE_ACTION_SERVICE[action] || action
+}
+
+export function groupAppsByService(apps, costKey) {
+  const groups = {}
+  for (const a of apps) {
+    const svc = serviceOfAction(a.app)
+    const g = (groups[svc ?? ''] ||= { service: svc, is_other: !svc || undefined, requests: 0, tokens: 0, [costKey]: 0, apps: [] })
+    g.requests += a.requests || 0
+    g.tokens += a.tokens || 0
+    g[costKey] += a[costKey] || 0
+    g.apps.push(a)
+  }
+  const rows = Object.values(groups)
+    .sort((x, y) => (y[costKey] - x[costKey]) || (y.requests - x.requests))
+  for (const g of rows) g.apps.sort((x, y) => (y[costKey] - x[costKey]) || (y.requests - x.requests))
+  // „Ostalo" uvek na dno
+  rows.sort((x, y) => (x.service === null) - (y.service === null))
+  return rows
+}
+
 // Normalize a date range: default last 30 days; date-only `to` → end of day
 // (critical for billing — the whole last day must be included, spec §7.0).
 // Date-only granice se tumače kao dani u Europe/Belgrade (P1-8.7) — ranije je

@@ -34,16 +34,19 @@ function ShowMoreRow({ colSpan, hiddenCount, onClick, t }) {
   )
 }
 
-export function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded, setExpanded }) {
+export function PivotTable({ title, rows, childKey, childName, nameKey, idKey, expanded, setExpanded, costKey = 'cost_usd', cur = 'USD', hint }) {
   const t = useT()
   const { visible, hiddenCount, showMore } = useRevealRows(rows)
   if (!rows?.length) return null
-  const total = rows.reduce((s, r) => s + r.cost_usd, 0)
+  const total = rows.reduce((s, r) => s + (r[costKey] || 0), 0)
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-      <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{title}</span>
-        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.total', { v: fmtMoney(total) })}</span>
+      <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
+          {title}
+          {hint && <span style={{ marginLeft: 10, fontWeight: 400, fontSize: 11, color: 'var(--textMuted)' }}>{hint}</span>}
+        </span>
+        <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }}>{t('ai2.total', { v: fmtMoney(total, cur) })}</span>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead><tr style={{ background: 'var(--surfaceAlt)' }}>
@@ -61,15 +64,15 @@ export function PivotTable({ title, rows, childKey, childName, nameKey, idKey, e
                 <td style={tdStyle}>{kids.length > 0 && <span style={{ marginRight: 6, opacity: 0.5, fontSize: 10 }}>{isOpen ? '▼' : '▶'}</span>}{r[nameKey]}</td>
                 <td style={{ ...tdMono, textAlign: 'right' }}>{fmtNum(r.requests)}</td>
                 <td style={{ ...tdMono, textAlign: 'right' }}>{fmtTok(r.tokens)}</td>
-                <td style={{ ...tdMono, textAlign: 'right', fontWeight: 600 }}>{fmtMoney(r.cost_usd)}</td>
-                <td style={{ ...tdMono, textAlign: 'right', color: 'var(--textMuted)' }}>{total > 0 ? Math.round(r.cost_usd / total * 100) + '%' : '—'}</td>
+                <td style={{ ...tdMono, textAlign: 'right', fontWeight: 600 }}>{fmtMoney(r[costKey], cur)}</td>
+                <td style={{ ...tdMono, textAlign: 'right', color: 'var(--textMuted)' }}>{total > 0 ? Math.round((r[costKey] || 0) / total * 100) + '%' : '—'}</td>
               </tr>,
               ...(isOpen ? kids.map((k, i) => (
                 <tr key={id + '-' + i} style={{ background: 'var(--surfaceAlt)' }}>
                   <td style={{ ...tdStyle, paddingLeft: 38, color: 'var(--textMuted)', fontSize: 12 }}>{childName(k)}</td>
                   <td style={{ ...tdMono, textAlign: 'right', color: 'var(--textMuted)' }}>{fmtNum(k.requests)}</td>
                   <td style={{ ...tdMono, textAlign: 'right', color: 'var(--textMuted)' }}>{fmtTok(k.tokens)}</td>
-                  <td style={{ ...tdMono, textAlign: 'right', color: 'var(--textMuted)' }}>{fmtMoney(k.cost_usd)}</td>
+                  <td style={{ ...tdMono, textAlign: 'right', color: 'var(--textMuted)' }}>{fmtMoney(k[costKey], cur)}</td>
                   <td style={tdStyle} />
                 </tr>
               )) : []),

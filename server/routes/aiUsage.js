@@ -7,7 +7,7 @@ import { encryptToken, decryptToken } from '../jiraClient.js'
 import {
   AdminApiNotConfiguredError, getAdminConfig, adminGet,
   getTenants, getUsageSummary, getServiceNames, getActions, getModels,
-  buildIdentityMap, resolveTenant, normalizeRange,
+  buildIdentityMap, resolveTenant, normalizeRange, groupAppsByService,
 } from '../aiUsage/adminApi.js'
 import { getPricingConfig, makePriceResolver, groupCost, costModelGroups, syncAzurePrices } from '../aiUsage/pricing.js'
 import { fetchTodaysRates, usdConversion } from '../aiUsage/fx.js'
@@ -215,8 +215,9 @@ router.get('/by-app', async (req, res) => {
       cost_basis: 'exact',
       truncated: (actions || []).length > MAX_APP_FILTERS,
       apps,
+      services: groupAppsByService(apps, 'cost_usd'),
     })
-  } catch (err) { handleErr(res, err, { apps: [], truncated: false }) }
+  } catch (err) { handleErr(res, err, { apps: [], services: [], truncated: false }) }
 })
 
 // ── By model (§7.5) ───────────────────────────────────────────────────────────
@@ -340,9 +341,10 @@ router.get('/tenant-report', async (req, res) => {
       models: modelRows,
       bySource: sourceRows.sort((a, b) => b.cost - a.cost),
       byApp: appRows,
+      services: groupAppsByService(appRows, 'cost'),
       totals,
     })
-  } catch (err) { handleErr(res, err, { models: [], bySource: [], byApp: [], totals: null }) }
+  } catch (err) { handleErr(res, err, { models: [], bySource: [], byApp: [], services: [], totals: null }) }
 })
 
 // ── Filter options (§7.8) ─────────────────────────────────────────────────────
@@ -613,7 +615,7 @@ router.post('/alerts/:id/ack', (req, res) => {
 router.get('/my', async (req, res) => {
   const { currency = 'USD' } = req.query
   const { fromDate, toDate } = normalizeRange(req.query.from, req.query.to)
-  const empty = { totals: null, models: [], byApp: [], days: [] }
+  const empty = { totals: null, models: [], byApp: [], services: [], days: [] }
   try {
     const mappings = db.prepare(`
       SELECT m.* FROM client_tenant_mappings m
@@ -694,6 +696,7 @@ router.get('/my', async (req, res) => {
       totals,
       models: modelRows,
       byApp: appRows,
+      services: groupAppsByService(appRows, 'cost'),
       days: Object.values(days).sort((a, b) => a.date.localeCompare(b.date)),
     })
   } catch (err) { handleErr(res, err, empty) }
