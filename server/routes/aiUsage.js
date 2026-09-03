@@ -19,7 +19,23 @@ import { logger } from '../logger.js'
 import { logAudit } from '../audit.js'
 
 const router = Router()
-const MAX_APP_FILTERS = 40
+// Admin API nema groupBy po akciji, pa se akcije obilaze pojedinačno (fan-out).
+// Limit je podignut sa 40 na 80 kad je broj akcija prešao 40 — preko limita
+// višak završava u redu „Ostalo". Paralelizam je ograničen (mapLimit).
+const MAX_APP_FILTERS = 80
+const FANOUT_CONCURRENCY = 8
+
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length)
+  let next = 0
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const i = next++
+      out[i] = await fn(items[i])
+    }
+  }))
+  return out
+}
 
 const roleOf = getRole
 const isAdmin = isAdminRole
@@ -183,7 +199,7 @@ router.get('/by-app', async (req, res) => {
       getUsageSummary({ fromDate, toDate, groupBy: 'Model' }),
     ])
     const limited = (actions || []).slice(0, MAX_APP_FILTERS)
-    const rows = await Promise.all(limited.map(action =>
+    const rows = await mapLimit(limited, FANOUT_CONCURRENCY, action =>
       getUsageSummary({ fromDate, toDate, action, groupBy: 'Model' })
         .then(data => {
           const { totalCost } = costModelGroups(data.groups)
@@ -191,7 +207,7 @@ router.get('/by-app', async (req, res) => {
           return { app: action, requests: t.requests || 0, tokens: t.totalTokens || 0, cost_usd: totalCost }
         })
         .catch(() => null)
-    ))
+    )
     const apps = rows.filter(r => r && r.requests > 0).sort(bySort)
     const ot = overall.totals || {}
     appendOtherRow(apps, { requests: ot.requests, tokens: ot.totalTokens, cost: costModelGroups(overall.groups).totalCost }, 'cost_usd')
@@ -288,12 +304,12 @@ router.get('/tenant-report', async (req, res) => {
       sourceRows.push({ source: guids[i].source, requests: t.requests || 0, tokens: t.totalTokens || 0, cost: srcCost * conv.factor })
     })
 
-    // Per app — fan-out actions × GUIDs (cap 40)
+    // Per app — fan-out actions × GUIDs (cap MAX_APP_FILTERS)
     const actions = await getActions().catch(() => [])
-    const limited = (actions || []).slice(0, MAX_APP_FILTERS)
-    const appCells = await Promise.all(limited.flatMap(action => guids.map(g =>
-      getUsageSummary({ fromDate, toDate, tenantId: g.guid, action, groupBy: 'Model' })
-        .then(d => ({ action, d })).catch(() => null))))
+    const jobs = (actions || []).slice(0, MAX_APP_FILTERS).flatMap(action => guids.map(g => ({ action, guid: g.guid })))
+    const appCells = await mapLimit(jobs, FANOUT_CONCURRENCY, job =>
+      getUsageSummary({ fromDate, toDate, tenantId: job.guid, action: job.action, groupBy: 'Model' })
+        .then(d => ({ action: job.action, d })).catch(() => null))
     const apps = {}
     for (const cell of appCells) {
       if (!cell?.d) continue
@@ -648,11 +664,12 @@ router.get('/my', async (req, res) => {
       }
     }
 
-    // Per app — fan-out actions × GUIDs (cap 40)
+    // Per app — fan-out actions × GUIDs (cap MAX_APP_FILTERS)
     const actions = await getActions().catch(() => [])
-    const appCells = await Promise.all((actions || []).slice(0, MAX_APP_FILTERS).flatMap(action => guids.map(g =>
-      getUsageSummary({ fromDate, toDate, tenantId: g, action, groupBy: 'Model' })
-        .then(d => ({ action, d })).catch(() => null))))
+    const jobs = (actions || []).slice(0, MAX_APP_FILTERS).flatMap(action => guids.map(g => ({ action, guid: g })))
+    const appCells = await mapLimit(jobs, FANOUT_CONCURRENCY, job =>
+      getUsageSummary({ fromDate, toDate, tenantId: job.guid, action: job.action, groupBy: 'Model' })
+        .then(d => ({ action: job.action, d })).catch(() => null))
     const apps = {}
     for (const cell of appCells) {
       if (!cell?.d || !(cell.d.totals?.requests > 0)) continue

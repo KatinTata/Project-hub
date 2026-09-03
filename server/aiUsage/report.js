@@ -22,7 +22,22 @@ const FONT_FILES = [
   path.join(__dirname, '..', 'excel', 'fonts', 'HankenGrotesk-Bold.ttf'),
   path.join(__dirname, '..', 'excel', 'fonts', 'HankenGrotesk-ExtraBold.ttf'),
 ]
-const MAX_APPS = 40
+// Isti limit kao u rutama (routes/aiUsage.js): akcija je prešlo 40, pa je cap
+// podignut da izveštaj pokrije sve; višak preko limita ulazi u red „Ostalo".
+const MAX_APPS = 80
+const FANOUT_CONCURRENCY = 8
+
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length)
+  let next = 0
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const i = next++
+      out[i] = await fn(items[i])
+    }
+  }))
+  return out
+}
 
 // Rasterizacija u worker threadu (P2-B5) — ne blokira event loop.
 const svgToPng = svg => renderSvgToPng(svg, FONT_FILES)
@@ -106,8 +121,9 @@ async function collect(guids, fromDate, toDate, { withApps = true } = {}) {
   let apps = []
   if (withApps) {
     const actions = await getActions().catch(() => [])
-    const cells = await Promise.all((actions || []).slice(0, MAX_APPS).flatMap(action =>
-      targets.map(g => call({ action, groupBy: 'Model', ...(g ? { tenantId: g } : {}) }).then(d => ({ action, d })))))
+    const jobs = (actions || []).slice(0, MAX_APPS).flatMap(action => targets.map(g => ({ action, guid: g })))
+    const cells = await mapLimit(jobs, FANOUT_CONCURRENCY, job =>
+      call({ action: job.action, groupBy: 'Model', ...(job.guid ? { tenantId: job.guid } : {}) }).then(d => ({ action: job.action, d })))
     const acc = {}
     for (const c of cells) {
       if (!c?.d || !(c.d.totals?.requests > 0)) continue
@@ -117,6 +133,11 @@ async function collect(guids, fromDate, toDate, { withApps = true } = {}) {
       a.cost += costModelGroups(c.d.groups).totalCost
     }
     apps = Object.values(acc).sort((a, b) => b.cost - a.cost)
+    // Red „Ostalo": zahtevi koje fan-out nije pokrio (akcije preko limita ili
+    // upisi bez akcije) — zbir tabele se slaže sa ukupnim brojevima.
+    const covered = apps.reduce((s, a) => ({ req: s.req + a.requests, tok: s.tok + a.tokens, cost: s.cost + a.cost }), { req: 0, tok: 0, cost: 0 })
+    const rest = totals.requests - covered.req
+    if (rest > 0) apps.push({ app: 'Ostalo (bez aplikacije)', requests: rest, tokens: Math.max(0, totals.tokens - covered.tok), cost: Math.max(0, totals.cost - covered.cost) })
   }
 
   return {
