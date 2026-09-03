@@ -69,8 +69,8 @@ export function budgetAlertHtml({ level, tenantName, spent, limit, pct, month, c
       </div>
       <p style="font-size:13px;color:#5A6480;line-height:1.6;margin:16px 0 0">
         ${isLimit
-          ? 'Mesečni limit je prekoračen. Preporučujemo pregled potrošnje po aplikacijama i modelima u Project Hub-u.'
-          : 'Potrošnja se približava definisanom mesečnom limitu. Detalje po aplikacijama i modelima možete videti u Project Hub-u.'}
+          ? 'Mesečni limit je prekoračen. Preporučujemo pregled potrošnje po servisima i modelima u Project Hub-u.'
+          : 'Potrošnja se približava definisanom mesečnom limitu. Detalje po servisima i modelima možete videti u Project Hub-u.'}
       </p>
       <div style="margin-top:20px;padding-top:14px;border-top:1px solid #E2E6F0;font-size:10px;color:#A0AABF;letter-spacing:0.08em;text-align:center">
         INTELISALE &middot; EMPOWERING SALES EXCELLENCE

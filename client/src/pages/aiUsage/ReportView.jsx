@@ -4,7 +4,7 @@ import { useT } from '../../lang.jsx'
 import { PieChart, fmtTok, fmtNum, fmtMoney } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
 import { card, inputS, btnS, btnPrimary, presetRange, PRESETS, Section, Kpi, svcLabel, DateInput } from './ui.jsx'
-import { SimpleTable, PivotTable } from './tables.jsx'
+import { SimpleTable } from './tables.jsx'
 
 // Izveštaj po kupcu (PDF): izbor tenanta + perioda, pregled i klijentski PDF.
 export default function ReportView({ range, preset, setPreset, setRange }) {
@@ -14,7 +14,6 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
   const [currency, setCurrency] = useState('EUR')
   const [report, setReport] = useState(null)
   const [busy, setBusy] = useState(false)
-  const [expanded, setExpanded] = useState({})
 
   useEffect(() => { api.aiUsageTenants().then(d => setTenants(d.tenants || [])).catch(() => setTenants([])) }, [])
 
@@ -111,9 +110,7 @@ export default function ReportView({ range, preset, setPreset, setRange }) {
           </div>
           <SimpleTable title={t('ai2.section.byModel')} rows={(report.models || []).map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
           <SimpleTable title={t('ai2.section.bySource')} rows={(report.bySource || []).map(s => ({ ...s, name: s.source }))} nameKey="name" cur={cur} />
-          <PivotTable title={t('ai2.section.byApp')} hint={t('ai2.table.byServiceHint')} rows={(report.services || []).map(s => ({ ...s, label: svcLabel(t, s.service) }))}
-            childKey="apps" childName={k => k.app || t('ai2.apps.other')} nameKey="label" idKey="label"
-            expanded={expanded} setExpanded={setExpanded} costKey="cost" cur={cur} />
+          <SimpleTable title={t('ai2.section.byApp')} rows={(report.services || []).map(s => ({ ...s, name: svcLabel(t, s.service) }))} nameKey="name" cur={cur} />
         </>
       )}
     </div>

@@ -6,7 +6,7 @@ import BrainAnimation from '../../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney, colorAt } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
 import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf, svcLabel } from './ui.jsx'
-import { PivotTable, ModelsTable } from './tables.jsx'
+import { PivotTable, SimpleTable, ModelsTable } from './tables.jsx'
 import ReportView from './ReportView.jsx'
 import SettingsView from './SettingsView.jsx'
 
@@ -171,7 +171,7 @@ export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onO
 
               <PivotTable title={t('ai2.pivot.byClients')} rows={clients} childKey="sources" childName={r => r.source} nameKey="name" idKey="key" expanded={expanded} setExpanded={setExpanded} />
               <PivotTable title={t('ai2.pivot.bySource')} rows={sources} childKey="clients" childName={r => r.name} nameKey="source" idKey="source" expanded={expanded} setExpanded={setExpanded} />
-              <PivotTable title={t('ai2.table.byApps')} hint={t('ai2.table.byServiceHint')} rows={services} childKey="apps" childName={k => k.app || t('ai2.apps.other')} nameKey="label" idKey="label" expanded={expanded} setExpanded={setExpanded} />
+              <SimpleTable title={t('ai2.table.byApps')} rows={services} nameKey="label" costKey="cost_usd" />
               <ModelsTable rows={models} />
             </div>
           )}

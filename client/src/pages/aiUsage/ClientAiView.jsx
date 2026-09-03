@@ -6,7 +6,7 @@ import BrainAnimation from '../../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
 import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf, svcLabel } from './ui.jsx'
-import { SimpleTable, PivotTable } from './tables.jsx'
+import { SimpleTable } from './tables.jsx'
 
 // Klijentski pogled: sopstvena potrošnja (preko client_tenant_users), paket/budžet.
 export default function ClientAiView({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
@@ -42,7 +42,6 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
   const services = (data?.services || []).map(s => ({ ...s, label: svcLabel(t, s.service) }))
   const models = data?.models || []
   const tot = data?.totals
-  const [expanded, setExpanded] = useState({})
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
@@ -145,9 +144,7 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
                 </Section>
               </div>
 
-              <PivotTable title={t('ai2.table.byApp')} hint={t('ai2.table.byServiceHint')} rows={services}
-                childKey="apps" childName={k => k.app || t('ai2.apps.other')} nameKey="label" idKey="label"
-                expanded={expanded} setExpanded={setExpanded} costKey="cost" cur={cur} />
+              <SimpleTable title={t('ai2.table.byApp')} rows={services} nameKey="label" cur={cur} />
               <SimpleTable title={t('ai2.table.byModel')} rows={models.map(m => ({ ...m, name: m.model }))} nameKey="name" cur={cur} />
             </div>
           )}

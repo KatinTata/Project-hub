@@ -139,7 +139,7 @@ async function collect(guids, fromDate, toDate, { withApps = true } = {}) {
     const rest = totals.requests - covered.req
     if (rest > 0) raw.push({ app: null, requests: rest, tokens: Math.max(0, totals.tokens - covered.tok), cost: Math.max(0, totals.cost - covered.cost) })
     // U izveštaju se prikazuje nivo servisa (serviceName), ne sirove akcije.
-    apps = groupAppsByService(raw, 'cost').map(g => ({ app: g.service || 'Ostalo (bez aplikacije)', requests: g.requests, tokens: g.tokens, cost: g.cost }))
+    apps = groupAppsByService(raw, 'cost').map(g => ({ app: g.service || 'Ostalo', requests: g.requests, tokens: g.tokens, cost: g.cost }))
   }
 
   return {
@@ -410,7 +410,7 @@ export async function buildXlsx(d) {
     s1.getCell(projStart + 4, 2).numFmt = INT // "Proteklo dana" is a count
   }
 
-  title(s1, r, d.audience === 'internal' ? 'Trošak po klijentu' : 'Trošak po aplikaciji'); r += 1
+  title(s1, r, d.audience === 'internal' ? 'Trošak po klijentu' : 'Trošak po servisu'); r += 1
   await place(s1, ch.mainDonut, 460, 250, 0, r - 1); r += 13
   title(s1, r, 'Tokeni: input vs output'); r += 1
   await place(s1, ch.tokenDonut, 460, 250, 0, r - 1); r += 13
@@ -448,14 +448,14 @@ export async function buildXlsx(d) {
     if (ch.sourceDonut) { rc += 1; await place(s3c, ch.sourceDonut, 460, 250, 0, rc - 1) }
   }
 
-  // ── Sheet: Po aplikaciji ──
-  const s4 = wb.addWorksheet('Po aplikaciji', { views: [{ showGridLines: false }] })
+  // ── Sheet: Po servisu ──
+  const s4 = wb.addWorksheet('Po servisu', { views: [{ showGridLines: false }] })
   s4.columns = [{ width: 42 }, { width: 14 }, { width: 16 }, { width: 18 }, { width: 12 }]
-  let r4 = table(s4, 1, ['Aplikacija / akcija', 'Zahtevi', 'Tokeni', `Trošak (${d.currency})`, 'Udeo'],
+  let r4 = table(s4, 1, ['Servis', 'Zahtevi', 'Tokeni', `Trošak (${d.currency})`, 'Udeo'],
     d.apps.map(a => [a.app, a.requests, a.tokens, a.cost, d.totals.cost ? a.cost / d.totals.cost : 0]),
     [null, '#,##0', '#,##0', moneyFmt, '0.0%'])
   r4 += 1
-  title(s4, r4, 'Top aplikacije po trošku'); r4 += 1
+  title(s4, r4, 'Top servisi po trošku'); r4 += 1
   await place(s4, ch.appBars, 460, 26 * Math.min(8, d.apps.length) + 16, 0, r4 - 1)
 
   // ── Sheet: Po modelu ──
@@ -473,7 +473,7 @@ export async function buildXlsx(d) {
   // ── Sheet: Poređenje perioda ──
   const s6 = wb.addWorksheet('Poređenje', { views: [{ showGridLines: false }] })
   s6.columns = [{ width: 42 }, { width: 18 }, { width: 18 }, { width: 14 }]
-  let r6 = table(s6, 1, ['Aplikacija', `Tekući (${d.currency})`, `Prethodni (${d.currency})`, 'Promena %'],
+  let r6 = table(s6, 1, ['Servis', `Tekući (${d.currency})`, `Prethodni (${d.currency})`, 'Promena %'],
     d.compareApps.map(x => [x.label, x.now, x.prev, pctDelta(x.now, x.prev) / 100]), [null, moneyFmt, moneyFmt, '+0.0%;-0.0%'])
   r6 = table(s6, r6, ['Model', `Tekući (${d.currency})`, `Prethodni (${d.currency})`, 'Promena %'],
     d.compareModels.map(x => [x.label, x.now, x.prev, pctDelta(x.now, x.prev) / 100]), [null, moneyFmt, moneyFmt, '+0.0%;-0.0%'])
@@ -612,8 +612,8 @@ export function buildReportHtml(d) {
       [{ t: 'Izvor' }, { t: 'Zahtevi', r: 1 }, { t: 'Tokeni', r: 1 }, { t: 'Trošak', r: 1 }],
       d.sources.map(s => [esc(s.source), num(s.requests), tok(s.tokens), m(s.cost)]))) : ''}
 
-  ${section('Po aplikaciji', (internal ? '' : chart(ch.mainDonut)) + chart(ch.appBars) + tbl(
-      [{ t: 'Aplikacija' }, { t: 'Zahtevi', r: 1 }, { t: 'Tokeni', r: 1 }, { t: 'Trošak', r: 1 }, { t: 'Udeo', r: 1 }],
+  ${section('Po servisu', (internal ? '' : chart(ch.mainDonut)) + chart(ch.appBars) + tbl(
+      [{ t: 'Servis' }, { t: 'Zahtevi', r: 1 }, { t: 'Tokeni', r: 1 }, { t: 'Trošak', r: 1 }, { t: 'Udeo', r: 1 }],
       d.apps.map(a => [esc(a.app), num(a.requests), tok(a.tokens), m(a.cost), d.totals.cost ? Math.round(a.cost / d.totals.cost * 100) + '%' : '—'])))}
 
   ${section('Po modelu', chart(ch.modelDonut) + chart(ch.tokenDonut) + chart(ch.modelTokBars) + tbl(
