@@ -3,6 +3,7 @@ import db from '../db.js'
 import { getRole as getUserRole, isAdminRole } from '../rbac.js'
 import { dayInBelgrade } from '../dates.js'
 import { logAudit } from '../audit.js'
+import { upsertManual } from '../clientTaskTexts.js'
 
 const router = Router()
 
@@ -28,9 +29,50 @@ router.get('/', (req, res) => {
   }
   // Projects are strictly per-user — every admin sees only their own.
   const projects = db.prepare(
-    'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta, created_at as createdAt FROM projects WHERE user_id = ? AND (archived IS NULL OR archived = 0) ORDER BY position ASC, id ASC'
+    'SELECT id, epic_key as epicKey, display_name as displayName, position, filter_type as filterType, filter_jql as filterJql, filter_meta as filterMeta, client_lang as clientLang, created_at as createdAt FROM projects WHERE user_id = ? AND (archived IS NULL OR archived = 0) ORDER BY position ASC, id ASC'
   ).all(req.userId)
   res.json(projects)
+})
+
+// ── Klijentski tekstovi taskova (prevod + generisan opis) ─────────────────────
+
+// Uključi/isključi jezik klijentskog prikaza (NULL = isključeno); generisanje
+// se pokreće pri prvom sledećem učitavanju taskova.
+const CLIENT_LANGS = ['en', 'de', 'bg']
+router.put('/:id/client-lang', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = findAdminProject(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const lang = req.body?.lang || null
+  if (lang !== null && !CLIENT_LANGS.includes(lang)) return res.status(400).json({ error: 'Nepodržan jezik' })
+  db.prepare('UPDATE projects SET client_lang = ? WHERE id = ?').run(lang, req.params.id)
+  logAudit(req.userId, 'project.client_lang', `projekat ${req.params.id} → ${lang || 'isključeno'}`, req)
+  res.json({ ok: true, clientLang: lang })
+})
+
+// Ručna izmena teksta jednog taska (admin „provera") — edited_by blokira
+// automatsku regeneraciju preko izmene.
+router.put('/:id/client-texts/:taskKey', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = findAdminProject(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const lang = db.prepare('SELECT client_lang FROM projects WHERE id = ?').get(req.params.id)?.client_lang
+  if (!lang) return res.status(400).json({ error: 'Klijentski jezik nije uključen za projekat' })
+  const { title, one_liner } = req.body || {}
+  if (!title?.trim()) return res.status(400).json({ error: 'Naslov je obavezan' })
+  upsertManual(project.id, String(req.params.taskKey), lang, { title, one_liner }, req.userId)
+  res.json({ ok: true })
+})
+
+// Regeneracija: briše automatski generisane redove (ručne izmene ostaju);
+// novi tekstovi nastaju pri prvom sledećem učitavanju taskova.
+router.post('/:id/client-texts/regenerate', (req, res) => {
+  if (!isAdminRole(getUserRole(req.userId))) return res.status(403).json({ error: 'Forbidden' })
+  const project = findAdminProject(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  const r = db.prepare('DELETE FROM task_client_texts WHERE project_id = ? AND edited_by IS NULL').run(project.id)
+  logAudit(req.userId, 'project.client_texts.regen', `projekat ${project.id} — obrisano ${r.changes}`, req)
+  res.json({ ok: true, cleared: r.changes })
 })
 
 router.post('/', (req, res) => {

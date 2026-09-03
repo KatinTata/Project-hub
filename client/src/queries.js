@@ -55,9 +55,11 @@ export function useProjectsQuery(options = {}) {
 async function fetchProjectData(project, { isClient }) {
   // Prethodno stanje (za feed promena) — keš je uvek ogledalo poslednjih podataka
   const prevCache = loadProjectCache(project.id)
-  const { parents, subtasks, epicSelf, hasBillableField } = await api.getTasks(project)
+  const { parents, subtasks, epicSelf, hasBillableField, clientTexts, clientLang } = await api.getTasks(project)
   const data = processEpicData(parents, subtasks, epicSelf)
   data.hasBillableField = !!hasBillableField
+  data.clientTexts = clientTexts || null
+  data.clientLang = clientLang || null
   const fetchedAt = Date.now()
   saveProjectCache(project.id, data)
 

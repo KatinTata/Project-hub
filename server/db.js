@@ -445,6 +445,27 @@ addColumn('client_tenant_mappings', 'is_tracked', `ALTER TABLE client_tenant_map
 // pa bi im trošak bio 0) — USD, primenjuje se na svaki zahtev bez modelName.
 addColumn('ai_pricing_config', 'tool_price_per_request', `ALTER TABLE ai_pricing_config ADD COLUMN tool_price_per_request REAL NOT NULL DEFAULT 0`)
 
+// Klijentski tekstovi taskova (prevod naslova + generisan opis u jednoj
+// rečenici) — generiše Claude pri učitavanju projekta, keš po hash-u naslova.
+// edited_by != NULL znači da je admin ručno ispravio tekst i auto-regeneracija
+// ga više ne dira. client_lang na projektu uključuje funkciju (NULL = isključeno).
+addColumn('projects', 'client_lang', `ALTER TABLE projects ADD COLUMN client_lang TEXT DEFAULT NULL`)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS task_client_texts (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id   INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    task_key     TEXT NOT NULL,
+    lang         TEXT NOT NULL DEFAULT 'en',
+    title        TEXT,
+    one_liner    TEXT,
+    source_hash  TEXT,
+    edited_by    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (project_id, task_key, lang)
+  )
+`)
+db.exec('CREATE INDEX IF NOT EXISTS idx_tct_project ON task_client_texts(project_id, lang)')
+
 // AI packages (tiers): fixed monthly access fee + included consumption.
 // A tenant on a package gets its consumption limit from included_eur.
 db.exec(`

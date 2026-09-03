@@ -26,6 +26,51 @@ import { useT } from '../lang.jsx'
 import { toast } from '../ui/Toast.jsx'
 import { useCollapsedSections, CollapseToggle } from '../ui/collapse.jsx'
 
+// Jezik klijentskog prikaza taskova (NULL = isključeno). Kad je uključen,
+// taskovi za klijenta dobijaju prevod naslova + AI opis u jednoj rečenici;
+// generisanje kreće pri sledećem učitavanju taskova (zato osvežavamo).
+function ClientLangControl({ project, clientLang, onRefresh, t }) {
+  const [busy, setBusy] = useState(false)
+  const [lang, setLang] = useState(clientLang || '')
+  useEffect(() => { setLang(clientLang || '') }, [clientLang])
+
+  async function change(v) {
+    setBusy(true)
+    try {
+      await api.setClientLang(project.id, v || null)
+      setLang(v)
+      if (v) onRefresh?.()
+    } catch (e) { toast.error(e.message) } finally { setBusy(false) }
+  }
+  async function regen() {
+    setBusy(true)
+    try { await api.regenClientTexts(project.id); onRefresh?.() }
+    catch (e) { toast.error(e.message) } finally { setBusy(false) }
+  }
+
+  const small = { fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)' }
+  return (
+    <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 6, alignItems: 'center' }} title={t('pc.clientLang.title')}>
+      <span style={small}>{t('pc.clientLang.label')}</span>
+      <select value={lang} onChange={e => change(e.target.value)} disabled={busy} style={{
+        background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 7, padding: '5px 8px',
+        color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, cursor: 'pointer',
+      }}>
+        <option value="">{t('pc.clientLang.off')}</option>
+        <option value="en">EN</option>
+        <option value="de">DE</option>
+        <option value="bg">BG</option>
+      </select>
+      {lang && (
+        <button onClick={regen} disabled={busy} title={t('pc.clientLang.regenTitle')} style={{
+          padding: '5px 10px', borderRadius: 7, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif",
+          border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', cursor: 'pointer',
+        }}>{busy ? '…' : t('pc.clientLang.regen')}</button>
+      )}
+    </span>
+  )
+}
+
 function fmtLastRefresh(date, t) {
   if (!date) return null
   const diff = Math.floor((Date.now() - date) / 1000)
@@ -784,7 +829,7 @@ export default function ProjectCard({
 
       {/* Tabs: Taskovi / Faze */}
       <div>
-        <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 4, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           {[
             { id: 'tasks', label: t('pc.tab.tasks') },
             { id: 'phases', label: t('pc.tab.phases') },
@@ -805,10 +850,13 @@ export default function ProjectCard({
               {tab.label}
             </button>
           ))}
+          {!isClient && activeTab === 'tasks' && (
+            <ClientLangControl project={project} clientLang={data.clientLang ?? project.clientLang ?? null} onRefresh={onRefresh} t={t} />
+          )}
         </div>
 
         {activeTab === 'tasks' && (
-          <TaskTable tasks={tasks} overTasks={overTasks} isClient={isClient} projectId={project.id} onOpenMessages={onOpenMessages} jiraUrl={jiraUrl} hasBillableField={!!data.hasBillableField} />
+          <TaskTable tasks={tasks} overTasks={overTasks} isClient={isClient} projectId={project.id} onOpenMessages={onOpenMessages} jiraUrl={jiraUrl} hasBillableField={!!data.hasBillableField} clientTexts={data.clientTexts} />
         )}
         {activeTab === 'phases' && (
           <PhaseBuilder projectId={project.id} tasks={tasks} isClient={isClient} jiraUrl={jiraUrl} />

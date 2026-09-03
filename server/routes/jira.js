@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import db from '../db.js'
 import { decryptToken, makeJiraAuth, jiraGet, jiraPost, fetchByJql, fetchSubtasks, attachWorklogs, TASK_FIELDS, detectBillableField, parseBillableValue, detectModuleField, detectHoursToBillField } from '../jiraClient.js'
+import { getTextsMap, queueGeneration } from '../clientTaskTexts.js'
 import { getRole as getUserRole, isAdminRole, roleFrom } from '../rbac.js'
 
 const router = Router()
@@ -113,6 +114,7 @@ router.post('/tasks', async (req, res) => {
     const role = getUserRole(req.userId)
 
     let jira
+    let projectRow = null // za klijentske tekstove taskova (client_lang)
     if (role === 'user') {
       // Klijent: filter dolazi ISKLJUČIVO iz baze za projekat na koji je dodeljen,
       // nikad iz tela zahteva (sprečava proizvoljan JQL preko tuđih kredencijala).
@@ -133,9 +135,13 @@ router.post('/tasks', async (req, res) => {
       epicKey = project.epic_key
       jql = project.filter_jql
 
+      projectRow = project
       jira = getClientOwnerJiraByProjectId(req.userId, project.id)
     } else {
       jira = getUserJira(req.userId) || getSuperAdminJira()
+      if (projectId) {
+        projectRow = db.prepare('SELECT * FROM projects WHERE id = ? AND user_id = ?').get(projectId, req.userId)
+      }
     }
     if (!jira) return res.status(400).json({ error: 'Jira nije konfigurisan' })
 
@@ -224,6 +230,16 @@ router.post('/tasks', async (req, res) => {
       } catch { /* epic fetch is best-effort */ }
     }
 
+    // Klijentski tekstovi taskova (prevod + opis): keš se servira odmah, a
+    // generisanje za nove/izmenjene taskove ide u pozadini (fire-and-forget) —
+    // vidljivo pri sledećem učitavanju.
+    let clientTexts = null
+    if (projectRow?.client_lang) {
+      const taskList = [...parents, ...subtasks].map(i => ({ key: i.key, summary: i.fields?.summary }))
+      queueGeneration({ project: projectRow, jira, tasks: taskList })
+      clientTexts = getTextsMap(projectRow.id, projectRow.client_lang)
+    }
+
     // P3-1: client-safe DTO — rola `user` NE dobija interne brojeve ni imena.
     // UI skrivanje nije zaštita: strip se radi na serveru, pre slanja.
     if (role === 'user') {
@@ -234,10 +250,11 @@ router.post('/tasks', async (req, res) => {
         epicSelf: null, // sati na samom epiku su interni podatak
         hasBillableField: showBillable && !!billableKey,
         hasModuleField: !!moduleKey,
+        clientTexts, clientLang: projectRow?.client_lang || null,
       })
     }
 
-    res.json({ parents, subtasks, epicSelf, hasBillableField: !!billableKey, hasModuleField: !!moduleKey })
+    res.json({ parents, subtasks, epicSelf, hasBillableField: !!billableKey, hasModuleField: !!moduleKey, clientTexts, clientLang: projectRow?.client_lang || null })
   } catch (err) {
     { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
   }

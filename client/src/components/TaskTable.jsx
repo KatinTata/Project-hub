@@ -3,6 +3,8 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import Badge from '../ui/Badge.jsx'
 import ProgressBar from '../ui/ProgressBar.jsx'
 import { fmtHours, getStatusCategory } from '../utils.js'
+import { api } from '../api.js'
+import { toast } from '../ui/Toast.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 
@@ -61,7 +63,30 @@ function BillableBadge() {
   )
 }
 
-function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpenQuickMsg, jiraUrl }) {
+// Klijentski tekst taska (prevod naslova + generisan opis): klijent ga vidi
+// UMESTO originala; admin ga vidi kao diskretnu liniju ispod originala
+// (provera) i klikom otvara izmenu.
+function ClientTextLine({ ct, isClient, onEdit }) {
+  if (!ct) return null
+  if (isClient && !ct.one_liner) return null
+  const text = [ct.title, ct.one_liner].filter(Boolean).join(' — ')
+  return (
+    <div
+      onClick={onEdit ? e => { e.stopPropagation(); onEdit() } : undefined}
+      title={onEdit ? text + '\n(klik za izmenu)' : ct.one_liner || ''}
+      style={{
+        fontSize: 11, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif",
+        marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        cursor: onEdit ? 'pointer' : 'default',
+      }}>
+      {!isClient && <span style={{ fontSize: 9, padding: '0 5px', borderRadius: 4, marginRight: 6, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', color: ct.edited ? 'var(--amber)' : 'var(--textMuted)' }}>{ct.edited ? 'EN ✎' : 'EN'}</span>}
+      {isClient ? (ct.one_liner || '') : text}
+    </div>
+  )
+}
+
+function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpenQuickMsg, jiraUrl, clientTexts, onEditClientText }) {
+  const clientText = clientTexts?.[task.key]
   const [hovered, setHovered] = useState(false)
   const pct = task.est > 0 ? Math.min(task.spent / task.est, 2) : 0
   const barColor = (!isClient && task.over) ? 'var(--red)' : 'var(--accent)'
@@ -133,25 +158,27 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         </div>
 
         {/* Summary */}
-        <div style={{
-          fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
-          fontSize: isMobile ? 12 : 13,
-          color: 'var(--text)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          paddingRight: 8,
-        }}>
-          {(task.subtasks?.length > 0 || isMobile) && (
-            <span style={{ marginRight: 6, opacity: 0.4, fontSize: 10 }}>{expanded ? '▼' : '▶'}</span>
-          )}
-          {task.isOrphanSubtask && (
-            <span title={task.parentKey ? `Subtask taska ${task.parentKey} (parent nije u obuhvatu projekta)` : 'Subtask — parent nije u obuhvatu projekta'}
-              style={{ marginRight: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'rgba(107,122,153,0.15)', color: 'var(--textMuted)', border: '1px solid rgba(107,122,153,0.3)', verticalAlign: 'middle' }}>
-              subtask
-            </span>
-          )}
-          {task.summary}
+        <div style={{ overflow: 'hidden', paddingRight: 8 }}>
+          <div style={{
+            fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+            fontSize: isMobile ? 12 : 13,
+            color: 'var(--text)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {(task.subtasks?.length > 0 || isMobile) && (
+              <span style={{ marginRight: 6, opacity: 0.4, fontSize: 10 }}>{expanded ? '▼' : '▶'}</span>
+            )}
+            {task.isOrphanSubtask && (
+              <span title={task.parentKey ? `Subtask taska ${task.parentKey} (parent nije u obuhvatu projekta)` : 'Subtask — parent nije u obuhvatu projekta'}
+                style={{ marginRight: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'rgba(107,122,153,0.15)', color: 'var(--textMuted)', border: '1px solid rgba(107,122,153,0.3)', verticalAlign: 'middle' }}>
+                subtask
+              </span>
+            )}
+            {isClient && clientText?.title ? clientText.title : task.summary}
+          </div>
+          <ClientTextLine ct={clientText} isClient={isClient} onEdit={onEditClientText ? () => onEditClientText(task.key, task.summary) : undefined} />
         </div>
 
         {/* Status — minWidth 0 + hidden overflow so long statuses truncate instead of overlapping Napredak */}
@@ -243,7 +270,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
               flexWrap: 'wrap',
             }}>
               <span style={{ flexShrink: 0 }}><TaskKey taskKey={sub.key} jiraUrl={jiraUrl} over={false} isClient={isClient} /></span>
-              <span style={{ fontSize: 12, color: 'var(--textMuted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.summary}</span>
+              <span title={clientTexts?.[sub.key]?.one_liner || ''} style={{ fontSize: 12, color: 'var(--textMuted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isClient && clientTexts?.[sub.key]?.title ? clientTexts[sub.key].title : sub.summary}</span>
               <Badge color={statusColor(sub.status)}>{sub.status}</Badge>
             </div>
           ))}
@@ -263,9 +290,12 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           background: 'var(--surfaceAlt)',
         }}>
           <div><TaskKey taskKey={sub.key} jiraUrl={jiraUrl} over={false} isClient={isClient} /></div>
-          <div style={{ fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', gap: 6, alignItems: 'center' }}>
-            {sub.components?.length > 0 && <Badge color="gray">{sub.components[0]}</Badge>}
-            <span>{sub.summary}</span>
+          <div style={{ overflow: 'hidden', paddingRight: 8 }}>
+            <div style={{ fontSize: 12, color: 'var(--textMuted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', gap: 6, alignItems: 'center' }}>
+              {sub.components?.length > 0 && <Badge color="gray">{sub.components[0]}</Badge>}
+              <span>{isClient && clientTexts?.[sub.key]?.title ? clientTexts[sub.key].title : sub.summary}</span>
+            </div>
+            <ClientTextLine ct={clientTexts?.[sub.key]} isClient={isClient} onEdit={onEditClientText ? () => onEditClientText(sub.key, sub.summary) : undefined} />
           </div>
           <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={sub.status}><Badge color={statusColor(sub.status)}>{sub.status}</Badge></div>
           <div />
@@ -285,12 +315,30 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
   )
 }
 
-export default function TaskTable({ tasks = [], overTasks = [], isClient, projectId, onOpenMessages, jiraUrl, hasBillableField }) {
+export default function TaskTable({ tasks = [], overTasks = [], isClient, projectId, onOpenMessages, jiraUrl, hasBillableField, clientTexts: clientTextsProp }) {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState({})
   const { isMobile, isTablet } = useWindowSize()
   const t = useT()
+
+  // Klijentski tekstovi: server šalje keš mapu; lokalni overrides čuvaju
+  // adminove izmene bez ponovnog fetch-a celog projekta.
+  const [ctOverrides, setCtOverrides] = useState({})
+  const clientTexts = clientTextsProp ? { ...clientTextsProp, ...ctOverrides } : null
+  const [ctEditing, setCtEditing] = useState(null) // { key, summary, title, one_liner }
+  const canEditCt = !isClient && !!clientTexts && typeof projectId === 'number'
+  function openCtEdit(key, summary) {
+    const ct = clientTexts?.[key]
+    setCtEditing({ key, summary, title: ct?.title || '', one_liner: ct?.one_liner || '' })
+  }
+  async function saveCtEdit() {
+    try {
+      await api.saveClientTaskText(projectId, ctEditing.key, { title: ctEditing.title, one_liner: ctEditing.one_liner })
+      setCtOverrides(p => ({ ...p, [ctEditing.key]: { title: ctEditing.title.trim(), one_liner: ctEditing.one_liner.trim() || null, edited: true } }))
+      setCtEditing(null)
+    } catch (e) { toast.error(e.message) }
+  }
 
   const overKeys = new Set(overTasks.map(task => task.key))
 
@@ -446,7 +494,33 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
           isClient={isClient}
           onOpenMessages={onOpenMessages}
           jiraUrl={jiraUrl}
+          clientTexts={clientTexts}
+          onEditClientText={canEditCt ? openCtEdit : undefined}
         />
+      )}
+
+      {/* Izmena klijentskog teksta (admin provera) */}
+      {ctEditing && (
+        <div onClick={() => setCtEditing(null)} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(10,14,25,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20, width: 520, maxWidth: '100%' }}>
+            <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>
+              {t('table.ct.editTitle', { key: ctEditing.key })}
+            </div>
+            <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--textMuted)', marginBottom: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {ctEditing.summary}
+            </div>
+            <label style={{ display: 'block', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginBottom: 4 }}>{t('table.ct.title')}</label>
+            <input value={ctEditing.title} onChange={e => setCtEditing(p => ({ ...p, title: e.target.value }))}
+              style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, marginBottom: 10 }} />
+            <label style={{ display: 'block', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', marginBottom: 4 }}>{t('table.ct.oneLiner')}</label>
+            <textarea value={ctEditing.one_liner} onChange={e => setCtEditing(p => ({ ...p, one_liner: e.target.value }))} rows={3}
+              style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, resize: 'vertical' }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
+              <button onClick={() => setCtEditing(null)} style={{ padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', cursor: 'pointer' }}>{t('table.ct.cancel')}</button>
+              <button onClick={saveCtEdit} disabled={!ctEditing.title.trim()} style={{ padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif", border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', opacity: ctEditing.title.trim() ? 1 : 0.5 }}>{t('table.ct.save')}</button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
@@ -456,7 +530,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
 // Virtualizovani redovi (P2-B2): projekat sa 300+ taskova više ne drži sve
 // redove u DOM-u. useWindowVirtualizer zadržava skrol STRANICE (bez unutrašnjeg
 // skrolbara); measureElement meri stvarnu visinu pa expand/collapse radi.
-function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isClient, onOpenMessages, jiraUrl }) {
+function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isClient, onOpenMessages, jiraUrl, clientTexts, onEditClientText }) {
   const listRef = useRef(null)
   // scrollMargin mora biti APSOLUTNA pozicija liste u dokumentu. Ranije se
   // čitao offsetTop pri prvom renderu (ref još null → 0) i nikad se nije
@@ -506,6 +580,8 @@ function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isC
               isClient={isClient}
               onOpenQuickMsg={onOpenMessages ? (task) => onOpenMessages(task.key) : undefined}
               jiraUrl={jiraUrl}
+              clientTexts={clientTexts}
+              onEditClientText={onEditClientText}
             />
           </div>
         )

@@ -255,6 +255,7 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
             projectId={project.id}
             onOpenMessages={() => navigate(`/messages?project=${project.id}`)}
             hasBillableField={!!data.hasBillableField}
+            clientTexts={data.clientTexts}
           />
         )}
       </Card>
