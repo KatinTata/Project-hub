@@ -29,7 +29,7 @@ import { useCollapsedSections, CollapseToggle } from '../ui/collapse.jsx'
 // Jezik klijentskog prikaza taskova (NULL = isključeno). Kad je uključen,
 // taskovi za klijenta dobijaju prevod naslova + AI opis u jednoj rečenici;
 // generisanje kreće pri sledećem učitavanju taskova (zato osvežavamo).
-function ClientLangControl({ project, clientLang, onRefresh, t }) {
+function ClientLangControl({ project, clientLang, onRefresh, t, preview, setPreview, translated, total }) {
   const [busy, setBusy] = useState(false)
   const [lang, setLang] = useState(clientLang || '')
   useEffect(() => { setLang(clientLang || '') }, [clientLang])
@@ -62,10 +62,20 @@ function ClientLangControl({ project, clientLang, onRefresh, t }) {
         <option value="bg">BG</option>
       </select>
       {lang && (
-        <button onClick={regen} disabled={busy} title={t('pc.clientLang.regenTitle')} style={{
-          padding: '5px 10px', borderRadius: 7, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif",
-          border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', cursor: 'pointer',
-        }}>{busy ? '…' : t('pc.clientLang.regen')}</button>
+        <>
+          <span style={{ ...small, color: translated < total ? 'var(--amber)' : 'var(--green)' }} title={t('pc.clientLang.countTitle')}>
+            {t('pc.clientLang.count', { n: translated, total })}
+          </span>
+          <button onClick={() => setPreview(v => !v)} title={t('pc.clientLang.previewTitle')} style={{
+            padding: '5px 10px', borderRadius: 7, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif",
+            border: preview ? '1px solid var(--accent)' : '1px solid var(--border)',
+            background: preview ? 'var(--accent)' : 'transparent', color: preview ? '#fff' : 'var(--textMuted)', cursor: 'pointer',
+          }}>{t('pc.clientLang.preview')}</button>
+          <button onClick={regen} disabled={busy} title={t('pc.clientLang.regenTitle')} style={{
+            padding: '5px 10px', borderRadius: 7, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif",
+            border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', cursor: 'pointer',
+          }}>{busy ? '…' : t('pc.clientLang.regen')}</button>
+        </>
       )}
     </span>
   )
@@ -336,6 +346,7 @@ export default function ProjectCard({
   const activeTab = validTabs.includes(activeTabProp) ? activeTabProp : 'tasks'
   const setActiveTab = tab => onTabChange?.(tab)
   const [exporting, setExporting] = useState(false)
+  const [clientPreview, setClientPreview] = useState(false) // admin: tabela kao što je klijent vidi
   const queryClient = useQueryClient()
 
   // Faze i tim kroz React Query (A2) — deljeni keš sa PhaseBuilder-om, bez
@@ -851,12 +862,17 @@ export default function ProjectCard({
             </button>
           ))}
           {!isClient && activeTab === 'tasks' && (
-            <ClientLangControl project={project} clientLang={data.clientLang ?? project.clientLang ?? null} onRefresh={onRefresh} t={t} />
+            <ClientLangControl
+              project={project} clientLang={data.clientLang ?? project.clientLang ?? null} onRefresh={onRefresh} t={t}
+              preview={clientPreview} setPreview={setClientPreview}
+              translated={tasks.filter(x => data.clientTexts?.[x.key]).length} total={tasks.length}
+            />
           )}
         </div>
 
         {activeTab === 'tasks' && (
-          <TaskTable tasks={tasks} overTasks={overTasks} isClient={isClient} projectId={project.id} onOpenMessages={onOpenMessages} jiraUrl={jiraUrl} hasBillableField={!!data.hasBillableField} clientTexts={data.clientTexts} />
+          <TaskTable tasks={tasks} overTasks={overTasks} isClient={isClient} projectId={project.id} onOpenMessages={onOpenMessages} jiraUrl={jiraUrl} hasBillableField={!!data.hasBillableField}
+            clientTexts={data.clientTexts} clientPreview={!isClient && !!(data.clientLang ?? project.clientLang) && clientPreview} />
         )}
         {activeTab === 'phases' && (
           <PhaseBuilder projectId={project.id} tasks={tasks} isClient={isClient} jiraUrl={jiraUrl} />

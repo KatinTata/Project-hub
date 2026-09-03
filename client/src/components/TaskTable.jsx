@@ -66,27 +66,40 @@ function BillableBadge() {
 // Klijentski tekst taska (prevod naslova + generisan opis): klijent ga vidi
 // UMESTO originala; admin ga vidi kao diskretnu liniju ispod originala
 // (provera) i klikom otvara izmenu.
-function ClientTextLine({ ct, isClient, onEdit }) {
-  if (!ct) return null
+// `preview` = admin gleda tabelu kao klijent (isti raspored kao klijentu, ali
+// klik i dalje otvara izmenu; taskovi bez teksta su označeni kao „čeka").
+function ClientTextLine({ ct, isClient, preview, onEdit }) {
+  const t = useT()
+  const base = {
+    fontSize: 11, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif",
+    marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+    cursor: onEdit ? 'pointer' : 'default',
+  }
+  const click = onEdit ? e => { e.stopPropagation(); onEdit() } : undefined
+  if (!ct) {
+    if (!preview) return null
+    return <div onClick={click} style={{ ...base, fontStyle: 'italic', color: 'var(--amber)' }}>{t('table.ct.pending')}</div>
+  }
   if (isClient && !ct.one_liner) return null
+  if (preview) {
+    return (
+      <div onClick={click} title={ct.title || ''} style={{ ...base, fontStyle: ct.one_liner ? 'normal' : 'italic' }}>
+        {ct.one_liner || t('table.ct.noDesc')}{ct.edited ? ' ✎' : ''}
+      </div>
+    )
+  }
   const text = [ct.title, ct.one_liner].filter(Boolean).join(' — ')
   return (
-    <div
-      onClick={onEdit ? e => { e.stopPropagation(); onEdit() } : undefined}
-      title={onEdit ? text + '\n(klik za izmenu)' : ct.one_liner || ''}
-      style={{
-        fontSize: 11, color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', sans-serif",
-        marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        cursor: onEdit ? 'pointer' : 'default',
-      }}>
+    <div onClick={click} title={onEdit ? text + '\n(klik za izmenu)' : ct.one_liner || ''} style={base}>
       {!isClient && <span style={{ fontSize: 9, padding: '0 5px', borderRadius: 4, marginRight: 6, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', color: ct.edited ? 'var(--amber)' : 'var(--textMuted)' }}>{ct.edited ? 'EN ✎' : 'EN'}</span>}
       {isClient ? (ct.one_liner || '') : text}
     </div>
   )
 }
 
-function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpenQuickMsg, jiraUrl, clientTexts, onEditClientText }) {
+function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpenQuickMsg, jiraUrl, clientTexts, onEditClientText, clientPreview }) {
   const clientText = clientTexts?.[task.key]
+  const showAsClient = isClient || clientPreview
   const [hovered, setHovered] = useState(false)
   const pct = task.est > 0 ? Math.min(task.spent / task.est, 2) : 0
   const barColor = (!isClient && task.over) ? 'var(--red)' : 'var(--accent)'
@@ -176,9 +189,9 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
                 subtask
               </span>
             )}
-            {isClient && clientText?.title ? clientText.title : task.summary}
+            {showAsClient && clientText?.title ? clientText.title : task.summary}
           </div>
-          <ClientTextLine ct={clientText} isClient={isClient} onEdit={onEditClientText ? () => onEditClientText(task.key, task.summary) : undefined} />
+          <ClientTextLine ct={clientText} isClient={isClient} preview={clientPreview} onEdit={onEditClientText ? () => onEditClientText(task.key, task.summary) : undefined} />
         </div>
 
         {/* Status — minWidth 0 + hidden overflow so long statuses truncate instead of overlapping Napredak */}
@@ -312,7 +325,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
   )
 }
 
-export default function TaskTable({ tasks = [], overTasks = [], isClient, projectId, onOpenMessages, jiraUrl, hasBillableField, clientTexts: clientTextsProp }) {
+export default function TaskTable({ tasks = [], overTasks = [], isClient, projectId, onOpenMessages, jiraUrl, hasBillableField, clientTexts: clientTextsProp, clientPreview = false }) {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState({})
@@ -476,6 +489,12 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
         {!isMobile && !isClient && <div>{t('table.header.spent')}</div>}
       </div>
 
+      {clientPreview && (
+        <div style={{ padding: '8px 16px', background: 'var(--accentTint, var(--surfaceAlt))', borderBottom: '1px solid var(--border)', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, color: 'var(--accent)' }}>
+          {t('table.ct.previewBanner')}
+        </div>
+      )}
+
       {/* Rows */}
       {filtered.length === 0 ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
@@ -493,6 +512,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
           jiraUrl={jiraUrl}
           clientTexts={clientTexts}
           onEditClientText={canEditCt ? openCtEdit : undefined}
+          clientPreview={clientPreview}
         />
       )}
 
@@ -527,7 +547,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
 // Virtualizovani redovi (P2-B2): projekat sa 300+ taskova više ne drži sve
 // redove u DOM-u. useWindowVirtualizer zadržava skrol STRANICE (bez unutrašnjeg
 // skrolbara); measureElement meri stvarnu visinu pa expand/collapse radi.
-function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isClient, onOpenMessages, jiraUrl, clientTexts, onEditClientText }) {
+function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isClient, onOpenMessages, jiraUrl, clientTexts, onEditClientText, clientPreview }) {
   const listRef = useRef(null)
   // scrollMargin mora biti APSOLUTNA pozicija liste u dokumentu. Ranije se
   // čitao offsetTop pri prvom renderu (ref još null → 0) i nikad se nije
@@ -579,6 +599,7 @@ function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isC
               jiraUrl={jiraUrl}
               clientTexts={clientTexts}
               onEditClientText={onEditClientText}
+              clientPreview={clientPreview}
             />
           </div>
         )
