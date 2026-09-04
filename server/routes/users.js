@@ -19,10 +19,12 @@ function userWithOrg(u) {
 }
 
 // GET /api/users — list all non-self users
+const UI_LANGS = ['sr', 'en']
+
 router.get('/', requireAdmin, (req, res) => {
   const users = db.prepare(`
     SELECT u.id, u.email, u.name, u.role, u.organization_id as organizationId,
-           o.name as organizationName, u.created_at as createdAt
+           o.name as organizationName, u.lang, u.created_at as createdAt
     FROM users u
     LEFT JOIN organizations o ON o.id = u.organization_id
     WHERE u.id != ?
@@ -35,10 +37,11 @@ router.get('/', requireAdmin, (req, res) => {
 // POST /api/users — create a new user
 router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { name, email, password, role = 'user', organizationId } = req.body
+    const { name, email, password, role = 'user', organizationId, lang } = req.body
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Sva polja su obavezna' })
     }
+    if (lang != null && lang !== '' && !UI_LANGS.includes(lang)) return res.status(400).json({ error: 'Nepodržan jezik' })
     if (!['admin', 'user', 'super_admin'].includes(role)) {
       return res.status(400).json({ error: 'Nevalidna uloga' })
     }
@@ -48,13 +51,13 @@ router.post('/', requireAdmin, async (req, res) => {
     }
     const hash = await bcrypt.hash(password, 12)
     const result = db.prepare(
-      'INSERT INTO users (email, password, name, role, organization_id) VALUES (?, ?, ?, ?, ?)'
-    ).run(email.toLowerCase(), hash, name, role, organizationId || null)
+      'INSERT INTO users (email, password, name, role, organization_id, lang) VALUES (?, ?, ?, ?, ?, ?)'
+    ).run(email.toLowerCase(), hash, name, role, organizationId || null, lang || null)
     logAudit(req.userId, 'user.create', `kreiran ${email.toLowerCase()} (rola: ${role})`, req)
 
     const user = db.prepare(`
       SELECT u.id, u.email, u.name, u.role, u.organization_id as organizationId,
-             o.name as organizationName, u.created_at as createdAt
+             o.name as organizationName, u.lang, u.created_at as createdAt
       FROM users u LEFT JOIN organizations o ON o.id = u.organization_id
       WHERE u.id = ?
     `).get(result.lastInsertRowid)
@@ -79,8 +82,9 @@ router.put('/:id', requireAdmin, async (req, res) => {
     return res.status(403).json({ error: 'Samo super admin može menjati super admin nalog' })
   }
 
-  const { name, email, role, password, organizationId } = req.body
+  const { name, email, role, password, organizationId, lang } = req.body
   if (!name || !email) return res.status(400).json({ error: 'Ime i email su obavezni' })
+  if (lang !== undefined && lang !== null && lang !== '' && !UI_LANGS.includes(lang)) return res.status(400).json({ error: 'Nepodržan jezik' })
   if (role && !['admin', 'user', 'super_admin'].includes(role)) return res.status(400).json({ error: 'Nevalidna uloga' })
   // Only super_admin can promote to super_admin
   if (role === 'super_admin' && getUserRole(req.userId) !== 'super_admin') {
@@ -99,6 +103,10 @@ router.put('/:id', requireAdmin, async (req, res) => {
     if (organizationId !== undefined) {
       fields.push('organization_id = ?')
       values.push(organizationId || null)
+    }
+    if (lang !== undefined) {
+      fields.push('lang = ?')
+      values.push(lang || null)
     }
 
     if (password?.trim()) {

@@ -24,7 +24,9 @@ function IconPalette() {
 export default function SettingsModal({ user, theme, onSetTheme, onClose, onUserUpdate, isSuperAdmin }) {
   const t = useT()
   const panelRef = useDialogBehavior(true, onClose)
-  const { lang, setLang } = useLang()
+  const { lang, setLang: setLangLocal } = useLang()
+  // Izbor jezika važi odmah (localStorage) i pamti se na nalogu (users.lang)
+  const setLang = l => { setLangLocal(l); api.setMyLang(l).catch(() => {}) }
   const [tab, setTab] = useState('profile')
   const [jiraUrl, setJiraUrl] = useState(user.jiraUrl || '')
   const [jiraEmail, setJiraEmail] = useState(user.jiraEmail || '')

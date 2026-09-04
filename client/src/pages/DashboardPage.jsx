@@ -256,7 +256,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
       <Topbar
         user={user}
         theme={theme}
-        onOpenSettings={isClient ? undefined : onOpenSettings}
+        onOpenSettings={onOpenSettings}
         onLogout={handleLogout}
         unreadCount={unreadCount}
         recentUnread={recentUnread}

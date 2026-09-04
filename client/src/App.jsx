@@ -5,6 +5,7 @@ import { api } from './api.js'
 import LoginPage from './pages/LoginPage.jsx'
 import BrainAnimation from './components/BrainAnimation.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
+import { useLang } from './lang.jsx'
 import UserManagementModal from './components/UserManagementModal.jsx'
 import { setCalcConfig } from './utils/calcConfig.js'
 import { isClientRole } from './utils/roles.js'
@@ -16,7 +17,7 @@ const ReleaseNotesPage = lazy(() => import('./pages/ReleaseNotesPage.jsx'))
 const ReleaseNotesEditorPage = lazy(() => import('./pages/releaseNotesEditor/ReleaseNotesEditorPage.jsx'))
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage.jsx'))
 const MessagesPage = lazy(() => import('./pages/MessagesPage.jsx'))
-const QAPage = lazy(() => import('./pages/QAPage.jsx'))
+// QAPage (Pitanja i odgovori) privremeno uklonjena iz navigacije i ruta (04.09.2026) — fajl ostaje.
 const AiUsagePage = lazy(() => import('./pages/aiUsage/AiUsagePage.jsx'))
 
 // A3: navigacija ide kroz react-router — rute su jedini izvor istine za
@@ -24,6 +25,7 @@ const AiUsagePage = lazy(() => import('./pages/aiUsage/AiUsagePage.jsx'))
 // /release-notes/:noteId, /release-notes/editor?step=N, /messages?project=N.
 export default function App() {
   const [user, setUser] = useState(null)
+  const { setLang } = useLang() // jezik iz profila korisnika (users.lang) preuzima prednost pri prijavi
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [usersOpen, setUsersOpen] = useState(false)
   const [theme, setTheme] = useState(() => localStorage.getItem('jt_theme') || 'dark')
@@ -52,7 +54,7 @@ export default function App() {
     const token = localStorage.getItem('jt_token')
     if (!token) { setChecking(false); return }
     api.me()
-      .then(res => setUser(res.user))
+      .then(res => { setUser(res.user); if (res.user?.lang) setLang(res.user.lang) })
       .catch(() => localStorage.removeItem('jt_token'))
       .finally(() => setChecking(false))
   }, [])
@@ -66,6 +68,7 @@ export default function App() {
 
   function handleLogin(userData) {
     setUser(userData)
+    if (userData?.lang) setLang(userData.lang)
     // ostajemo na traženoj ruti — Routes je renderuje čim user postoji
   }
 
@@ -136,7 +139,6 @@ export default function App() {
         <Route path="/release-notes/:noteId" element={<ReleaseNotesPage {...shared} />} />
         <Route path="/documents" element={<DocumentsPage {...shared} />} />
         <Route path="/messages" element={<MessagesPage {...shared} />} />
-        <Route path="/qa" element={<QAPage {...shared} />} />
         <Route path="/ai-usage" element={<AiUsagePage {...shared} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

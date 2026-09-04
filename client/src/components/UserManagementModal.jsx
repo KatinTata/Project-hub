@@ -28,7 +28,7 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [creating, setCreating] = useState(false)
-  const [newForm, setNewForm] = useState({ name: '', email: '', password: '', role: 'user', organizationId: '' })
+  const [newForm, setNewForm] = useState({ name: '', email: '', password: '', role: 'user', organizationId: '', lang: '' })
   const [newError, setNewError] = useState('')
   const [newLoading, setNewLoading] = useState(false)
   const [newOrgName, setNewOrgName] = useState('')
@@ -94,10 +94,11 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
       const body = {
         ...newForm,
         organizationId: newForm.organizationId ? parseInt(newForm.organizationId) : null,
+        lang: newForm.lang || null,
       }
       const { user } = await api.createUser(body)
       setUsers(prev => [...prev, user])
-      setNewForm({ name: '', email: '', password: '', role: 'user', organizationId: '' })
+      setNewForm({ name: '', email: '', password: '', role: 'user', organizationId: '', lang: '' })
       setCreating(false)
     } catch (err) {
       setNewError(err.message)
@@ -467,6 +468,14 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
                     {isSuperAdmin && <option value="super_admin">{t('um.roleSuperAdmin')}</option>}
                   </select>
                 </div>
+                <div>
+                  <label style={labelStyle}>{t('um.langLabel')}</label>
+                  <select value={newForm.lang} onChange={e => setNewForm(f => ({ ...f, lang: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                    <option value="">{t('um.langDefault')}</option>
+                    <option value="sr">{t('settings.appearance.lang.sr')}</option>
+                    <option value="en">{t('settings.appearance.lang.en')}</option>
+                  </select>
+                </div>
               </div>
               {newForm.role === 'user' && organizations.length > 0 && (
                 <div style={{ marginBottom: 10 }}>
@@ -525,7 +534,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
   const t = useT()
   const [selectedProject, setSelectedProject] = useState('')
   const [editMode, setEditMode] = useState(false)
-  const [editForm, setEditForm] = useState({ name: user.name, email: user.email, role: user.role, password: '', organizationId: user.organizationId || '' })
+  const [editForm, setEditForm] = useState({ name: user.name, email: user.email, role: user.role, password: '', organizationId: user.organizationId || '', lang: user.lang || '' })
   const [editError, setEditError] = useState('')
   const [editLoading, setEditLoading] = useState(false)
 
@@ -542,6 +551,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
       await onEdit({
         ...editForm,
         organizationId: editForm.organizationId ? parseInt(editForm.organizationId) : null,
+        lang: editForm.lang || null,
       })
       setEditMode(false)
     } catch (err) {
@@ -580,7 +590,7 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => { setEditMode(m => !m); setEditError(''); setEditForm({ name: user.name, email: user.email, role: user.role, password: '', organizationId: user.organizationId || '' }) }}
+          <button onClick={() => { setEditMode(m => !m); setEditError(''); setEditForm({ name: user.name, email: user.email, role: user.role, password: '', organizationId: user.organizationId || '', lang: user.lang || '' }) }}
             style={{ background: editMode ? 'var(--surfaceAlt)' : 'transparent', color: 'var(--textMuted)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 10px', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 12, cursor: 'pointer', transition: 'all 0.2s ease' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
@@ -615,6 +625,14 @@ function UserRow({ user, adminProjects, organizations, isSuperAdmin, onDelete, o
                 <option value="user">{t('um.roleUser')}</option>
                 <option value="admin">{t('um.roleAdmin')}</option>
                 {isSuperAdmin && <option value="super_admin">{t('um.roleSuperAdmin')}</option>}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>{t('um.langLabel')}</label>
+              <select value={editForm.lang} onChange={e => setEditForm(f => ({ ...f, lang: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                <option value="">{t('um.langDefault')}</option>
+                <option value="sr">{t('settings.appearance.lang.sr')}</option>
+                <option value="en">{t('settings.appearance.lang.en')}</option>
               </select>
             </div>
             <div>

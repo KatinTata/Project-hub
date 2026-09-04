@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
       : null
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira, organizationName: orgName },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira, organizationName: orgName, lang: user.lang || null },
     })
   } catch (err) {
     console.error(err)
@@ -68,7 +68,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', authMiddleware, (req, res) => {
   const user = db.prepare(`
-    SELECT u.id, u.email, u.name, u.role, u.jira_url, u.jira_email, u.anthropic_key, o.name AS organization_name
+    SELECT u.id, u.email, u.name, u.role, u.jira_url, u.jira_email, u.anthropic_key, u.lang, o.name AS organization_name
     FROM users u LEFT JOIN organizations o ON o.id = u.organization_id
     WHERE u.id = ?
   `).get(req.userId)
@@ -76,7 +76,16 @@ router.get('/me', authMiddleware, (req, res) => {
   // Admins inherit super-admin connections — tell the client Jira is reachable
   // even without own creds, so it doesn't fall back to demo data.
   const sharedJira = !!db.prepare("SELECT 1 FROM users WHERE role = 'super_admin' AND jira_url IS NOT NULL AND jira_token IS NOT NULL LIMIT 1").get()
-  res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira, organizationName: user.organization_name || null } })
+  res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user', jiraUrl: user.jira_url, jiraEmail: user.jira_email, hasAnthropicKey: !!user.anthropic_key, sharedJira, organizationName: user.organization_name || null, lang: user.lang || null } })
+})
+
+// Jezik interfejsa — svaki ulogovani korisnik menja svoj; izbor iz podešavanja
+// se ovde trajno pamti pa važi na svakom uređaju/prijavi.
+router.put('/me/lang', authMiddleware, (req, res) => {
+  const lang = req.body?.lang
+  if (!['sr', 'en'].includes(lang)) return res.status(400).json({ error: 'Nepodržan jezik' })
+  db.prepare('UPDATE users SET lang = ? WHERE id = ?').run(lang, req.userId)
+  res.json({ ok: true, lang })
 })
 
 router.put('/jira-config', authMiddleware, requireSuperAdmin, async (req, res) => {

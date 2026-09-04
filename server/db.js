@@ -159,6 +159,9 @@ addColumn('messages', 'subject', `ALTER TABLE messages ADD COLUMN subject TEXT D
 addColumn('users', 'anthropic_key', `ALTER TABLE users ADD COLUMN anthropic_key TEXT`)
 // P1-11: revokacija sesija — inkrement pri promeni lozinke/role poništava stare JWT-ove
 addColumn('users', 'token_version', `ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0`)
+// Podrazumevani jezik interfejsa po korisniku (sr/en; NULL = sr). Admin ga
+// postavlja klijentu, primenjuje se pri loginu; izbor u podešavanjima ga menja.
+addColumn('users', 'lang', `ALTER TABLE users ADD COLUMN lang TEXT DEFAULT NULL`)
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS phases (

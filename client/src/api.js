@@ -160,6 +160,7 @@ export const api = {
   importUsers: (rows) => request('POST', '/users/import', { rows }),
   createUser: (body) => request('POST', '/users', body),
   updateUser: (id, body) => request('PUT', `/users/${id}`, body),
+  setMyLang: (lang) => request('PUT', '/auth/me/lang', { lang }),
   deleteUser: (id) => request('DELETE', `/users/${id}`),
   getUserProjects: (id) => request('GET', `/users/${id}/projects`),
   assignProject: (userId, projectId) => request('POST', `/users/${userId}/projects`, { projectId }),

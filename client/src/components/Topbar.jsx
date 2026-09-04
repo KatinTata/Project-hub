@@ -5,7 +5,7 @@ import NotificationBell from './NotificationBell.jsx'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
 import { getEffectiveTheme } from '../theme.js'
-import { IconCog, IconGrid, IconDoc, IconClipboard, IconFolder, IconChat, IconUsers, IconAi, IconQA, IconLogout } from '../ui/icons.jsx'
+import { IconCog, IconGrid, IconDoc, IconClipboard, IconFolder, IconChat, IconUsers, IconAi, IconLogout } from '../ui/icons.jsx'
 
 // URL → aktivna kartica u navigaciji (A3: jedini izvor istine je ruta)
 function pageFromPath(pathname) {
@@ -303,16 +303,6 @@ export default function Topbar({
             active={currentPage === 'messages'}
             onClick={() => navigate(`/messages${messagesProjectId ? `?project=${messagesProjectId}` : ''}`)}
             badge={unreadMessages}
-            hideSubtitle={isMobile}
-          />
-
-          <ModuleCard
-            icon={<IconQA />}
-            iconBg="rgba(20,184,166,0.15)" iconColor="#14B8A6"
-            label={t('topbar.nav.qa')}
-            subtitle={t('topbar.nav.qaSub')}
-            active={currentPage === 'qa'}
-            onClick={() => navigate('/qa')}
             hideSubtitle={isMobile}
           />
 
