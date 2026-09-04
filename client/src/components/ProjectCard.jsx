@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../api.js'
-import { usePhasesQuery, useTeamQuery } from '../queries.js'
+import { usePhasesQuery, useTeamQuery, loadProjectCache, saveProjectCache } from '../queries.js'
 import MetricCards from './MetricCards.jsx'
 import DonutChart from './DonutChart.jsx'
 import BarChart from './BarChart.jsx'
@@ -29,7 +29,7 @@ import { useCollapsedSections, CollapseToggle } from '../ui/collapse.jsx'
 // Jezik klijentskog prikaza taskova (NULL = isključeno). Kad je uključen,
 // taskovi za klijenta dobijaju prevod naslova + AI opis u jednoj rečenici;
 // generisanje kreće pri sledećem učitavanju taskova (zato osvežavamo).
-function ClientLangControl({ project, clientLang, onRefresh, t, preview, setPreview, translated, total }) {
+function ClientLangControl({ project, clientLang, onRefresh, t, preview, setPreview, translated, total, generating }) {
   const [busy, setBusy] = useState(false)
   const [lang, setLang] = useState(clientLang || '')
   useEffect(() => { setLang(clientLang || '') }, [clientLang])
@@ -64,7 +64,7 @@ function ClientLangControl({ project, clientLang, onRefresh, t, preview, setPrev
       {lang && (
         <>
           <span style={{ ...small, color: translated < total ? 'var(--amber)' : 'var(--green)' }} title={t('pc.clientLang.countTitle')}>
-            {t('pc.clientLang.count', { n: translated, total })}
+            {t('pc.clientLang.count', { n: translated, total })}{translated < total ? (generating ? t('pc.clientLang.generating') : t('pc.clientLang.waiting')) : ''}
           </span>
           <button onClick={() => setPreview(v => !v)} title={t('pc.clientLang.previewTitle')} style={{
             padding: '5px 10px', borderRadius: 7, fontSize: 12, fontWeight: 600, fontFamily: "'Hanken Grotesk', sans-serif",
@@ -389,6 +389,35 @@ export default function ProjectCard({
     const { moduleData, noModuleTasks } = !isClient ? buildModuleData(tasks) : { moduleData: [], noModuleTasks: [] }
     return { chartTasksByPhase, assigneeData, componentData, moduleData, noModuleTasks }
   }, [data, chartPhases, isClient])
+
+  // Klijentski tekstovi nastaju u pozadini (posle uključivanja jezika ili
+  // regeneracije). Dok ima taskova bez teksta, anketiraj laki status endpoint i
+  // upiši nove tekstove u keš — bez ponovnog Jira fetch-a i bez ručnog osvežavanja.
+  const ctLang = data?.clientLang ?? project?.clientLang ?? null
+  const ctMissing = !!ctLang && !!data?.tasks && data.tasks.some(x => !data.clientTexts?.[x.key])
+  const [ctGenerating, setCtGenerating] = useState(false)
+  useEffect(() => {
+    if (isClient || !ctMissing || typeof project?.id !== 'number') { setCtGenerating(false); return }
+    let stopped = false, idleTicks = 0, timer = null
+    const tick = async () => {
+      if (stopped) return
+      try {
+        const r = await api.getClientTexts(project.id)
+        setCtGenerating(!!r.generating)
+        queryClient.setQueryData(['projectData', project.id], old => (old?.data ? { ...old, data: { ...old.data, clientTexts: r.texts || {}, clientLang: r.lang } } : old))
+        const cached = loadProjectCache(project.id)
+        if (cached?.data) saveProjectCache(project.id, { ...cached.data, clientTexts: r.texts || {}, clientLang: r.lang })
+        const stillMissing = (data.tasks || []).some(x => !r.texts?.[x.key])
+        if (!stillMissing) return
+        // niko ne generiše, a i dalje fali → verovatno taskovi bez teksta (nema ključa,
+        // pad AI poziva); ne vrti u prazno — par pokušaja pa stani
+        if (!r.generating && ++idleTicks >= 4) return
+      } catch { /* mreža — probaj ponovo */ }
+      if (!stopped) timer = setTimeout(tick, 4000)
+    }
+    timer = setTimeout(tick, 2500)
+    return () => { stopped = true; clearTimeout(timer) }
+  }, [isClient, ctMissing, ctLang, project?.id, data, queryClient])
 
   if (loading) {
     return (
@@ -866,6 +895,7 @@ export default function ProjectCard({
               project={project} clientLang={data.clientLang ?? project.clientLang ?? null} onRefresh={onRefresh} t={t}
               preview={clientPreview} setPreview={setClientPreview}
               translated={tasks.filter(x => data.clientTexts?.[x.key]).length} total={tasks.length}
+              generating={ctGenerating}
             />
           )}
         </div>

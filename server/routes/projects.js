@@ -3,7 +3,7 @@ import db from '../db.js'
 import { getRole as getUserRole, isAdminRole } from '../rbac.js'
 import { dayInBelgrade } from '../dates.js'
 import { logAudit } from '../audit.js'
-import { upsertManual } from '../clientTaskTexts.js'
+import { upsertManual, getTextsMap, isGenerating } from '../clientTaskTexts.js'
 
 const router = Router()
 
@@ -48,6 +48,19 @@ router.put('/:id/client-lang', (req, res) => {
   db.prepare('UPDATE projects SET client_lang = ? WHERE id = ?').run(lang, req.params.id)
   logAudit(req.userId, 'project.client_lang', `projekat ${req.params.id} → ${lang || 'isključeno'}`, req)
   res.json({ ok: true, clientLang: lang })
+})
+
+// Status generisanja + trenutni tekstovi — kartica anketira ovo dok generisanje
+// u pozadini traje, pa se novi tekstovi pojave bez ručnog osvežavanja.
+router.get('/:id/client-texts', (req, res) => {
+  const role = getUserRole(req.userId)
+  const project = isAdminRole(role)
+    ? db.prepare('SELECT id, client_lang FROM projects WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
+    : db.prepare(`SELECT p.id, p.client_lang FROM projects p JOIN project_clients pc ON pc.project_id = p.id
+                  WHERE p.id = ? AND pc.client_user_id = ?`).get(req.params.id, req.userId)
+  if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+  if (!project.client_lang) return res.json({ lang: null, generating: false, texts: {} })
+  res.json({ lang: project.client_lang, generating: isGenerating(project.id), texts: getTextsMap(project.id, project.client_lang) })
 })
 
 // Ručna izmena teksta jednog taska (admin „provera") — edited_by blokira

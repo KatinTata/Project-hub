@@ -74,6 +74,7 @@ export const api = {
   setClientLang: (id, lang) => request('PUT', `/projects/${id}/client-lang`, { lang }),
   saveClientTaskText: (id, taskKey, body) => request('PUT', `/projects/${id}/client-texts/${encodeURIComponent(taskKey)}`, body),
   regenClientTexts: (id) => request('POST', `/projects/${id}/client-texts/regenerate`, {}),
+  getClientTexts: (id) => request('GET', `/projects/${id}/client-texts`),
   archiveProject: (id) => request('DELETE', `/projects/${id}`),
   getArchivedProjects: () => request('GET', '/projects/archived'),
   restoreProject: (id) => request('PUT', `/projects/${id}/restore`),

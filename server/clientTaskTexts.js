@@ -103,6 +103,7 @@ function parseJsonArray(text) {
 // Jedan projekat generiše najviše jednom istovremeno (fetch može stići
 // paralelno sa više kartica/korisnika).
 const inFlight = new Set()
+export const isGenerating = projectId => inFlight.has(projectId)
 
 // Fire-and-forget: poziva se iz rute POSLE odgovora klijentu; greške se loguju.
 export function queueGeneration({ project, jira, tasks }) {
