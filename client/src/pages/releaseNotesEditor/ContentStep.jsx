@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { useT } from '../../lang.jsx'
 import RichBodyEditor from '../../components/RichBodyEditor.jsx'
 import { GROUP_CONFIG, KEY_COLORS, keyPrefixOf, getHelpLinks, migrateBodyHtml } from '../../lib/renderReleaseNoteHtml.js'
@@ -13,7 +13,7 @@ const EMPTY_EDIT = {}
 // re-renderuju. Svi handleri iz hook-ova su stabilni (useCallback + ref).
 const ContentTaskCard = memo(function ContentTaskCard({
   task, edit, prefix, cfgColor, isInsertTarget,
-  aiLoading, aiCooldown, bulkActive, hasBackup, hasAiKey, jiraUrl, langIsEn,
+  aiLoading, aiCooldown, bulkActive, hasBackup, hasAiKey, jiraUrl, translateLang,
   updateEdit, updateBody, generateTaskDesc, translateTask, revertAi,
   removeFromSelection, showToast, applyDrop, setDragOverTaskId, setDragOverPrefix,
 }) {
@@ -43,11 +43,11 @@ const ContentTaskCard = memo(function ContentTaskCard({
             style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', cursor: 'pointer', opacity: (!hasAiKey || aiCooldown || bulkActive) ? 0.45 : 1 }}>
             {aiLoading ? t('rne.generating') : t('rne.generateText')}
           </button>
-          <button onClick={() => !aiLoading && !aiCooldown && !bulkActive && translateTask(task.id)}
+          <button onClick={() => !aiLoading && !aiCooldown && !bulkActive && translateTask(task.id, translateLang)}
             disabled={aiLoading || aiCooldown || bulkActive}
             title={!hasAiKey ? t('rne.noApiKeyShort') : ''}
             style={{ padding: '5px 14px', borderRadius: 7, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', opacity: (!hasAiKey || aiCooldown || bulkActive) ? 0.45 : 1 }}>
-            {t('rne.translateTo', { lang: t(langIsEn ? 'rne.langNameEn' : 'rne.langNameSr') })}
+            {t('rne.translateTo', { lang: t(translateLang === 'en' ? 'rne.langNameEn' : 'rne.langNameSr') })}
           </button>
           {hasBackup && (
             <button onClick={() => revertAi(task.id)} title={t('rne.revertTitle')}
@@ -99,6 +99,16 @@ export default function ContentStep({ user, source, edits, sections, config, pre
   const selTasks = tasks.filter(t => selectedIds.has(t.id))
   const { groups, groupOrder } = buildGroups(selTasks)
 
+  // Ciljni jezik AI prevoda — korisnik bira SR/EN nezavisno od jezika objave.
+  // Bez ručnog izbora prati jezik objave (izvedeno, bez efekta).
+  const [translateOverride, setTranslateLang] = useState(null)
+  const translateLang = translateOverride || (config.lang === 'en' ? 'en' : 'sr')
+  const langToggleBtn = active => ({
+    padding: '6px 12px', fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer',
+    border: 'none', background: active ? 'var(--accent)' : 'transparent', color: active ? '#fff' : 'var(--textMuted)',
+    transition: 'all 0.2s ease',
+  })
+
   return (
     <div>
       <style>{`
@@ -123,11 +133,19 @@ export default function ContentStep({ user, source, edits, sections, config, pre
             style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid #7C3AED', background: '#7C3AED', color: '#fff', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
             {bulkProgress?.action === 'generate' ? t('rne.generatingProgress', { current: bulkProgress.current, total: bulkProgress.total }) : t('rne.generateAll')}
           </button>
-          <button onClick={translateAll} disabled={!!bulkProgress || !hasAiKey}
+          <div role="group" aria-label={t('rne.translateLangLabel')} title={t('rne.translateLangLabel')}
+            style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: 'var(--surface)' }}>
+            <span style={{ padding: '0 10px', fontSize: 11, fontFamily: 'Hanken Grotesk', color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: 0.4 }}>{t('rne.translateLangLabel')}</span>
+            <button type="button" onClick={() => setTranslateLang('sr')} aria-pressed={translateLang === 'sr'} disabled={!!bulkProgress}
+              style={langToggleBtn(translateLang === 'sr')}>{t('rne.outputLang.sr')}</button>
+            <button type="button" onClick={() => setTranslateLang('en')} aria-pressed={translateLang === 'en'} disabled={!!bulkProgress}
+              style={langToggleBtn(translateLang === 'en')}>{t('rne.outputLang.en')}</button>
+          </div>
+          <button onClick={() => translateAll(translateLang)} disabled={!!bulkProgress || !hasAiKey}
             style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', opacity: (!!bulkProgress || !hasAiKey) ? 0.5 : 1 }}>
             {bulkProgress?.action === 'translate'
               ? t('rne.translatingProgress', { current: bulkProgress.current, total: bulkProgress.total })
-              : t('rne.translateAllTo', { lang: t(config.lang === 'en' ? 'rne.langNameEn' : 'rne.langNameSr') })}
+              : t('rne.translateAllTo', { lang: t(translateLang === 'en' ? 'rne.langNameEn' : 'rne.langNameSr') })}
           </button>
           {Object.keys(aiBackup).length > 0 && (
             <button onClick={revertAllAi} title={t('rne.revertAllTitle')}
@@ -217,7 +235,7 @@ export default function ContentStep({ user, source, edits, sections, config, pre
                       hasBackup={!!aiBackup[task.id]}
                       hasAiKey={hasAiKey}
                       jiraUrl={user?.jiraUrl}
-                      langIsEn={config.lang === 'en'}
+                      translateLang={translateLang}
                       updateEdit={updateEdit}
                       updateBody={updateBody}
                       generateTaskDesc={generateTaskDesc}

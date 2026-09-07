@@ -143,7 +143,9 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
     }
   }, [applyAiText, showToast, t]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const translateTask = useCallback(async taskId => {
+  // targetLang: eksplicitan izbor iz UI-ja ('sr' | 'en'); bez njega pada na
+  // jezik objave. Prevod je moguć u OBA smera nezavisno od jezika objave.
+  const translateTask = useCallback(async (taskId, targetLang) => {
     const edit = editsRef.current[taskId]
     if (!edit) return
     setAiLoadingIds(prev => new Set([...prev, taskId]))
@@ -206,12 +208,12 @@ export function useTaskEdits({ tasks, selectedIds, selectedProject, copiedEdits,
     setBulkProgress(null)
   }
 
-  async function translateAll() {
+  async function translateAll(targetLang) {
     if (bulkProgress) return
     const sel = tasks.filter(t => selectedIds.has(t.id))
     for (let i = 0; i < sel.length; i++) {
       setBulkProgress({ current: i + 1, total: sel.length, action: 'translate' })
-      await translateTask(sel[i].id)
+      await translateTask(sel[i].id, targetLang)
     }
     setBulkProgress(null)
   }
