@@ -23,8 +23,8 @@ Nova navigacija po Predlogu A (dizajn: https://claude.ai/code/artifact/9f42b3ad-
 - Topbar i ProjectTabs obrisani; stranice više ne renderuju sopstveni header
 - lokalno: build, lint (0 grešaka) i 189 testova prolaze na Node 20 (Homebrew)
 
-**Izmene NISU commitovane** — čekaju potvrdu. Sadržaj budućeg commita je opisan u razgovoru
-(`feat(shell): unified sidebar navigation, light theme only`).
+Commit `d17e3e5 feat(shell): unified sidebar navigation, light theme only` je pushovan na `main`
+08.09.2026. (rebase preko `e9d4fcb`, AI prevod u RN editoru). Deploy ide automatski kroz Railway.
 
 Ranije (03–04.09.): klijentski portal (jezik/tema po korisniku, klijentski tekstovi
 taskova, pregled kao klijent), AI Usage po servisu i cena po zahtevu za MCP alate.
@@ -37,7 +37,7 @@ taskova, pregled kao klijent), AI Usage po servisu i cena po zahtevu za MCP alat
 - `docs/` i `.claude/` nisu u git-u
 
 ## Sledeći korak
-1. Commit nove navigacije (po potvrdi), zatim deploy i provera na produkciji
+1. Provera nove navigacije na produkciji (desktop + telefon, admin i klijentski nalog)
 2. Higijena: stringovi u translations, pino umesto console, odluka o QA kodu
 3. Testovi za RBAC i klijentski DTO pre daljeg razvoja portala
 4. Release kalendar i dashboard: kratka specifikacija u `docs/` pre koda; sastanak sa Zokom i Novakom
