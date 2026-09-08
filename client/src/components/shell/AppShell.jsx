@@ -73,7 +73,6 @@ export default function AppShell({ user, onLogout, children }) {
   const activeProjectId = (paramId != null && projects.some(p => p.id === paramId))
     ? paramId
     : (page === 'dashboard' ? (projects[0]?.id ?? null) : (paramId ?? projects[0]?.id ?? null))
-  const activeTab = projMatch?.params?.tab || 'tasks'
   const activeProject = projects.find(p => p.id === activeProjectId)
 
   // Fioka se zatvara pri svakoj navigaciji iz menija i na Escape
@@ -123,7 +122,7 @@ export default function AppShell({ user, onLogout, children }) {
       case 'aiUsage': return { kicker: t('nav.kicker.portal'), title: t('nav.aiUsage') }
       case 'users': return { kicker: t('nav.kicker.admin'), title: t('nav.users') }
       case 'settings': return { kicker: isClient ? t('nav.kicker.account') : t('nav.kicker.admin'), title: t('nav.settings') }
-      default: return { kicker: t('nav.kicker.project'), title: activeProject?.display_name || activeProject?.epic_key || t('nav.title.projects') }
+      default: return { kicker: t('nav.kicker.project'), title: activeProject?.displayName || activeProject?.epicKey || t('nav.title.projects') }
     }
   })()
 
@@ -133,7 +132,6 @@ export default function AppShell({ user, onLogout, children }) {
       projects={projects}
       statusById={statusById}
       activeProjectId={activeProjectId}
-      activeTab={activeTab}
       page={page}
       unreadMessages={unreadCount}
       onNavigate={navigateFromMenu}

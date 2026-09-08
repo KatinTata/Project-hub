@@ -4,7 +4,7 @@ import { useT, useLang } from '../../lang.jsx'
 import { isClientRole } from '../../utils/roles.js'
 import {
   IconDoc, IconClipboard, IconFolder, IconChat, IconUsers, IconAi, IconCog, IconLogout,
-  IconBell, IconPlus, IconArchive, IconChevronUpDown, IconClose, IconUser, IconGlobe,
+  IconPlus, IconArchive, IconChevronUpDown, IconClose, IconUser, IconGlobe,
 } from '../../ui/icons.jsx'
 
 // Jedinstveni bočni meni (odluka 08.09.2026): Projekti / Portal / Administracija
@@ -38,7 +38,7 @@ function NavItem({ active, icon, label, badge = 0, sub, onClick }) {
 }
 
 export default function Sidebar({
-  user, projects = [], statusById = {}, activeProjectId = null, activeTab = 'tasks',
+  user, projects = [], statusById = {}, activeProjectId = null,
   page, unreadMessages = 0, onNavigate, onOpenArchive, onLogout, onClose,
 }) {
   const t = useT()
@@ -103,10 +103,10 @@ export default function Sidebar({
               className={`nav-item nav-item--project${isProjectsPage && p.id === activeProjectId ? ' nav-item--active' : ''}`}
               onClick={() => go(`/projects/${p.id}`)}
               aria-current={isProjectsPage && p.id === activeProjectId ? 'page' : undefined}
-              title={p.display_name || p.epic_key}
+              title={p.displayName || p.epicKey}
             >
               <span className="nav-dot" style={{ background: statusById[p.id] || 'var(--border)' }} />
-              <span className="nav-item__label">{p.display_name || p.epic_key}</span>
+              <span className="nav-item__label">{p.displayName || p.epicKey}</span>
             </button>
           ))}
           {!isClient && (
@@ -134,10 +134,6 @@ export default function Sidebar({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <NavItem icon={<IconClipboard />} label={t('nav.rnEditor')} active={page === 'releaseNotesEditor'} onClick={() => go('/release-notes/editor')} />
               <NavItem icon={<IconUsers size={18} />} label={t('nav.users')} active={page === 'users'} onClick={() => go('/users')} />
-              {activeProjectId != null && (
-                <NavItem icon={<IconBell />} label={t('nav.reportsAlerts')} active={isProjectsPage && activeTab === 'reports'}
-                  onClick={() => go(`/projects/${activeProjectId}/reports`)} />
-              )}
               <NavItem icon={<IconCog />} label={t('nav.settings')} active={page === 'settings'} onClick={() => go('/settings')} />
             </div>
           </>
