@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../api.js'
-import Topbar from '../components/Topbar.jsx'
-import BrainAnimation from '../components/BrainAnimation.jsx'
 import * as pdfjsLib from 'pdfjs-dist'
 import { useT } from '../lang.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
@@ -500,7 +498,7 @@ function Checkbox({ checked }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export default function DocumentsPage({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
+export default function DocumentsPage({ user }) {
   const t = useT()
   const { isMobile } = useWindowSize()
   const [sections, setSections] = useState([])
@@ -568,19 +566,7 @@ export default function DocumentsPage({ user, theme, onLogout, onOpenSettings, o
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <BrainAnimation opacity={0.45} fullscreen />
-      </div>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-      <Topbar
-        user={user}
-        theme={theme}
-        onLogout={onLogout}
-        onOpenSettings={onOpenSettings}
-        onOpenUsers={onOpenUsers}
-      />
-
+    <div className="page-in">
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '20px 16px' : '32px 28px' }}>
         {/* Page header */}
         <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
@@ -713,7 +699,6 @@ export default function DocumentsPage({ user, theme, onLogout, onOpenSettings, o
       {uploadOpen && (
         <UploadModal sections={sections} onClose={() => setUploadOpen(false)} onUploaded={handleUploaded} />
       )}
-      </div>
     </div>
   )
 }

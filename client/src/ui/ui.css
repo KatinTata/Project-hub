@@ -105,3 +105,87 @@
   background-size: 40px 100%, 40px 100%, 16px 100%, 16px 100%;
   background-attachment: local, local, scroll, scroll;
 }
+
+/* ── Bočni meni (AppShell / Sidebar) ─────────────────────────────────────────
+   Jedna navigaciona kolona: Projekti / Portal / Administracija + korisnik na
+   dnu. Hover/aktivno stanje u CSS-u; boje iz CSS varijabli (theme.js). */
+.nav-label {
+  display: block;
+  font-family: var(--font, 'Hanken Grotesk', sans-serif);
+  font-size: 11px;
+  color: var(--textMuted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 10px;
+  margin: 18px 0 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-md, 8px);
+  font-family: var(--font, 'Hanken Grotesk', sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--textMuted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-item:hover { background: var(--surfaceAlt); color: var(--text); }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item--active, .nav-item--active:hover { background: var(--accentTint); color: var(--accent); font-weight: 600; }
+.nav-item--project { color: var(--text); min-height: 34px; }
+.nav-item--project.nav-item--active { color: var(--accent); }
+.nav-item--sub { min-height: 32px; font-size: 12px; color: var(--textSubtle); }
+.nav-item__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.nav-item__badge {
+  min-width: 18px; height: 18px; border-radius: 9px; padding: 0 5px;
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.nav-user {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surfaceAlt);
+  cursor: pointer; text-align: left;
+  font-family: var(--font, 'Hanken Grotesk', sans-serif);
+  transition: border-color 0.15s;
+}
+.nav-user:hover { border-color: var(--borderHover); }
+.nav-menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px 14px; border: none; background: transparent; cursor: pointer; text-align: left;
+  font-family: var(--font, 'Hanken Grotesk', sans-serif); font-size: 13px; color: var(--text);
+  transition: background 0.15s;
+}
+.nav-menu-item:hover { background: var(--surfaceAlt); }
+.nav-menu-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--textMuted); }
+
+/* Pod-navigacija stranice (Podešavanja) */
+.sub-nav-item {
+  display: flex; align-items: center; gap: 9px; width: 100%; min-height: 36px;
+  padding: 0 12px; border-radius: var(--radius-md, 8px);
+  font-family: var(--font, 'Hanken Grotesk', sans-serif); font-size: 13px; font-weight: 500;
+  color: var(--textMuted); background: transparent; border: none; cursor: pointer;
+  text-align: left; white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.sub-nav-item:hover { background: var(--surfaceAlt); color: var(--text); }
+.sub-nav-item--active, .sub-nav-item--active:hover { background: var(--accentTint); color: var(--accent); font-weight: 600; }
+
+@media (max-width: 767px) {
+  .nav-item { min-height: 44px; font-size: 15px; }
+  .nav-item--project { min-height: 44px; }
+  .nav-item--sub { min-height: 40px; font-size: 13px; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .sub-nav-item { flex: 0 0 auto; width: auto; min-height: 40px; }
+}

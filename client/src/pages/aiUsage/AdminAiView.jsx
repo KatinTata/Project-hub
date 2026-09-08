@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '../../api.js'
 import { useT } from '../../lang.jsx'
-import Topbar from '../../components/Topbar.jsx'
-import BrainAnimation from '../../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney, colorAt } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
 import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf, svcLabel } from './ui.jsx'
@@ -12,7 +10,7 @@ import SettingsView from './SettingsView.jsx'
 
 // Admin dashboard: KPI-jevi, trendovi, pite/barovi, budžeti, pivot tabele +
 // tabovi za izveštaj po kupcu i (super_admin) podešavanja.
-export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
+export default function AdminAiView({ user }) {
   const t = useT()
   const isSuperAdmin = user?.role === 'super_admin'
   const [view, setView] = useState('dashboard')
@@ -62,10 +60,7 @@ export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onO
   const gauges = (budgets?.budgets || []).filter(b => b.status?.limit_eur > 0)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}><BrainAnimation opacity={0.4} fullscreen /></div>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <Topbar user={user} theme={theme} onLogout={onLogout} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} />
+    <div className="page-in">
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '22px 22px 60px' }}>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -179,7 +174,6 @@ export default function AdminAiView({ user, theme, onLogout, onOpenSettings, onO
           {view === 'report' && <ReportView range={range} preset={preset} setPreset={setPreset} setRange={setRange} />}
           {view === 'settings' && isSuperAdmin && <SettingsView />}
         </div>
-      </div>
     </div>
   )
 }

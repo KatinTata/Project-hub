@@ -1,34 +1,14 @@
+// Tema aplikacije — SAMO svetla (odluka 08.09.2026, docs/ODLUKE.md).
+// Izbor teme je uklonjen iz UI-ja; paleta ispod je jedini izvor boja, a
+// komponente je čitaju kroz CSS varijable (var(--bg), var(--accent) ...).
 export const themes = {
-  dark: {
-    '--bg':          '#0A0C10',
-    '--surface':     'rgba(17,19,24,0.75)',
-    '--surfaceAlt':  'rgba(21,24,31,0.80)',
-    '--border':      '#1E2433',
-    '--borderHover': '#2D3550',
-    // Kontrast (P2-C3): na --bg #0A0C10 stari subtle #3D4A66 je bio ~2.2:1
-    // (ispod AA 4.5:1). Novi parovi: muted ~5.8:1, subtle ~4.9:1 — hijerarhija
-    // (text > muted > subtle) očuvana, oba iznad AA za mali tekst.
-    '--text':        '#E8EBF2',
-    '--textMuted':   '#7D8CAB',
-    '--textSubtle':  '#71809E',
-    '--accent':      '#4F8EF7',
-    '--accentHover': '#6B9FFF',
-    '--accentTint':  '#0F1E33',
-    '--green':       '#22C55E',
-    '--amber':       '#F59E0B',
-    '--red':         '#EF4444',
-    '--greenTint':   '#0F2A1A',
-    '--amberTint':   '#2A1F0A',
-    '--redTint':     '#2A0F0F',
-  },
   light: {
     '--bg':          '#F0F2F8',
     '--surface':     '#FFFFFF',
     '--surfaceAlt':  '#F8F9FC',
     '--border':      '#E2E6F0',
     '--borderHover': '#C8CFDF',
-    // Kontrast (P2-C3): na beloj podlozi stari subtle #A0AABF je bio ~2.3:1.
-    // Novi: muted ~5.9:1, subtle ~4.9:1 — oba iznad AA 4.5:1.
+    // Kontrast (P2-C3): muted ~5.9:1, subtle ~4.9:1 — oba iznad AA 4.5:1.
     '--text':        '#0F1523',
     '--textMuted':   '#5A6480',
     '--textSubtle':  '#68718A',
@@ -51,8 +31,8 @@ export const tokens = {
   space: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
   radius: { sm: 6, md: 8, lg: 12 },
   shadow: {
-    pop: '0 8px 24px rgba(0,0,0,0.2)',
-    modal: '0 24px 80px rgba(0,0,0,0.4)',
+    pop: '0 8px 24px rgba(15,21,35,0.12)',
+    modal: '0 24px 80px rgba(15,21,35,0.25)',
   },
   font: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
 }
@@ -71,16 +51,9 @@ const tokenVars = {
   '--font': tokens.font,
 }
 
-export function getEffectiveTheme(mode) {
-  if (mode === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  }
-  return mode
-}
-
-export function applyTheme(mode) {
-  const effective = getEffectiveTheme(mode)
-  const vars = { ...themes[effective], ...tokenVars }
+export function applyTheme() {
+  const vars = { ...themes.light, ...tokenVars }
   const root = document.documentElement
   Object.entries(vars).forEach(([key, val]) => root.style.setProperty(key, val))
+  root.style.colorScheme = 'light'
 }

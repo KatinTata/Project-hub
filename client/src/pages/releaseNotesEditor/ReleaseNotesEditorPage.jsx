@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../../api.js'
-import Topbar from '../../components/Topbar.jsx'
-import BrainAnimation from '../../components/BrainAnimation.jsx'
 import { useT } from '../../lang.jsx'
 import { useWindowSize } from '../../hooks/useWindowSize.js'
 import { sanitizeBodyHtml, htmlToText } from '../../components/RichBodyEditor.jsx'
@@ -21,7 +19,7 @@ import PublishModal from './PublishModal.jsx'
 // Release notes wizard: 1) select tasks → 2) edit content → 3) preview/export/publish.
 // Domain state lives in hooks (useTaskSource/useTaskEdits/useSections); this
 // component owns only wizard navigation, config, publish/export and the toast.
-export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
+export default function ReleaseNotesEditorPage({ user }) {
   const t = useT()
   const { isMobile } = useWindowSize()
   const navigate = useNavigate()
@@ -227,12 +225,7 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <BrainAnimation opacity={0.45} fullscreen />
-      </div>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-      <Topbar user={user} theme={theme} onLogout={onLogout} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} />
+    <div className="page-in">
       <div style={{ padding: '20px 28px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
           <Stepper step={wizardStep} maxStep={maxStep} onStepClick={goToStep} />
@@ -274,7 +267,6 @@ export default function ReleaseNotesEditorPage({ user, theme, onLogout, onOpenSe
           onPublish={async (clientIds, sectionName) => { setPublishModal(null); await handlePublish(clientIds, sectionName) }}
         />
       )}
-      </div>
     </div>
   )
 }

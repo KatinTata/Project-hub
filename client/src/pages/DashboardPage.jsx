@@ -1,12 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import Topbar from '../components/Topbar.jsx'
-import ProjectTabs from '../components/ProjectTabs.jsx'
 import ProjectCard from '../components/ProjectCard.jsx'
 import ClientOverview from '../components/portal/ClientOverview.jsx'
-import ArchiveModal from '../components/ArchiveModal.jsx'
-import BrainAnimation from '../components/BrainAnimation.jsx'
 import ClientNotificationModal from '../components/ClientNotificationModal.jsx'
 import AddProjectPage from './AddProjectPage.jsx'
 import { api } from '../api.js'
@@ -17,9 +13,8 @@ import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
 import { toast } from '../ui/Toast.jsx'
 
-export default function DashboardPage({ user: initialUser, theme, onSetTheme, onLogout, onOpenSettings, onOpenUsers }) {
+export default function DashboardPage({ user: initialUser }) {
   const [user, setUser] = useState(initialUser)
-  const [archiveOpen, setArchiveOpen] = useState(false)
   const [editingProject, setEditingProject] = useState(null) // project being edited (filter criteria)
   const [clientModalOpen, setClientModalOpen] = useState(false)
   const queryClient = useQueryClient()
@@ -93,10 +88,6 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     if (activeId == null) return
     navigate(tab === 'tasks' ? `/projects/${activeId}` : `/projects/${activeId}/${tab}`)
   }
-  useEffect(() => {
-    if (serverProjects) localStorage.setItem('jt_project_count', serverProjects.length)
-  }, [serverProjects])
-
   const initialized = demoMode || projectsQuery.isSuccess || projectsQuery.isError
 
   // Listen for setting changes from SettingsModal
@@ -185,43 +176,11 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
     }
   }
 
-  async function handleRestoreProject(project) {
-    try {
-      const { project: restored } = await api.restoreProject(project.id)
-      setProjectsList(list => [...list, restored])
-      setActiveId(restored.id)
-    } catch (err) {
-      toast.error(err.message)
-    }
-  }
-
-  function handleLogout() {
-    localStorage.removeItem('jt_token')
-    onLogout()
-  }
-
-  async function handleMarkAllRead() {
-    try {
-      await Promise.all([api.markAllRead(), api.markAlertsRead().catch(() => {})])
-      queryClient.setQueryData(['notifications'], { count: 0, messages: [] })
-    } catch {}
-  }
-
-  function handleNotificationClick(n) {
-    // Upozorenja (P3-3) vode na relevantan ekran, poruke u chat
-    if (n.kind === 'alert') {
-      if (n.type === 'new_release') navigate('/release-notes')
-      else navigate(n.project_id ? `/projects/${n.project_id}` : '/')
-      return
-    }
-    goToMessages(n.project_id || activeId || null)
-  }
-
   const activeProject = projects.find(p => p.id === activeId)
 
   if (!initialized) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ padding: '80px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 16 }}>{t('app.loading')}</div>
       </div>
     )
@@ -247,39 +206,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
   }
 
   return (
-    <div className="page-in" style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
-      {/* Global background animation */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <BrainAnimation opacity={0.45} fullscreen />
-      </div>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-      <Topbar
-        user={user}
-        theme={theme}
-        onOpenSettings={onOpenSettings}
-        onLogout={handleLogout}
-        unreadCount={unreadCount}
-        recentUnread={recentUnread}
-        onMarkAllRead={handleMarkAllRead}
-        onNotificationClick={handleNotificationClick}
-        onOpenUsers={isClient ? undefined : onOpenUsers}
-        unreadMessages={unreadCount}
-        projects={projects}
-        messagesProjectId={activeProject?.id || null}
-      />
-
-      {projects.length > 0 && (
-        <ProjectTabs
-          projects={projects}
-          activeId={activeId}
-          onSelect={setActiveId}
-          onAdd={!isClient && !demoMode ? () => navigate('/projects/new') : undefined}
-          onArchive={isClient ? undefined : handleArchiveProject}
-          onOpenArchive={isClient ? undefined : () => setArchiveOpen(true)}
-          projectData={projectData}
-        />
-      )}
-
+    <div className="page-in">
       {projects.length > 0 ? (
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '16px' : '28px' }}>
           {demoMode && !isClient && (
@@ -299,7 +226,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
               <span>⚙️</span>
               <span>
                 {t('dash.demoNotice')}{' '}
-                <button onClick={() => onOpenSettings?.()} style={{ color: 'var(--amber)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>
+                <button onClick={() => navigate('/settings/jira')} style={{ color: 'var(--amber)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}>
                   {t('dash.settings')}
                 </button>{' '}
                 {t('dash.demoNotice2')}
@@ -357,7 +284,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           {/* Welcome header */}
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <img
-              src="/logo-white.png"
+              src="/logo-dark.png"
               alt="Intelisale"
               style={{ height: 36, marginBottom: 20, opacity: 0.9 }}
             />
@@ -386,7 +313,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
                     done: hasJira,
                     title: t('dash.step1'),
                     desc: t('dash.step1Sub'),
-                    action: { label: t('dash.openSettings'), onClick: () => onOpenSettings?.() },
+                    action: { label: t('dash.openSettings'), onClick: () => navigate('/settings/jira') },
                   },
               {
                 step: '2',
@@ -450,7 +377,7 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           </div>
 
           <button
-            onClick={() => onOpenSettings?.()}
+            onClick={() => navigate('/settings/jira')}
             style={{
               display: 'none',
               background: 'var(--accent)',
@@ -467,13 +394,6 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
             {t('dash.openSettings')}
           </button>
         </div>
-      )}
-
-      {archiveOpen && (
-        <ArchiveModal
-          onClose={() => setArchiveOpen(false)}
-          onRestore={handleRestoreProject}
-        />
       )}
 
       {clientModalOpen && (
@@ -495,7 +415,6 @@ export default function DashboardPage({ user: initialUser, theme, onSetTheme, on
           -webkit-backdrop-filter: blur(6px);
         }
       `}</style>
-      </div>
     </div>
   )
 }

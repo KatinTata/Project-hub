@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api.js'
-import Topbar from '../components/Topbar.jsx'
-import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
 import { fmtDateLong } from '../utils/format.js'
 import { useConfirm } from '../ui/Confirm.jsx'
 import { useDialogBehavior } from '../ui/Modal.jsx'
 
-export default function ReleaseNotesPage({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
+export default function ReleaseNotesPage({ user }) {
   const t = useT()
   const confirm = useConfirm()
   const isClient = isClientRole(user?.role)
@@ -62,20 +60,7 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onOpenSettings
   }
 
   return (
-    <div className="page-in" style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <BrainAnimation opacity={0.45} fullscreen />
-      </div>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-
-      <Topbar
-        user={user}
-        theme={theme}
-        onLogout={onLogout}
-        onOpenSettings={onOpenSettings}
-        onOpenUsers={onOpenUsers}
-      />
-
+    <div className="page-in">
       <div style={{ padding: '28px' }}>
         {selectedNote ? (
           <NoteDetailView
@@ -167,7 +152,6 @@ export default function ReleaseNotesPage({ user, theme, onLogout, onOpenSettings
           }}
         />
       )}
-      </div>
     </div>
   )
 }

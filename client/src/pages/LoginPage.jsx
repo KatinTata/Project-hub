@@ -8,7 +8,7 @@ import Input from '../ui/Input.jsx'
 import Label from '../ui/Label.jsx'
 import Card from '../ui/Card.jsx'
 
-export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
+export default function LoginPage({ onLogin }) {
   const t = useT()
   const { isMobile } = useWindowSize()
   const [email, setEmail] = useState('')
@@ -56,7 +56,7 @@ export default function LoginPage({ onLogin, effectiveTheme = 'dark' }) {
       }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <img
-            src={effectiveTheme === 'dark' ? '/logo-white.png' : '/logo-dark.png'}
+            src="/logo-dark.png"
             alt="Intelisale"
             style={{ height: 40, marginBottom: 12, objectFit: 'contain' }}
           />

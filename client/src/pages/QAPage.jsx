@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import Topbar from '../components/Topbar.jsx'
 import { useT, useLang } from '../lang.jsx'
 import { api } from '../api.js'
 import { isClientRole } from '../utils/roles.js'
@@ -190,7 +189,7 @@ function FaqForm({ initial, categories, lang, onSaved, onCancel, t }) {
 
 // ── QAPage ────────────────────────────────────────────────────────────────────
 
-export default function QAPage({ user, theme, onLogout, onOpenSettings, onOpenUsers, projects = [] }) {
+export default function QAPage({ user }) {
   const t = useT()
   const { lang } = useLang()
   const confirm = useConfirm()
@@ -291,14 +290,6 @@ export default function QAPage({ user, theme, onLogout, onOpenSettings, onOpenUs
 
   return (
     <div className="page-in" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <Topbar
-        user={user}
-        theme={theme}
-        onLogout={onLogout}
-        onOpenSettings={onOpenSettings}
-        onOpenUsers={onOpenUsers}
-        projects={projects}
-      />
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px 80px' }}>
 

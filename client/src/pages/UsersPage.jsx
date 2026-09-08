@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { api } from '../api.js'
 import { useT } from '../lang.jsx'
 import { toast } from '../ui/Toast.jsx'
-import { useDialogBehavior } from '../ui/Modal.jsx'
 import { useConfirm } from '../ui/Confirm.jsx'
 
 function roleLabel(t, role) {
@@ -18,9 +17,8 @@ const ROLE_COLORS = {
   user: { bg: 'rgba(107,122,153,0.10)', text: 'var(--textMuted)', border: 'rgba(107,122,153,0.20)' },
 }
 
-export default function UserManagementModal({ onClose, isSuperAdmin }) {
+export default function UsersPage({ isSuperAdmin }) {
   const t = useT()
-  const panelRef = useDialogBehavior(true, onClose)
   const confirmDialog = useConfirm()
   const [users, setUsers] = useState([])
   const [organizations, setOrganizations] = useState([])
@@ -215,35 +213,21 @@ export default function UserManagementModal({ onClose, isSuperAdmin }) {
     URL.revokeObjectURL(url)
   }
 
+  // Stranica (ne modal, odluka 08.09.2026) — sadržaj i logika su nepromenjeni.
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)',
-      zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-label={t('users.title')} tabIndex={-1} style={{
-        background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: 16, width: '100%', maxWidth: 760, maxHeight: '88vh',
-        display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
-      }}>
+    <div className="page-in" style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(12px, 3vw, 32px)' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12 }}>
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <div>
-            <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 20, color: 'var(--text)', marginBottom: 2 }}>
-              {t('users.title')}
-            </h2>
-            <p style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
-              {t('users.subtitle')}
-            </p>
-          </div>
-          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--textMuted)', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--surfaceAlt)'; e.currentTarget.style.color = 'var(--text)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--textMuted)' }}
-          >×</button>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
+          <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 20, color: 'var(--text)', marginBottom: 2 }}>
+            {t('users.title')}
+          </h2>
+          <p style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 13, color: 'var(--textMuted)' }}>
+            {t('users.subtitle')}
+          </p>
         </div>
 
-        <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+        <div style={{ padding: '20px 24px' }}>
           {error && (
             <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--redTint)', border: '1px solid #EF444430', borderRadius: 8, color: 'var(--red)', fontSize: 13, fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>{error}</div>
           )}

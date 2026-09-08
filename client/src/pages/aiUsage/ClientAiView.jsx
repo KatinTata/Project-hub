@@ -1,15 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '../../api.js'
 import { useT } from '../../lang.jsx'
-import Topbar from '../../components/Topbar.jsx'
-import BrainAnimation from '../../components/BrainAnimation.jsx'
 import { PieChart, HBars, TrendChart, BudgetGauge, fmtTok, fmtNum, fmtMoney } from '../../components/aiCharts.jsx'
 import { toast } from '../../ui/Toast.jsx'
 import { card, presetRange, AlertNotes, Section, Kpi, FilterBar, openReportPdf, svcLabel } from './ui.jsx'
 import { SimpleTable } from './tables.jsx'
 
 // Klijentski pogled: sopstvena potrošnja (preko client_tenant_users), paket/budžet.
-export default function ClientAiView({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
+export default function ClientAiView({ user }) {
   const t = useT()
   const [preset, setPreset] = useState('month')
   const [range, setRange] = useState(presetRange('month'))
@@ -44,10 +42,7 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
   const tot = data?.totals
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}><BrainAnimation opacity={0.4} fullscreen /></div>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <Topbar user={user} theme={theme} onLogout={onLogout} onOpenSettings={onOpenSettings} onOpenUsers={onOpenUsers} />
+    <div className="page-in">
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '22px 22px 60px' }}>
           <div style={{ marginBottom: 14 }}>
             <h1 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 800, fontSize: 24, color: 'var(--text)' }}>{t('ai2.client.title')}</h1>
@@ -149,7 +144,6 @@ export default function ClientAiView({ user, theme, onLogout, onOpenSettings, on
             </div>
           )}
         </div>
-      </div>
     </div>
   )
 }

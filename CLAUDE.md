@@ -9,11 +9,11 @@ Produkcija: https://project-hub.intelisale.com (Railway, Nixpacks, start: `node 
 
 ## Tech stack
 
-- **Frontend**: React 18 + Vite (`client/`), custom router preko `history.pushState` (bez react-router-a)
+- **Frontend**: React 18 + Vite (`client/`), react-router-dom 7 (rute su jedini izvor istine za aktivnu stranicu), TanStack Query (server state) + react-virtual (velike tabele)
 - **Backend**: Node 22 + Express 4 (`server/`)
 - **Baza**: SQLite (`better-sqlite3`, WAL), fajl `data/tracker.db` (ili `DATA_DIR`)
 - **Auth**: JWT HS256 (7d) + bcrypt (cost 12); rola u bazi: `super_admin` | `admin` | `user` (klijent)
-- **Stilovi**: inline JS objekti + CSS varijable teme u `client/src/theme.js`; BEZ CSS fajlova i UI biblioteka
+- **Stilovi**: inline JS objekti + CSS varijable u `client/src/theme.js` (SAMO svetla tema, odluka 08.09.2026); jedini CSS fajl je `client/src/ui/ui.css` (zajedničke klase: dugmad, kartice, bočni meni); BEZ UI biblioteka
 - **Grafikoni**: ručno pisan SVG (bez chart biblioteka)
 - **Font**: Hanken Grotesk (Google Fonts CDN; TTF kopije u `server/excel/fonts` za resvg)
 - **i18n**: `client/src/lang.jsx` + `client/src/translations.js` (sr + en) — svaki korisnički string ide tamo, nikad hardkodovan
@@ -57,9 +57,10 @@ client/src/
   utils.js            # processEpicData, buildAssigneeData/ComponentData/ModuleData, billableSecondsOf
   utils/              # stacks.js (STACKS, remainingOf, buildStackMatrix/Teams, buildRoster),
                       # forecast.js, capacity.js, dates.js, roles.js (isClientRole/isInternalRole)
-  pages/              # LoginPage, DashboardPage, AddProjectPage, MessagesPage, DocumentsPage,
-                      # ReleaseNotesPage, ReleaseNotesEditorPage, QAPage, AiUsagePage
-  components/         # 28 komponenti (ProjectCard, TaskTable, PhaseForecast, Topbar, ...)
+  pages/              # LoginPage, DashboardPage, AddProjectPage, MessagesPage, DocumentsPage, SettingsPage (/settings/:section),
+                      # UsersPage (/users), ReleaseNotesPage, releaseNotesEditor/, aiUsage/ (QAPage je van ruta od 04.09.2026)
+  components/shell/   # AppShell (okvir: bočni meni + zaglavlje + sadržaj) i Sidebar (Projekti / Portal / Administracija)
+  components/         # ProjectCard, TaskTable, PhaseForecast, NotificationBell, ArchiveModal, portal/ ... (Topbar i ProjectTabs uklonjeni 08.09.2026)
 tests/                # vitest: utils, stacks, forecast, capacity, pricing, fx, dates, crypto
 ```
 
@@ -114,7 +115,7 @@ GET+PUT `/admin/config`, POST `/admin/test`, PUT `/admin/pricing-config`, GET `/
 GET `/alerts`, POST `/alerts/:id/ack` A · GET `/budgets` A, PUT `/budgets/:tenantId` SA, POST `/budgets/check` SA · GET `/packages` A, POST+PUT+DELETE `/admin/packages*` SA ·
 GET `/my`, `/my-budget` U (klijent preko `client_tenant_users`) · GET `/export/xlsx`, `/export/html` A
 
-## Baza (36 tabela u server/db.js — aditivne migracije, NIKAD destruktivne)
+## Baza (38 tabela u server/db.js — aditivne migracije, NIKAD destruktivne; `schema_migrations` ledger + `task_client_texts` nisu u tabeli ispod)
 
 | Tabela | Svrha / ključne kolone |
 |---|---|
@@ -189,7 +190,8 @@ GET `/my`, `/my-budget` U (klijent preko `client_tenant_users`) · GET `/export/
 
 ## Dizajn konvencije
 
-- CSS varijable iz `theme.js` (dark/light), font Hanken Grotesk, borderRadius 8–12, `transition: all 0.2s ease`
+- CSS varijable iz `theme.js` (samo svetla tema), font Hanken Grotesk, borderRadius 8–12, `transition: all 0.2s ease`
+- Navigacija: jedan bočni meni (`components/shell/Sidebar.jsx`) — nove stranice se dodaju kao stavka u grupu Portal (vidi i klijent) ili Administracija (interni tim) i kao ruta u `App.jsx`; zaglavlje strane (nadnaslov + naslov) daje `AppShell.pageFromPath`
 - BEZ emojija u UI-ju, BEZ UI biblioteka; SVG grafikoni ručno
 - Svaki novi string u `translations.js` (sr + en); ključevi tipa `'pc.tab.stacks'`
 - Klijentski prikaz (rola `user`): bez estimacija, internih sati, overrun-a — provere kroz `client/src/utils/roles.js`

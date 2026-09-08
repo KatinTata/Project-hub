@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api.js'
-import Topbar from '../components/Topbar.jsx'
-import BrainAnimation from '../components/BrainAnimation.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 import { isClientRole } from '../utils/roles.js'
@@ -15,7 +13,7 @@ const TASK_KEY_RE = /^[A-Z][A-Z0-9]*-\d+$/
 function looksLikeTaskKey(val) { return TASK_KEY_RE.test(val.trim().toUpperCase()) }
 function threadId(m) { return m.subject || m.task_key || null }
 
-export default function MessagesPage({ user, theme, onLogout, onOpenSettings, onOpenUsers }) {
+export default function MessagesPage({ user }) {
   const t = useT()
   const isClient = isClientRole(user.role)
   const { isMobile } = useWindowSize()
@@ -187,19 +185,7 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
   const sideLabel = { padding: '0 16px 8px', fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--textSubtle)' }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <BrainAnimation opacity={0.45} fullscreen />
-      </div>
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <Topbar
-          user={user}
-          theme={theme}
-          onLogout={onLogout}
-          onOpenSettings={onOpenSettings}
-          onOpenUsers={onOpenUsers}
-        />
-
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative', overflow: 'hidden' }}>
         {/* Main content: sidebar + chat */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
@@ -486,7 +472,6 @@ export default function MessagesPage({ user, theme, onLogout, onOpenSettings, on
             )}
           </div>
         </div>
-      </div>
     </div>
   )
 }

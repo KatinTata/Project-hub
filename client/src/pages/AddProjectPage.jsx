@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import BrainAnimation from '../components/BrainAnimation.jsx'
 import { api } from '../api.js'
 import JqlEditor from '../components/JqlEditor.jsx'
 import { useT } from '../lang.jsx'
@@ -83,9 +82,7 @@ export default function AddProjectPage({ onAdd, onCancel, editProject = null }) 
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', zIndex: 500, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '48px 20px', overflowY: 'auto' }}>
-      <BrainAnimation opacity={0.35} fullscreen />
-
+    <div className="page-in" style={{ position: 'relative', minHeight: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '64px 20px 48px' }}>
       <button
         onClick={onCancel}
         style={{ position: 'absolute', top: 20, left: 20, zIndex: 1, display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 14px', color: 'var(--textMuted)', fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 14, cursor: 'pointer', transition: 'all 0.2s ease' }}

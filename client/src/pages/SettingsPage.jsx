@@ -1,9 +1,9 @@
 import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api.js'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT, useLang } from '../lang.jsx'
 import { toast } from '../ui/Toast.jsx'
-import { useDialogBehavior } from '../ui/Modal.jsx'
 
 function IconUser() {
   return <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 15, height: 15, flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
@@ -21,13 +21,13 @@ function IconPalette() {
   return <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 15, height: 15, flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" /></svg>
 }
 
-export default function SettingsModal({ user, theme, onSetTheme, onClose, onUserUpdate, isSuperAdmin }) {
+export default function SettingsPage({ user, onUserUpdate, isSuperAdmin }) {
   const t = useT()
-  const panelRef = useDialogBehavior(true, onClose)
   const { lang, setLang: setLangLocal } = useLang()
   // Izbor jezika važi odmah (localStorage) i pamti se na nalogu (users.lang)
   const setLang = l => { setLangLocal(l); api.setMyLang(l).catch(() => {}) }
-  const [tab, setTab] = useState('profile')
+  const navigate = useNavigate()
+  const { section } = useParams()
   const [jiraUrl, setJiraUrl] = useState(user.jiraUrl || '')
   const [jiraEmail, setJiraEmail] = useState(user.jiraEmail || '')
   const [jiraToken, setJiraToken] = useState('')
@@ -135,166 +135,66 @@ export default function SettingsModal({ user, theme, onSetTheme, onClose, onUser
     ? [
         { key: 'profile',    label: t('settings.tab.profile'),    icon: <IconUser /> },
         { key: 'jira',       label: t('settings.tab.jira'),       icon: <IconLink /> },
-        { key: 'appearance', label: t('settings.tab.appearance'), icon: <IconPalette /> },
+        { key: 'language',   label: t('settings.tab.language'),   icon: <IconPalette /> },
         { key: 'ai',         label: t('settings.tab.ai'),         icon: <IconSparkle /> },
         { key: 'refresh',    label: t('set2.tab.refresh'),        icon: <IconClock /> },
       ]
     : isUser
     ? [
         { key: 'profile',    label: t('settings.tab.profile'),    icon: <IconUser /> },
-        { key: 'appearance', label: t('settings.tab.appearance'), icon: <IconPalette /> },
+        { key: 'language',   label: t('settings.tab.language'),   icon: <IconPalette /> },
       ]
     : [
         { key: 'profile',    label: t('settings.tab.profile'),    icon: <IconUser /> },
-        { key: 'appearance', label: t('settings.tab.appearance'), icon: <IconPalette /> },
+        { key: 'language',   label: t('settings.tab.language'),   icon: <IconPalette /> },
         { key: 'refresh',    label: t('set2.tab.refresh'),        icon: <IconClock /> },
       ]
 
+  const tab = tabs.some(x => x.key === section) ? section : 'profile'
+
+  // Stranica (ne modal, odluka 08.09.2026): leva pod-navigacija + kartica sadržaja.
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)',
-      display: 'flex',
-      alignItems: isMobile ? 'flex-end' : 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-    }} onClick={isMobile ? undefined : onClose}>
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-label={t('settings.title')} tabIndex={-1} style={{
-        background: 'var(--surface)',
-        border: isMobile ? 'none' : '1px solid var(--border)',
-        borderRadius: isMobile ? '16px 16px 0 0' : 16,
-        width: isMobile ? '100%' : 560,
-        maxHeight: isMobile ? '92vh' : '85vh',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
-      }} onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
-        <div style={{
-          padding: isMobile ? '16px' : '20px 24px',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexShrink: 0,
-        }}>
-          <h2 style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)' }}>{t('settings.title')}</h2>
-          <button onClick={onClose} style={{ fontSize: 18, color: 'var(--textMuted)', padding: 8, minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-        </div>
-
-        {isMobile ? (
-          /* Mobile: horizontal tab bar at top */
-          <>
-            <div style={{
-              display: 'flex',
-              borderBottom: '1px solid var(--border)',
-              flexShrink: 0,
-              overflowX: 'auto',
-              scrollbarWidth: 'none',
-            }}>
-              {tabs.map(tb => (
-                <button
-                  key={tb.key}
-                  onClick={() => setTab(tb.key)}
-                  style={{
-                    flex: 1,
-                    padding: '12px 8px',
-                    fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
-                    fontSize: 13,
-                    color: tab === tb.key ? 'var(--accent)' : 'var(--textMuted)',
-                    borderBottom: tab === tb.key ? '2px solid var(--accent)' : '2px solid transparent',
-                    background: 'transparent',
-                    whiteSpace: 'nowrap',
-                    minHeight: 44,
-                    transition: 'all 0.15s',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                  }}
-                >{tb.icon}{tb.label}</button>
-              ))}
-            </div>
-            <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
-              <SettingsContent
-                tab={tab}
-                isMobile={isMobile}
-                user={user}
-                theme={theme} onSetTheme={onSetTheme}
-                lang={lang} setLang={setLang}
-                jiraUrl={jiraUrl} setJiraUrl={setJiraUrl}
-                jiraEmail={jiraEmail} setJiraEmail={setJiraEmail}
-                jiraToken={jiraToken} setJiraToken={setJiraToken}
-                testStatus={testStatus} testLoading={testLoading} onTestJira={handleTestJira}
-                saving={saving} saveMsg={saveMsg} onSaveJira={handleSaveJira}
-                anthropicKey={anthropicKey} setAnthropicKey={setAnthropicKey}
-                aiSaving={aiSaving} aiSaveMsg={aiSaveMsg} onSaveAi={handleSaveAi}
-                hasAnthropicKey={user.hasAnthropicKey}
-                oldPassword={oldPassword} setOldPassword={setOldPassword}
-                newPassword={newPassword} setNewPassword={setNewPassword}
-                pwMsg={pwMsg} pwLoading={pwLoading} onChangePassword={handleChangePassword}
-                deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm}
-                onDeleteAccount={handleDeleteAccount}
-                autoRefreshTime={autoRefreshTime} onAutoRefreshChange={handleAutoRefreshChange}
-              />
-            </div>
-          </>
-        ) : (
-          /* Desktop: sidebar + content */
-          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-            <div style={{ width: 180, borderRight: '1px solid var(--border)', padding: '12px 8px', flexShrink: 0 }}>
-              {tabs.map(tb => (
-                <button
-                  key={tb.key}
-                  onClick={() => setTab(tb.key)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 9,
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '9px 12px',
-                    borderRadius: 8,
-                    borderTop: 'none', borderRight: 'none', borderBottom: 'none',
-                    borderLeft: `3px solid ${tab === tb.key ? 'var(--accent)' : 'transparent'}`,
-                    fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
-                    fontSize: 14,
-                    color: tab === tb.key ? 'var(--accent)' : 'var(--textMuted)',
-                    background: tab === tb.key ? 'rgba(79,142,247,0.08)' : 'transparent',
-                    marginBottom: 2,
-                    transition: 'all 0.15s',
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={e => { if (tab !== tb.key) e.currentTarget.style.background = 'var(--surfaceAlt)' }}
-                  onMouseLeave={e => { if (tab !== tb.key) e.currentTarget.style.background = 'transparent' }}
-                >
-                  <span style={{ color: tab === tb.key ? 'var(--accent)' : 'var(--textMuted)', display: 'flex', flexShrink: 0 }}>{tb.icon}</span>
-                  {tb.label}
-                </button>
-              ))}
-            </div>
-            <div style={{ flex: 1, padding: '20px 24px', overflowY: 'auto' }}>
-              <SettingsContent
-                tab={tab}
-                isMobile={isMobile}
-                user={user}
-                theme={theme} onSetTheme={onSetTheme}
-                lang={lang} setLang={setLang}
-                jiraUrl={jiraUrl} setJiraUrl={setJiraUrl}
-                jiraEmail={jiraEmail} setJiraEmail={setJiraEmail}
-                jiraToken={jiraToken} setJiraToken={setJiraToken}
-                testStatus={testStatus} testLoading={testLoading} onTestJira={handleTestJira}
-                saving={saving} saveMsg={saveMsg} onSaveJira={handleSaveJira}
-                anthropicKey={anthropicKey} setAnthropicKey={setAnthropicKey}
-                aiSaving={aiSaving} aiSaveMsg={aiSaveMsg} onSaveAi={handleSaveAi}
-                hasAnthropicKey={user.hasAnthropicKey}
-                oldPassword={oldPassword} setOldPassword={setOldPassword}
-                newPassword={newPassword} setNewPassword={setNewPassword}
-                pwMsg={pwMsg} pwLoading={pwLoading} onChangePassword={handleChangePassword}
-                deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm}
-                onDeleteAccount={handleDeleteAccount}
-                autoRefreshTime={autoRefreshTime} onAutoRefreshChange={handleAutoRefreshChange}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="page-in" style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? 16 : '24px 32px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'flex-start', gap: isMobile ? 16 : 24 }}>
+      <nav aria-label={t('settings.title')} className={isMobile ? 'ui-scroll-x' : undefined} style={{
+        width: isMobile ? '100%' : 220, flexShrink: 0,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 8,
+        display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: 2,
+      }}>
+        {tabs.map(tb => (
+          <button
+            key={tb.key}
+            type="button"
+            className={`sub-nav-item${tab === tb.key ? ' sub-nav-item--active' : ''}`}
+            onClick={() => navigate(`/settings/${tb.key}`)}
+            aria-current={tab === tb.key ? 'page' : undefined}
+          >
+            <span style={{ display: 'flex', flexShrink: 0 }}>{tb.icon}</span>
+            {tb.label}
+          </button>
+        ))}
+      </nav>
+      <section style={{ flex: 1, minWidth: 0, width: '100%', maxWidth: 720, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: isMobile ? 16 : 24 }}>
+        <SettingsContent
+          tab={tab}
+          isMobile={isMobile}
+          user={user}
+          lang={lang} setLang={setLang}
+          jiraUrl={jiraUrl} setJiraUrl={setJiraUrl}
+          jiraEmail={jiraEmail} setJiraEmail={setJiraEmail}
+          jiraToken={jiraToken} setJiraToken={setJiraToken}
+          testStatus={testStatus} testLoading={testLoading} onTestJira={handleTestJira}
+          saving={saving} saveMsg={saveMsg} onSaveJira={handleSaveJira}
+          anthropicKey={anthropicKey} setAnthropicKey={setAnthropicKey}
+          aiSaving={aiSaving} aiSaveMsg={aiSaveMsg} onSaveAi={handleSaveAi}
+          hasAnthropicKey={user.hasAnthropicKey}
+          oldPassword={oldPassword} setOldPassword={setOldPassword}
+          newPassword={newPassword} setNewPassword={setNewPassword}
+          pwMsg={pwMsg} pwLoading={pwLoading} onChangePassword={handleChangePassword}
+          deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm}
+          onDeleteAccount={handleDeleteAccount}
+          autoRefreshTime={autoRefreshTime} onAutoRefreshChange={handleAutoRefreshChange}
+        />
+      </section>
     </div>
   )
 }
@@ -305,7 +205,7 @@ const REFRESH_TIMES = [
 ]
 
 function SettingsContent({
-  tab, isMobile, user, theme, onSetTheme, lang, setLang,
+  tab, isMobile, user, lang, setLang,
   jiraUrl, setJiraUrl, jiraEmail, setJiraEmail, jiraToken, setJiraToken,
   testStatus, testLoading, onTestJira,
   saving, saveMsg, onSaveJira,
@@ -409,57 +309,9 @@ function SettingsContent({
     </div>
   )
 
-  if (tab === 'appearance') return (
+  if (tab === 'language') return (
     <div>
-      <h3 style={sectionTitle}>{t('settings.tab.appearance')}</h3>
-
-      {/* Theme selector */}
-      <div style={{
-        padding: '12px 14px',
-        background: 'var(--surfaceAlt)',
-        border: '1px solid var(--border)',
-        borderRadius: 10,
-        marginBottom: 20,
-      }}>
-        <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--textMuted)', marginBottom: 10 }}>
-          {t('settings.appearance.theme')}
-        </div>
-        <div style={{
-          display: 'flex',
-          gap: 6,
-          background: 'var(--bg)',
-          border: '1px solid var(--border)',
-          borderRadius: 10,
-          padding: 4,
-        }}>
-          {[
-            { value: 'dark',   label: t('settings.appearance.dark') },
-            { value: 'light',  label: t('settings.appearance.light') },
-            { value: 'system', label: t('settings.appearance.system') },
-          ].map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => onSetTheme(opt.value)}
-              style={{
-                flex: 1,
-                padding: '7px 8px',
-                borderRadius: 7,
-                border: 'none',
-                background: theme === opt.value ? 'var(--accent)' : 'transparent',
-                color: theme === opt.value ? '#fff' : 'var(--textMuted)',
-                fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
-                fontSize: 13,
-                fontWeight: theme === opt.value ? 600 : 400,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <h3 style={sectionTitle}>{t('settings.tab.language')}</h3>
 
       {/* Language selector */}
       <div style={{
