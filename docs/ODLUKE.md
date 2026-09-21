@@ -20,3 +20,5 @@ nije poznat. Nove odluke od danas nose stvaran datum.
 | 07.09.2026. | Model po tenantu: paket (mesečna naknada sa uključenom potrošnjom kao limitom) ili custom mesečni limit u EUR | — |
 | 08.09.2026. | Navigacija: jedan bočni meni (Projekti / Portal / Administracija), korisnik na dnu menija; Podešavanja i Korisnici postaju stranice umesto modala | sve je bilo rasuto po headeru, avataru i dva modala; Hub raste u klijentski portal pa navigacija mora da bude jedno mesto |
 | 08.09.2026. | Samo svetla tema; izbor teme se uklanja iz UI-ja | tamna tema nije potrebna, jedan vizuelni jezik za klijentski portal |
+| 14.09.2026. | Klijentu se prikazuje tempo rada (završene stavke po nedelji), ali NE i projektovan datum završetka | projekcija iz tempa obavezuje na datum koji se u praksi ne drži |
+| 14.09.2026. | Jira `duedate` po zadatku se povlači sa servera, ali se klijentu ne prikazuje | polje nije pouzdano održavano; vremenski prikazi idu na `updated` i `resolutiondate` |

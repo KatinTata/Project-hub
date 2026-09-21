@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../api.js'
 import { useT } from '../../lang.jsx'
+import { clientStatusLabel } from '../../utils/portal.js'
 import { useWindowSize } from '../../hooks/useWindowSize.js'
 import DonutChart from '../DonutChart.jsx'
 import Card from '../../ui/Card.jsx'
@@ -98,7 +99,7 @@ export function StatusDonut({ data }) {
                     <span style={{ fontFamily: font, fontSize: 13, color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {task.summary}
                     </span>
-                    <span style={{ fontFamily: font, fontSize: 11, color: openColor, flexShrink: 0 }}>{task.status}</span>
+                    <span style={{ fontFamily: font, fontSize: 11, color: openColor, flexShrink: 0 }}>{clientStatusLabel(task.status, t)}</span>
                   </div>
                 ))}
                 {openTasks.length === 0 && (

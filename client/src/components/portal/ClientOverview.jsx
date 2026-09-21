@@ -4,17 +4,21 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../../api.js'
 import { usePhasesQuery } from '../../queries.js'
 import { useT } from '../../lang.jsx'
-import { fmtDateLong } from '../../utils/format.js'
 import TaskTable from '../TaskTable.jsx'
 import Card from '../../ui/Card.jsx'
 import Button from '../../ui/Button.jsx'
 import { CollapseToggle } from '../../ui/collapse.jsx'
 import { StatusDonut, ProgressTrend, PhaseBars } from './ClientCharts.jsx'
+import PhaseTimeline from './PhaseTimeline.jsx'
+import Velocity from './Velocity.jsx'
+import WhatsNew from './WhatsNew.jsx'
+import ProjectDocuments from './ProjectDocuments.jsx'
 
-// P3-1: klijentski pregled projekta — "story", ne dashboard. Prikazuje SAMO
-// klijentu relevantno: napredak, status na putu/kasni (iz faza, bez internih
-// sati), sledeći ključni datum, poslednji release-ovi, poruke. Interne brojeve
-// server ionako više ne šalje roli `user` (client-safe DTO u jira.js).
+// P3-1/P3-4: klijentski pregled projekta — "story", ne dashboard. Redosled
+// prati pitanja koja klijent zaista postavlja: gde smo (status + plan po
+// fazama), kojim tempom se radi, šta se promenilo od prošlog puta, gde su
+// dokumenta. Interne brojeve server ne šalje roli `user` (client-safe DTO u
+// jira.js) — ovde se ne računa ništa iz sati.
 
 const font = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
 
@@ -64,23 +68,6 @@ function StatusSentence({ project, data, phases, t }) {
         <span>{pct}%</span>
       </div>
     </div>
-  )
-}
-
-function InfoTile({ label, value, sub, onClick, accent, t }) {
-  return (
-    <Card
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={onClick ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } } : undefined}
-      style={{ padding: '16px 20px', cursor: onClick ? 'pointer' : 'default', minWidth: 0 }}
-    >
-      <div style={{ fontFamily: font, fontSize: 11, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 16, color: accent || 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</div>
-      {sub && <div style={{ fontFamily: font, fontSize: 12, color: 'var(--textSubtle)', marginTop: 3 }}>{sub}</div>}
-      {onClick && <div style={{ fontFamily: font, fontSize: 12, color: 'var(--accent)', marginTop: 8 }}>{t('portal.open')} →</div>}
-    </Card>
   )
 }
 
@@ -138,9 +125,11 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
     () => (reportsQuery.data?.runs || []).filter(r => r.project_id === project?.id).slice(0, 5),
     [reportsQuery.data, project?.id]
   )
+  // Samo objave ovog projekta — objava bez project_id se ranije prikazivala na
+  // SVAKOM projektu klijenta (ispravka 14.09.2026).
   const releases = useMemo(() => {
     const all = releasesQuery.data?.notes || []
-    return all.filter(n => !n.project_id || n.project_id === project?.id).slice(0, 3)
+    return all.filter(n => n.project_id === project?.id).slice(0, 5)
   }, [releasesQuery.data, project?.id])
 
   useEffect(() => {
@@ -155,12 +144,8 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
     return map
   }, [phases, data])
 
-  // Sledeći ključni datum: najbliži budući rok faze; ako ga nema — poslednji prošli.
-  const nextDate = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10)
-    const withDue = phases.filter(p => p.due_date).sort((a, b) => a.due_date.localeCompare(b.due_date))
-    return withDue.find(p => p.due_date >= today) || withDue[withDue.length - 1] || null
-  }, [phases])
+  // Vremenska osa se crta samo kad faze imaju rokove; inače ostaju trake napretka.
+  const hasPhaseDates = useMemo(() => phases.some(p => p.due_date), [phases])
 
   if (loading) {
     return <div style={{ padding: 48, textAlign: 'center', color: 'var(--textMuted)', fontFamily: font }}>{t('pc.loadingData')}</div>
@@ -184,57 +169,25 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
         <StatusSentence project={project} data={data} phases={phases} t={t} />
       </Card>
 
-      {/* Šta je novo: release / poruke / sledeći datum */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
-        <InfoTile
-          t={t}
-          label={t('portal.tile.lastRelease')}
-          value={releases[0] ? (releases[0].title || releases[0].version || t('portal.tile.releaseFallback')) : t('portal.tile.noReleases')}
-          sub={releases[0] ? fmtDateLong(releases[0].released_at || releases[0].created_at) : t('portal.tile.noReleasesSub')}
-          onClick={releases[0] ? () => navigate(`/release-notes/${releases[0].id}`) : () => navigate('/release-notes')}
-        />
-        <InfoTile
-          t={t}
-          label={t('portal.tile.messages')}
-          value={unreadCount > 0 ? t('portal.tile.unread', { n: unreadCount }) : t('portal.tile.noUnread')}
-          accent={unreadCount > 0 ? 'var(--accent)' : undefined}
-          sub={t('portal.tile.messagesSub')}
-          onClick={() => navigate(`/messages?project=${project.id}`)}
-        />
-        <InfoTile
-          t={t}
-          label={t('portal.tile.nextDate')}
-          value={nextDate ? fmtDateLong(nextDate.due_date) : t('portal.tile.noDates')}
-          sub={nextDate ? nextDate.name : t('portal.tile.noDatesSub')}
-        />
-      </div>
+      {/* Plan po fazama: gde smo u odnosu na rokove (trake napretka kad rokova nema) */}
+      {hasPhaseDates
+        ? <PhaseTimeline phases={phases} tasksByPhase={tasksByPhase} />
+        : <PhaseBars phases={phases} tasksByPhase={tasksByPhase} />}
 
-      {/* Grafikoni: raspodela statusa + trend napretka */}
+      {/* Raspodela statusa + tempo rada (tempo bez projektovanog datuma — odluka 14.09.2026.) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, alignItems: 'start' }}>
         <StatusDonut data={data} />
-        <ProgressTrend projectId={project.id} />
+        <Velocity projectId={project.id} data={data} />
       </div>
 
-      {/* Napredak po fazama (trake) */}
-      <PhaseBars phases={phases} tasksByPhase={tasksByPhase} />
+      {/* Napredak kroz vreme */}
+      <ProgressTrend projectId={project.id} />
 
-      {/* Izveštaji poslati klijentu (P3-2) */}
-      {myReports.length > 0 && (
-        <Card style={{ padding: '20px 24px' }}>
-          <div style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 10 }}>
-            {t('portal.section.reports')}
-          </div>
-          {myReports.map(r => (
-            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: '1px solid var(--border)' }}>
-              <span style={{ fontFamily: font, fontSize: 13, color: 'var(--text)' }}>{fmtDateLong(r.ran_at)}</span>
-              <span style={{ fontFamily: font, fontSize: 12, color: 'var(--textSubtle)' }}>{r.period || ''}</span>
-              <Button variant="pill" style={{ marginLeft: 'auto' }} onClick={() => api.downloadReportRun(r.id)}>
-                {t('portal.reports.download')}
-              </Button>
-            </div>
-          ))}
-        </Card>
-      )}
+      {/* Šta je novo: objave, poruke, izveštaji i upozorenja u jednom toku */}
+      <WhatsNew project={project} releases={releases} reports={myReports} unreadCount={unreadCount} />
+
+      {/* Dokumenta deljena sa klijentom */}
+      <ProjectDocuments />
 
       {/* Detalji: taskovi (sklopivo, default sklopljeno — "story, ne dashboard") */}
       <Card style={{ padding: '20px 24px' }}>

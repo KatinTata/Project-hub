@@ -129,6 +129,7 @@ export const api = {
   renameDocumentSection: (id, name) => request('PUT', `/documents/sections/${id}`, { name }),
   deleteDocumentSection: (id) => request('DELETE', `/documents/sections/${id}`),
   getDocuments: () => request('GET', '/documents'),
+  downloadDocument: (id, filename) => downloadReport(`/documents/${id}/download`, filename || 'dokument'),
   deleteDocument: (id) => request('DELETE', `/documents/${id}`),
 
   // Stack team size (capacity planning)

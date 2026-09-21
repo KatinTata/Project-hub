@@ -3,6 +3,7 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import Badge from '../ui/Badge.jsx'
 import ProgressBar from '../ui/ProgressBar.jsx'
 import { fmtHours, getStatusCategory } from '../utils.js'
+import { clientStatusLabel } from '../utils/portal.js'
 import { api } from '../api.js'
 import { toast } from '../ui/Toast.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
@@ -211,8 +212,8 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         </div>
 
         {/* Status — minWidth 0 + hidden overflow so long statuses truncate instead of overlapping Napredak */}
-        <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={task.status}>
-          <Badge color={statusColor(task.status)}>{task.status}</Badge>
+        <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={showAsClient ? clientStatusLabel(task.status, t) : task.status}>
+          <Badge color={statusColor(task.status)}>{showAsClient ? clientStatusLabel(task.status, t) : task.status}</Badge>
         </div>
 
         {/* Progress — tablet + desktop */}
@@ -300,7 +301,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
             }}>
               <span style={{ flexShrink: 0 }}><TaskKey taskKey={sub.key} jiraUrl={jiraUrl} over={false} isClient={isClient} /></span>
               <span style={{ fontSize: 12, color: 'var(--textMuted)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.summary}</span>
-              <Badge color={statusColor(sub.status)}>{sub.status}</Badge>
+              <Badge color={statusColor(sub.status)}>{showAsClient ? clientStatusLabel(sub.status, t) : sub.status}</Badge>
             </div>
           ))}
         </div>
@@ -323,7 +324,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
             {sub.components?.length > 0 && <Badge color="gray">{sub.components[0]}</Badge>}
             <span>{sub.summary}</span>
           </div>
-          <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={sub.status}><Badge color={statusColor(sub.status)}>{sub.status}</Badge></div>
+          <div style={{ minWidth: 0, overflow: 'hidden', paddingRight: 8 }} title={showAsClient ? clientStatusLabel(sub.status, t) : sub.status}><Badge color={statusColor(sub.status)}>{showAsClient ? clientStatusLabel(sub.status, t) : sub.status}</Badge></div>
           <div />
           {!isClient && !isTablet && (
             <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
@@ -394,13 +395,17 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
     billable: tasks.filter(task => task.billable === true).length,
   }
 
+  // Klijent u čipovima vidi iste četiri reči kao u koloni statusa; interni tim
+  // zadržava Jira rečnik ("Grooming", "In Progress") na koji je navikao.
+  const pill = (clientKey, internalKey) => t(isClient ? clientKey : internalKey)
+
   const filterPills = [
     { key: 'all',     label: t('table.filter.all'),     count: counts.all,     title: t('table.title.allTasks') },
-    { key: 'done',    label: t('table.filter.done'),    count: counts.done,    title: t('table.title.done') },
-    { key: 'testing', label: t('table.filter.testing'), count: counts.testing, title: t('table.title.testing') },
-    { key: 'inprog',  label: t('table.filter.inprog'),  count: counts.inprog,  title: t('table.title.inprog') },
-    { key: 'todo',    label: t('table.filter.todo'),    count: counts.todo,    title: t('table.title.todo') },
-    ...(counts.unknown > 0 ? [{ key: 'unknown', label: t('table.filter.unknown'), count: counts.unknown, title: t('table.title.unknown') }] : []),
+    { key: 'done',    label: pill('portal.chart.done', 'table.filter.done'),       count: counts.done,    title: t('table.title.done') },
+    { key: 'testing', label: pill('portal.chart.testing', 'table.filter.testing'), count: counts.testing, title: t('table.title.testing') },
+    { key: 'inprog',  label: pill('portal.chart.inprog', 'table.filter.inprog'),   count: counts.inprog,  title: t('table.title.inprog') },
+    { key: 'todo',    label: pill('portal.chart.todo', 'table.filter.todo'),       count: counts.todo,    title: t('table.title.todo') },
+    ...(counts.unknown > 0 ? [{ key: 'unknown', label: pill('portal.chart.todo', 'table.filter.unknown'), count: counts.unknown, title: t('table.title.unknown') }] : []),
     ...(!isClient ? [{ key: 'over',     label: t('table.filter.over'),  count: counts.over,     title: t('table.tooltip.message') }] : []),
     ...(!isClient ? [{ key: 'noest',    label: t('table.filter.noest'), count: counts.noest,    title: t('table.title.noest') }] : []),
     ...(!isClient && hasBillableField ? [{ key: 'billable', label: '€ Billable', count: counts.billable, title: 'Taskovi sa billable = Yes u Jiri' }] : []),
