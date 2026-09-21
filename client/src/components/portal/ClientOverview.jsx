@@ -12,20 +12,38 @@ import { StatusDonut, ProgressTrend, PhaseBars } from './ClientCharts.jsx'
 import PhaseTimeline from './PhaseTimeline.jsx'
 import Velocity from './Velocity.jsx'
 import WhatsNew from './WhatsNew.jsx'
-import ProjectDocuments from './ProjectDocuments.jsx'
 
-// P3-1/P3-4: klijentski pregled projekta — "story", ne dashboard. Redosled
-// prati pitanja koja klijent zaista postavlja: gde smo (status + plan po
-// fazama), kojim tempom se radi, šta se promenilo od prošlog puta, gde su
-// dokumenta. Interne brojeve server ne šalje roli `user` (client-safe DTO u
-// jira.js) — ovde se ne računa ništa iz sati.
+// P3-1/P3-4: klijentski pregled projekta. Redosled prati pitanja koja klijent
+// zaista postavlja: gde smo (stanje svih zadataka po statusu + plan po fazama),
+// kojim tempom se radi, šta se promenilo od prošlog puta. Dokumenta imaju svoju
+// stranicu u meniju i ne ponavljaju se ovde (odluka 21.09.2026.).
+// Interne brojeve server ne šalje roli `user` (client-safe DTO u jira.js) —
+// ovde se ne računa ništa iz sati.
 
 const font = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
+
+// Boje statusa su iste kao u donutu i u tabeli zadataka — jedan vizuelni jezik.
+const STATUS_COLORS = {
+  done: 'var(--green)',
+  testing: 'var(--amber)',
+  inprog: 'var(--accent)',
+  todo: 'var(--textSubtle)',
+}
 
 function StatusSentence({ project, data, phases, t }) {
   const total = data?.total || 0
   const done = data?.done || 0
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
+
+  // Traka pokazuje SVE zadatke podeljene po statusu, ne samo procenat završenih:
+  // klijent odmah vidi koliko je isporučeno, koliko je na testiranju, u radu i
+  // koliko tek predstoji — sa tačnim brojevima ispod trake.
+  const segments = [
+    { id: 'done', label: t('portal.chart.done'), value: done, color: STATUS_COLORS.done },
+    { id: 'testing', label: t('portal.chart.testing'), value: data?.testing || 0, color: STATUS_COLORS.testing },
+    { id: 'inprog', label: t('portal.chart.inprog'), value: data?.inprog || 0, color: STATUS_COLORS.inprog },
+    { id: 'todo', label: t('portal.chart.todo'), value: (data?.todo || 0) + (data?.unknown || 0), color: STATUS_COLORS.todo },
+  ]
 
   // "Kasni" ako postoji faza sa prošlim rokom koja nije završena — izvedeno
   // iz faza (boja + rečenica), bez internih estimacija.
@@ -59,13 +77,28 @@ function StatusSentence({ project, data, phases, t }) {
       <p style={{ fontFamily: font, fontSize: 15, color: 'var(--textMuted)', margin: '0 0 14px', lineHeight: 1.6 }}>
         {sentence}
       </p>
-      {/* Progress bar */}
-      <div style={{ height: 10, borderRadius: 6, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: color, transition: 'width 0.4s ease' }} />
+      {/* Traka svih zadataka po statusu */}
+      <div style={{ display: 'flex', height: 16, borderRadius: 8, background: 'var(--surfaceAlt)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+        {total > 0 && segments.filter(seg => seg.value > 0).map(seg => (
+          <div
+            key={seg.id}
+            title={`${seg.label}: ${seg.value}`}
+            style={{ width: `${(seg.value / total) * 100}%`, background: seg.color, transition: 'width 0.4s ease' }}
+          />
+        ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontFamily: font, fontSize: 12, color: 'var(--textSubtle)' }}>
-        <span>{t('portal.progress', { done, total })}</span>
-        <span>{pct}%</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          {segments.filter(seg => seg.value > 0).map(seg => (
+            <span key={seg.id} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, fontFamily: font, fontSize: 12, color: 'var(--textMuted)' }}>
+              <span style={{ width: 9, height: 9, borderRadius: 3, background: seg.color, alignSelf: 'center' }} />
+              <span>{seg.label}</span>
+              <strong style={{ fontFamily: 'Hanken Grotesk', fontSize: 13, color: 'var(--text)' }}>{seg.value}</strong>
+              <span style={{ color: 'var(--textSubtle)' }}>· {Math.round((seg.value / total) * 100)}%</span>
+            </span>
+          ))}
+        </div>
+        <span style={{ fontFamily: font, fontSize: 12, color: 'var(--textSubtle)' }}>{t('portal.progress', { done, total })}</span>
       </div>
     </div>
   )
@@ -96,8 +129,9 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
   const t = useT()
   const navigate = useNavigate()
   const [introDismissed, setIntroDismissed] = useState(() => localStorage.getItem('jt_portal_intro') === '1')
-  // Taskovi su default SKLOPLJENI ("story, ne dashboard") — zaseban ključ
-  const [tasksOpen, setTasksOpen] = useState(() => localStorage.getItem('jt_portal_tasks_open') === '1')
+  // Zadaci su default OTVORENI — spisak sa stanjem svakog zadatka je ono zbog
+  // čega klijent i otvara projekat; izbor se pamti (odluka 21.09.2026.).
+  const [tasksOpen, setTasksOpen] = useState(() => localStorage.getItem('jt_portal_tasks_open') !== '0')
   function toggleTasks() {
     setTasksOpen(o => {
       try { localStorage.setItem('jt_portal_tasks_open', o ? '0' : '1') } catch { /* best-effort */ }
@@ -185,9 +219,6 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
 
       {/* Šta je novo: objave, poruke, izveštaji i upozorenja u jednom toku */}
       <WhatsNew project={project} releases={releases} reports={myReports} unreadCount={unreadCount} />
-
-      {/* Dokumenta deljena sa klijentom */}
-      <ProjectDocuments />
 
       {/* Detalji: taskovi (sklopivo, default sklopljeno — "story, ne dashboard") */}
       <Card style={{ padding: '20px 24px' }}>

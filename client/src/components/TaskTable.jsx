@@ -98,6 +98,30 @@ function ClientTextLine({ ct, isClient, preview, onEdit }) {
   )
 }
 
+// Klijent ne dobija sate sa servera (client-safe DTO), pa kolona „Napredak" kod
+// njega ne može da prikaže procenat utrošenog vremena — umesto praznog polja
+// prikazuje se putanja statusa u četiri koraka, obojena po fazi u kojoj je
+// zadatak: predstoji → u radu → na testiranju → završeno.
+const STAGE_BY_CATEGORY = { todo: 1, unknown: 1, inprog: 2, testing: 3, done: 4 }
+const STAGE_COLORS = { 1: 'var(--textSubtle)', 2: 'var(--accent)', 3: 'var(--amber)', 4: 'var(--green)' }
+
+function StatusSteps({ statusCategory, label }) {
+  const stage = STAGE_BY_CATEGORY[statusCategory] || 1
+  const color = STAGE_COLORS[stage]
+  return (
+    <div title={label} style={{ display: 'flex', gap: 3, alignItems: 'center', paddingRight: 8 }}>
+      {[1, 2, 3, 4].map(i => (
+        <span key={i} style={{
+          flex: 1, height: 7, borderRadius: 4,
+          background: i <= stage ? color : 'var(--surfaceAlt)',
+          border: `1px solid ${i <= stage ? color : 'var(--border)'}`,
+          transition: 'background 0.2s ease',
+        }} />
+      ))}
+    </div>
+  )
+}
+
 function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpenQuickMsg, jiraUrl, clientTexts, onEditClientText, clientPreview }) {
   const t = useT()
   const clientText = clientTexts?.[task.key]
@@ -221,8 +245,11 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           <Badge color={statusColor(task.status)}>{showAsClient ? clientStatusLabel(task.status, t) : task.status}</Badge>
         </div>
 
-        {/* Progress — tablet + desktop */}
-        {!isMobile && (
+        {/* Napredak — klijentu putanja statusa, internom timu utrošeno/procena */}
+        {!isMobile && isClient && (
+          <StatusSteps statusCategory={task.statusCategory} label={clientStatusLabel(task.status, t)} />
+        )}
+        {!isMobile && !isClient && (
           <div style={{ paddingRight: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11, color: 'var(--textMuted)' }}>
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}>{task.est > 0 ? `${Math.round(pct * 100)}%` : '–'}</span>

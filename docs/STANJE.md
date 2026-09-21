@@ -13,6 +13,18 @@ Osnova radi: praćenje Jira projekata, više korisnika sa rolama
 faze i prognoza, AI Usage modul. 38 tabela, 203 testa (svi prolaze).
 
 ## Šta je zadnje rađeno (21.09.2026.)
+Klijentski pregled projekta (`components/portal/ClientOverview.jsx`):
+- **sekcija dokumenata uklonjena** sa stranice projekta (`ProjectDocuments.jsx` obrisan) —
+  prikazivala je sva dokumenta deljena sa klijentom, ne dokumenta tog projekta, a
+  Dokumenta već imaju svoju stranicu u meniju
+- **traka napretka pokazuje sve zadatke po statusu** umesto jedne boje: završeno (zeleno),
+  na testiranju (narandžasto), u radu (plavo), predstoji (sivo), sa tačnim brojem i
+  procentom po kategoriji ispod trake
+- **kolona „Napredak" u tabeli zadataka** klijentu više nije prazna: pošto server roli
+  `user` ne šalje sate, prikazuje se putanja statusa u četiri koraka, obojena po fazi
+  (predstoji → u radu → na testiranju → završeno)
+- **spisak zadataka je otvoren po defaultu** (ranije sklopljen); izbor se i dalje pamti
+
 Tabela zadataka u klijentskom prikazu (`components/TaskTable.jsx`):
 - **klijent više ne vidi subtaskove** — subtask redovi se renderuju samo internom timu
   (isto važi i za admina u režimu „pregled kao klijent")
