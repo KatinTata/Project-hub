@@ -102,6 +102,11 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
   const t = useT()
   const clientText = clientTexts?.[task.key]
   const showAsClient = isClient || clientPreview
+  // Klijent ne vidi subtaskove: klik na red otvara pun klijentski opis zadatka
+  // (u redu je skraćen na jednu liniju), a subtaskovi ostaju internom timu.
+  const clientTitle = (showAsClient && clientText?.title) ? clientText.title : task.summary
+  const clientDesc = showAsClient ? (clientText?.one_liner || '') : ''
+  const canExpand = showAsClient || task.subtasks?.length > 0 || isMobile
   const [hovered, setHovered] = useState(false)
   const pct = task.est > 0 ? Math.min(task.spent / task.est, 2) : 0
   const barColor = (!isClient && task.over) ? 'var(--red)' : 'var(--accent)'
@@ -122,7 +127,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
           alignItems: 'center',
           padding: isMobile ? '10px 12px' : '12px 16px',
           borderBottom: '1px solid var(--border)',
-          cursor: task.subtasks?.length || isMobile ? 'pointer' : 'default',
+          cursor: canExpand ? 'pointer' : 'default',
           background: (!isClient && task.over) ? 'var(--redTint)' : hovered ? 'var(--surfaceAlt)' : 'transparent',
           transition: 'background 0.15s',
           minHeight: 44,
@@ -187,7 +192,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         {/* Summary — u pregledu kao klijent klik na naslov/opis otvara izmenu */}
         <div
           onClick={clientPreview && onEditClientText ? e => { e.stopPropagation(); onEditClientText(task.key, task.summary) } : undefined}
-          title={clientPreview && onEditClientText ? t('table.ct.clickToEdit') : undefined}
+          title={clientPreview && onEditClientText ? t('table.ct.clickToEdit') : (showAsClient ? t('table.detail.hint') : undefined)}
           style={{ overflow: 'hidden', paddingRight: clientPreview ? 90 : 8, cursor: clientPreview && onEditClientText ? 'pointer' : undefined }}>
           <div style={{
             fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -197,7 +202,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
           }}>
-            {(task.subtasks?.length > 0 || isMobile) && (
+            {canExpand && (
               <span style={{ marginRight: 6, opacity: 0.4, fontSize: 10 }}>{expanded ? '▼' : '▶'}</span>
             )}
             {task.isOrphanSubtask && (
@@ -206,7 +211,7 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
                 subtask
               </span>
             )}
-            {showAsClient && clientText?.title ? clientText.title : task.summary}
+            {clientTitle}
           </div>
           <ClientTextLine ct={clientText} isClient={isClient} preview={clientPreview} onEdit={onEditClientText ? () => onEditClientText(task.key, task.summary) : undefined} />
         </div>
@@ -245,8 +250,40 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         )}
       </div>
 
+      {/* Klijentski prikaz: pun opis zadatka umesto liste subtaskova */}
+      {showAsClient && expanded && (
+        <div style={{
+          padding: isMobile ? '10px 12px 14px' : '12px 16px 16px 48px',
+          background: 'var(--surfaceAlt)',
+          borderBottom: '1px solid var(--border)',
+        }}>
+          <div style={{
+            fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.06em',
+            textTransform: 'uppercase', color: 'var(--textMuted)', marginBottom: 6,
+          }}>
+            {t('table.detail.heading')}
+          </div>
+          <div style={{
+            fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+            fontSize: isMobile ? 13 : 14, fontWeight: 600, color: 'var(--text)',
+            marginBottom: 6, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+          }}>
+            {clientTitle}
+          </div>
+          <div style={{
+            fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+            fontSize: 13, lineHeight: 1.6, maxWidth: 760,
+            color: clientDesc ? 'var(--text)' : 'var(--textMuted)',
+            fontStyle: clientDesc ? 'normal' : 'italic',
+            whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+          }}>
+            {clientDesc || t('table.detail.empty')}
+          </div>
+        </div>
+      )}
+
       {/* Mobile expand: show detail info + subtasks */}
-      {isMobile && expanded && (
+      {!showAsClient && isMobile && expanded && (
         <div style={{
           padding: '8px 12px 12px',
           background: 'var(--surfaceAlt)',
@@ -307,8 +344,8 @@ function TaskRow({ task, expanded, onToggle, isMobile, isTablet, isClient, onOpe
         </div>
       )}
 
-      {/* Desktop/tablet subtasks */}
-      {!isMobile && expanded && task.subtasks?.map(sub => (
+      {/* Desktop/tablet subtasks — interni tim; klijent umesto njih dobija opis */}
+      {!showAsClient && !isMobile && expanded && task.subtasks?.map(sub => (
         <div key={sub.key} style={{
           display: 'grid',
           gridTemplateColumns: isClient

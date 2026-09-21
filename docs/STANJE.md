@@ -1,6 +1,6 @@
 # Stanje — Project Insight Hub
 
-_Poslednje ažuriranje: 14.09.2026._
+_Poslednje ažuriranje: 21.09.2026._
 
 ## Gde smo
 Aplikacija je na produkciji: **project-hub.intelisale.com** (Railway, Nixpacks,
@@ -12,7 +12,24 @@ Osnova radi: praćenje Jira projekata, više korisnika sa rolama
 (`super_admin` / `admin` / `user`), release notes editor, dokumenti, poruke,
 faze i prognoza, AI Usage modul. 38 tabela, 203 testa (svi prolaze).
 
-## Šta je zadnje rađeno (14.09.2026.)
+## Šta je zadnje rađeno (21.09.2026.)
+Tabela zadataka u klijentskom prikazu (`components/TaskTable.jsx`):
+- **klijent više ne vidi subtaskove** — subtask redovi se renderuju samo internom timu
+  (isto važi i za admina u režimu „pregled kao klijent")
+- **klik na red otvara pun opis zadatka** — ispod reda se otvara panel sa punim
+  klijentskim naslovom i celim opisom (prelama se u više redova); u samom redu opis
+  ostaje skraćen na jednu liniju da tabela ostane pregledna
+- zadatak bez pripremljenog klijentskog teksta u panelu dobija poruku
+  „Opis za ovaj zadatak još nije pripremljen." umesto praznine
+- tri nova stringa u `translations.js` (`table.detail.*`, sr + en)
+- lint 0 grešaka, 203 testa prolaze, build prolazi; provereno u browseru
+  (klijentski i interni prikaz, dug i kratak opis, zadatak bez opisa)
+
+Napomena: „pun opis" je postojeći AI-generisani klijentski tekst (jedna rečenica iz
+`task_client_texts`), sada bez skraćivanja. Duži opis od 2–4 rečenice bi tražio novu
+kolonu u bazi i novi AI prolaz — nije rađeno.
+
+## Šta je rađeno pre toga (14.09.2026.)
 Obogaćen klijentski pregled projekta (Faza A iz `docs/SPEC-klijentski-portal.md`):
 - **vremenska osa faza** (`components/portal/PhaseTimeline.jsx`) — trake od početka do roka,
   marker „danas", stanje faze (završena / kasni / u toku / predstoji); kad faze nemaju
@@ -55,7 +72,8 @@ taskova, pregled kao klijent), AI Usage po servisu i cena po zahtevu za MCP alat
 - `docs/` i `.claude/` nisu u git-u
 
 ## Sledeći korak
-1. Pregled Faze A na dev/produkciji sa stvarnim klijentskim nalogom, pa commit
+1. Pregled Faze A + izmena tabele zadataka (21.09.) na dev/produkciji sa stvarnim
+   klijentskim nalogom, pa commit
 2. Faza B iz `docs/SPEC-klijentski-portal.md`: proširiti `TASK_FIELDS` (`updated`,
    `created`, `resolutiondate`, `priority`, `labels`, `fixVersions`, `duedate` — `duedate`
    se povlači ali se ne prikazuje), client-safe istorija promena, izveštaj na zahtev za

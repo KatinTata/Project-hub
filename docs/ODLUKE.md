@@ -22,3 +22,4 @@ nije poznat. Nove odluke od danas nose stvaran datum.
 | 08.09.2026. | Samo svetla tema; izbor teme se uklanja iz UI-ja | tamna tema nije potrebna, jedan vizuelni jezik za klijentski portal |
 | 14.09.2026. | Klijentu se prikazuje tempo rada (završene stavke po nedelji), ali NE i projektovan datum završetka | projekcija iz tempa obavezuje na datum koji se u praksi ne drži |
 | 14.09.2026. | Jira `duedate` po zadatku se povlači sa servera, ali se klijentu ne prikazuje | polje nije pouzdano održavano; vremenski prikazi idu na `updated` i `resolutiondate` |
+| 21.09.2026. | Klijent u tabeli zadataka NE vidi subtaskove; klik na red otvara pun klijentski opis zadatka | subtaskovi su interna razrada posla i klijentu ne znače ništa, a opis je u redu skraćen na jednu liniju pa se dug tekst nije video |
