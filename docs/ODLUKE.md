@@ -31,3 +31,5 @@ nije poznat. Nove odluke od danas nose stvaran datum.
 | 22.09.2026. | Klijentu keširani podaci projekta stare posle 5 minuta (internom timu i dalje nikad, ima dugme za osvežavanje) | klijent nema dugme za osvežavanje ni auto-refresh, pa mu je keš ostajao zamrznut i posle F5 |
 | 22.09.2026. | Klijent ima dugme „Osveži" na projektu (uz vreme poslednjeg osvežavanja) | automatsko osvežavanje na 5 minuta rešava zastarelost, ali klijent treba i sam da može da povuče sveže stanje |
 | 22.09.2026. | Klijentski rečnik statusa je četvorodelan: za rad — u radu — na testiranju — završeno (neprepoznat Jira status ide u „za rad") | „Predstoji" / „Upcoming" je sugerisalo budući posao, a reč je o backlogu; peti čip „Nepoznat" klijentu ne znači ništa |
+| 22.09.2026. | Dnevni snimak projekta broji PODIGNUTE statuse (kao klijent), a ne sirove Jira statuse | grafikon napretka kroz vreme je inače pokazivao druge brojeve od liste zadataka iznad njega; „završeno" podizanje ne menja, pa procenti i upozorenja ostaju isti |
+| 22.09.2026. | Sekcija „Šta je novo" uklonjena iz klijentskog pregleda projekta | za sada nije potrebna; objave, poruke i izveštaji imaju svoja mesta u meniju |

@@ -41,6 +41,13 @@ Popravke posle provere na produkciji (klijentski nalog):
   Label „Predstoji" / „Upcoming" preimenovan u „Za rad" / „To Do" (zadatak u backlogu
   nije „budući", nego „za rad"), a zadatak sa neprepoznatim Jira statusom (`unknown`)
   se kod klijenta broji u „za rad" umesto da dobije svoj čip sa istim imenom.
+- **dnevni snimak prati podignute statuse** (`server/snapshots.js` — `rollupSubtaskStatus: true`;
+  isto i za snimak koji okine admin iz browsera, `queries.js` + novi `countByStatus`).
+  Grafikon „Napredak kroz vreme" se sada slaže sa listom zadataka. „Završeno" podizanje ne
+  menja, pa procenat završenosti i upozorenja ostaju isti; **stari dani u istoriji ostaju
+  kako su upisani**, promena važi od prvog narednog snimka.
+- **sekcija „Šta je novo" uklonjena** iz klijentskog pregleda (`WhatsNew.jsx` obrisan, sa njom
+  i upiti za objave i izveštaje koje je samo ona koristila, i 32 stringa).
 
 Sve gore opisano (Faza A, izmene tabele zadataka, podizanje statusa po subtaskovima)
 commit-ovano je i push-ovano na `main` (`086292c`) — do tada je stajalo samo lokalno,
