@@ -10,15 +10,33 @@ import { isClientRole } from './utils/roles.js'
 
 // Pages are code-split: each loads its own chunk on first navigation, so the
 // login/initial load no longer ships the whole app (pdfjs, tiptap, dnd-kit).
-const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'))
-const ReleaseNotesPage = lazy(() => import('./pages/ReleaseNotesPage.jsx'))
-const ReleaseNotesEditorPage = lazy(() => import('./pages/releaseNotesEditor/ReleaseNotesEditorPage.jsx'))
-const DocumentsPage = lazy(() => import('./pages/DocumentsPage.jsx'))
-const MessagesPage = lazy(() => import('./pages/MessagesPage.jsx'))
+//
+// Posle deploy-a fajlovi chunk-ova dobijaju nova imena, a otvorena kartica u
+// browseru i dalje traži stara — prva navigacija na stranicu tada pukne, a posle
+// ručnog reload-a radi. Zato se neuspeo uvoz chunk-a jednom pretvori u reload
+// (marker u sessionStorage sprečava petlju ako je uzrok nešto drugo).
+const RELOAD_KEY = 'jt_chunk_reload_at'
+function lazyPage(load) {
+  return lazy(() => load().catch(err => {
+    const last = Number(sessionStorage.getItem(RELOAD_KEY) || 0)
+    if (Date.now() - last > 10_000) {
+      sessionStorage.setItem(RELOAD_KEY, String(Date.now()))
+      window.location.reload()
+      return new Promise(() => {}) // stranica se ionako učitava ispočetka
+    }
+    throw err
+  }))
+}
+
+const DashboardPage = lazyPage(() => import('./pages/DashboardPage.jsx'))
+const ReleaseNotesPage = lazyPage(() => import('./pages/ReleaseNotesPage.jsx'))
+const ReleaseNotesEditorPage = lazyPage(() => import('./pages/releaseNotesEditor/ReleaseNotesEditorPage.jsx'))
+const DocumentsPage = lazyPage(() => import('./pages/DocumentsPage.jsx'))
+const MessagesPage = lazyPage(() => import('./pages/MessagesPage.jsx'))
 // QAPage (Pitanja i odgovori) privremeno uklonjena iz navigacije i ruta (04.09.2026) — fajl ostaje.
-const AiUsagePage = lazy(() => import('./pages/aiUsage/AiUsagePage.jsx'))
-const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'))
-const UsersPage = lazy(() => import('./pages/UsersPage.jsx'))
+const AiUsagePage = lazyPage(() => import('./pages/aiUsage/AiUsagePage.jsx'))
+const SettingsPage = lazyPage(() => import('./pages/SettingsPage.jsx'))
+const UsersPage = lazyPage(() => import('./pages/UsersPage.jsx'))
 
 // A3: navigacija ide kroz react-router — rute su jedini izvor istine za
 // aktivnu stranicu; deep-link parametri: /projects/:projectId/:tab,
