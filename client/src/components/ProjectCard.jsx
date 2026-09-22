@@ -7,7 +7,7 @@ import DonutChart from './DonutChart.jsx'
 import BarChart from './BarChart.jsx'
 import TaskTable from './TaskTable.jsx'
 import Badge from '../ui/Badge.jsx'
-import { fmtHours, buildAssigneeData, buildComponentData, buildModuleData, billableSecondsOf, taskAttribution } from '../utils.js'
+import { fmtHours, buildAssigneeData, buildComponentData, buildModuleData, billableSecondsOf, taskAttribution, applyStatusRollup } from '../utils.js'
 import AssigneeWorkload from './AssigneeWorkload.jsx'
 import ComponentBreakdown from './ComponentBreakdown.jsx'
 import OverrunHeatmap from './OverrunHeatmap.jsx'
@@ -389,6 +389,15 @@ export default function ProjectCard({
     const { moduleData, noModuleTasks } = !isClient ? buildModuleData(tasks) : { moduleData: [], noModuleTasks: [] }
     return { chartTasksByPhase, assigneeData, componentData, moduleData, noModuleTasks }
   }, [data, chartPhases, isClient])
+
+  // Pregled kao klijent: tabela mora da pokaže isto što i klijent, uključujući
+  // status glavnog zadatka podignut po subtaskovima. Interni podaci se ne diraju —
+  // podizanje se radi samo nad kopijom liste zadataka za tabelu.
+  const previewAsClient = !isClient && !!(data?.clientLang ?? project.clientLang) && clientPreview
+  const previewTasks = useMemo(
+    () => (previewAsClient ? applyStatusRollup(data?.tasks) : null),
+    [previewAsClient, data],
+  )
 
   // Klijentski tekstovi nastaju u pozadini (posle uključivanja jezika ili
   // regeneracije). Dok ima taskova bez teksta, anketiraj laki status endpoint i
@@ -901,8 +910,8 @@ export default function ProjectCard({
         </div>
 
         {activeTab === 'tasks' && (
-          <TaskTable tasks={tasks} overTasks={overTasks} isClient={isClient} projectId={project.id} onOpenMessages={onOpenMessages} jiraUrl={jiraUrl} hasBillableField={!!data.hasBillableField}
-            clientTexts={data.clientTexts} clientPreview={!isClient && !!(data.clientLang ?? project.clientLang) && clientPreview} />
+          <TaskTable tasks={previewAsClient ? previewTasks : tasks} overTasks={overTasks} isClient={isClient} projectId={project.id} onOpenMessages={onOpenMessages} jiraUrl={jiraUrl} hasBillableField={!!data.hasBillableField}
+            clientTexts={data.clientTexts} clientPreview={previewAsClient} />
         )}
         {activeTab === 'phases' && (
           <PhaseBuilder projectId={project.id} tasks={tasks} isClient={isClient} jiraUrl={jiraUrl} />

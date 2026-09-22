@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  getStatusCategory, processEpicData, rollupStatusFromSubtasks, taskAttribution, buildAssigneeData,
+  getStatusCategory, processEpicData, rollupStatusFromSubtasks, applyStatusRollup, taskAttribution, buildAssigneeData,
   buildComponentData, buildModuleData, billableSecondsOf, fmtHours,
 } from '../client/src/utils.js'
 
@@ -94,6 +94,29 @@ describe('podizanje statusa po subtaskovima (klijentski prikaz)', () => {
     const r = processEpicData([p], [sub('A-2', { status: 'In Progress' })])
     expect(catOf(r)).toBe('todo')
     expect(nameOf(r)).toBe('To Do')
+  })
+
+  it('applyStatusRollup podiže status na već obrađenim zadacima (pregled kao klijent)', () => {
+    const tasks = [
+      {
+        key: 'PP-2451', status: 'To Do', statusCategory: 'todo',
+        subtasks: [{ key: 'PP-2589', status: 'In Progress', statusCategory: 'inprog' }],
+      },
+      {
+        key: 'PP-2460', status: 'To Do', statusCategory: 'todo',
+        subtasks: [{ key: 'PP-2600', status: 'Resolved', statusCategory: 'done' }],
+      },
+      { key: 'PP-2470', status: 'Resolved', statusCategory: 'done', subtasks: [] },
+    ]
+    const out = applyStatusRollup(tasks)
+    expect(out[0].statusCategory).toBe('inprog')
+    expect(out[0].status).toBe('In Progress')
+    // zatvoren subtask ne zatvara glavni zadatak
+    expect(out[1].statusCategory).toBe('todo')
+    // zadatak bez promene zadržava isti objekat (memo-friendly)
+    expect(out[2]).toBe(tasks[2])
+    // ulazna lista se ne menja
+    expect(tasks[0].statusCategory).toBe('todo')
   })
 
   it('rollupStatusFromSubtasks bira najdalji status među subtaskovima', () => {

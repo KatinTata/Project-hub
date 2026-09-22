@@ -37,6 +37,18 @@ export function rollupStatusFromSubtasks(statusName, statusCat, subs) {
   return { statusName: best.statusName, statusCat: best.statusCat }
 }
 
+// Isto pravilo primenjeno naknadno, na već obrađene zadatke. Koristi se za
+// adminov „pregled kao klijent": podaci su već povučeni sa sirovim statusima
+// (interni prikaz), pa se za tabelu u pregledu status podiže ovde. Vraća nove
+// objekte samo za zadatke kojima se status stvarno menja.
+export function applyStatusRollup(tasks) {
+  return (tasks || []).map(task => {
+    const rolled = rollupStatusFromSubtasks(task.status, task.statusCategory, task.subtasks)
+    if (rolled.statusCat === task.statusCategory && rolled.statusName === task.status) return task
+    return { ...task, status: rolled.statusName, statusCategory: rolled.statusCat }
+  })
+}
+
 // `rollupSubtaskStatus` uključuje gornje pravilo — koristi se SAMO za klijentski
 // prikaz (queries.js prosleđuje isClient); interni tim i snapshot-i vide sirov
 // Jira status glavnog zadatka.
