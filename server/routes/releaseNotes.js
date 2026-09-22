@@ -13,6 +13,9 @@ import {
 } from 'docx'
 import Anthropic from '@anthropic-ai/sdk'
 import ExcelJS from 'exceljs'
+import multer from 'multer'
+import path from 'path'
+import { htmlFromImportedFile, wrapImportedHtml, IMPORT_EXTENSIONS } from '../releaseNotesImport.js'
 
 const router = Router()
 
@@ -805,6 +808,62 @@ router.delete('/sections/:id', (req, res) => {
 })
 
 // ── Route: Publish ────────────────────────────────────────────────────────────
+
+// ── Route: Import an existing release note from a file ───────────────────────
+// Stari release note-ovi (HTML / PDF / Excel) se uvoze kao NACRT: bez dodele
+// klijentima i bez obaveštenja, da bi admin prvo proverio kako je tekst ispao.
+// Objava i dodela klijentima idu postojećim dugmadima nad uvezenim zapisom.
+const importUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } })
+
+router.post('/import', importUpload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Fajl je obavezan' })
+    const ext = path.extname(req.file.originalname || '').toLowerCase()
+    if (!IMPORT_EXTENSIONS.includes(ext)) {
+      return res.status(400).json({ error: `Podržani formati: ${IMPORT_EXTENSIONS.join(', ')}` })
+    }
+
+    let raw
+    try {
+      raw = await htmlFromImportedFile(req.file.buffer, ext)
+    } catch (parseErr) {
+      req.log?.warn({ err: parseErr }, 'release note import: parsiranje palo')
+      return res.status(422).json({ error: 'Fajl nije moguće pročitati — proveri da nije oštećen ili zaštićen lozinkom' })
+    }
+
+    // HTML fajl koji je već ceo dokument (ima <html> ili <body>) ostaje kakav jeste;
+    // izvučeni tekst iz PDF-a/Excela dobija minimalnu omotnicu da javni link izgleda
+    // kao dokument, a ne kao goli tekst.
+    const isFullDocument = /<html[\s>]|<body[\s>]/i.test(raw)
+    const title = (req.body.title || '').trim() || (path.basename(req.file.originalname || 'release-note', ext).replace(/[-_]+/g, ' ').trim()) || 'Uvezen release note'
+    const version = (req.body.version || '').trim() || null
+    const html = sanitizePublishedHtml(isFullDocument ? raw : wrapImportedHtml(raw, { title, version }))
+    if (!html.replace(/<[^>]*>/g, '').trim()) {
+      return res.status(422).json({ error: 'Iz fajla nije izvučen nijedan tekst (skenirani PDF nema tekstualni sloj)' })
+    }
+
+    let projectId = null
+    if (req.body.projectId) {
+      const project = db.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?').get(req.body.projectId, req.userId)
+      if (!project) return res.status(404).json({ error: 'Projekat nije pronađen' })
+      projectId = project.id
+    }
+
+    const sectionId = req.body.sectionId
+      ? (db.prepare('SELECT id FROM release_note_sections WHERE id = ? AND user_id = ?').get(req.body.sectionId, req.userId)?.id || null)
+      : null
+
+    const token = randomBytes(16).toString('hex')
+    const result = db.prepare(
+      "INSERT INTO published_notes (token, project_id, user_id, title, version, html, section_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft')"
+    ).run(token, projectId, req.userId, title, version, html, sectionId)
+
+    logAudit(req.userId, 'releasenote.import', `note id=${result.lastInsertRowid}, fajl=${req.file.originalname}, projekat=${projectId || '-'}`, req)
+    res.json({ id: result.lastInsertRowid, token, title, version, status: 'draft' })
+  } catch (err) {
+    { req.log?.error({ err }); res.status(500).json({ error: 'Greška servera' }) }
+  }
+})
 
 router.post('/publish', (req, res) => {
   try {

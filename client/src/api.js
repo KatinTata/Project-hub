@@ -121,6 +121,18 @@ export const api = {
   getReleaseNoteClients: (id) => request('GET', `/release-notes/${id}/clients`),
   setReleaseNoteClients: (id, clientIds) => request('PUT', `/release-notes/${id}/clients`, { clientIds }),
   markReleaseNoteReleased: (id) => request('PUT', `/release-notes/${id}/release`),
+  // Uvoz starog release note-a iz fajla (HTML/PDF/Excel) — multipart, pa ne ide
+  // kroz `request` koji uvek šalje JSON.
+  importReleaseNote: async (formData) => {
+    const res = await fetch(`${BASE}/release-notes/import`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: formData,
+    })
+    const data = await res.json().catch(() => null)
+    if (!res.ok) throw new Error(data?.error || 'Uvoz nije uspeo')
+    return data
+  },
   deleteReleaseNote: (id) => request('DELETE', `/release-notes/${id}`),
 
   // Documents

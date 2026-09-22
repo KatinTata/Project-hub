@@ -17,6 +17,7 @@ export default function ReleaseNotesPage({ user }) {
   const [notesList, setNotesList] = useState([])
   const [notesListLoading, setNotesListLoading] = useState(false)
   const [assignModal, setAssignModal] = useState(null)
+  const [importOpen, setImportOpen] = useState(false)
   const [allClientUsers, setAllClientUsers] = useState([])
   const [noteDetail, setNoteDetailData] = useState(null)
   const [noteDetailLoading, setNoteDetailLoading] = useState(false)
@@ -97,18 +98,33 @@ export default function ReleaseNotesPage({ user }) {
               <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>
                 {isClient ? t('rn.availableVersions') : t('rn.publishedVersions')}
               </span>
-              <button
-                onClick={loadNotesList}
-                style={{
-                  padding: '6px 14px', borderRadius: 8, fontSize: 12, fontFamily: 'Hanken Grotesk',
-                  background: 'transparent', border: '1px solid var(--border)',
-                  color: 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--borderHover)'; e.currentTarget.style.color = 'var(--text)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
-              >
-                {t('rn.refresh')}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {!isClient && (
+                  <button
+                    onClick={() => setImportOpen(true)}
+                    title={t('rn.import.title')}
+                    style={{
+                      padding: '6px 14px', borderRadius: 8, fontSize: 12, fontFamily: 'Hanken Grotesk', fontWeight: 600,
+                      background: 'var(--accent)', border: '1px solid var(--accent)',
+                      color: '#fff', cursor: 'pointer', transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {t('rn.import.button')}
+                  </button>
+                )}
+                <button
+                  onClick={loadNotesList}
+                  style={{
+                    padding: '6px 14px', borderRadius: 8, fontSize: 12, fontFamily: 'Hanken Grotesk',
+                    background: 'transparent', border: '1px solid var(--border)',
+                    color: 'var(--textMuted)', cursor: 'pointer', transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--borderHover)'; e.currentTarget.style.color = 'var(--text)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}
+                >
+                  {t('rn.refresh')}
+                </button>
+              </div>
             </div>
 
             {notesListLoading ? (
@@ -139,6 +155,13 @@ export default function ReleaseNotesPage({ user }) {
           </>
         )}
       </div>
+
+      {importOpen && (
+        <ImportNoteModal
+          onClose={() => setImportOpen(false)}
+          onImported={() => { setImportOpen(false); loadNotesList() }}
+        />
+      )}
 
       {assignModal && (
         <AssignClientsModal
@@ -241,6 +264,9 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
   const t = useT()
   const [hovered, setHovered] = useState(false)
   const isReleased = note.status === 'released'
+  // Uvezeni release note-ovi ulaze kao nacrt: nisu dodeljeni nijednom klijentu
+  // dok ih admin ne proveri, pa moraju i vizuelno da se razlikuju od objavljenih.
+  const isDraft = note.status === 'draft'
   const version = note.version || extractVersion(note.title)
   const displayName = extractName(note.title, version)
   const createdDate = fmtDate(note.created_at)
@@ -264,11 +290,11 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{
           padding: '3px 9px', borderRadius: 6, fontSize: 10, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, letterSpacing: '0.04em',
-          background: isReleased ? 'var(--greenTint)' : 'rgba(79,142,247,0.1)',
-          color: isReleased ? 'var(--green)' : 'var(--accent)',
-          border: `1px solid ${isReleased ? 'rgba(34,197,94,0.35)' : 'rgba(79,142,247,0.3)'}`,
+          background: isDraft ? 'var(--surfaceAlt)' : isReleased ? 'var(--greenTint)' : 'rgba(79,142,247,0.1)',
+          color: isDraft ? 'var(--textMuted)' : isReleased ? 'var(--green)' : 'var(--accent)',
+          border: `1px solid ${isDraft ? 'var(--border)' : isReleased ? 'rgba(34,197,94,0.35)' : 'rgba(79,142,247,0.3)'}`,
         }}>
-          {isReleased ? t('rn.released') : t('rn.published')}
+          {isDraft ? t('rn.draft') : isReleased ? t('rn.released') : t('rn.published')}
         </span>
         {version && (
           <span style={{
@@ -336,6 +362,7 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
 function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, onDelete, onManageClients }) {
   const t = useT()
   const isReleased = (detail?.status || note.status) === 'released'
+  const isDraft = (detail?.status || note.status) === 'draft'
   const version = detail?.version || note.version || extractVersion(note.title)
   const displayName = extractName(note.title, version)
   const createdDate = fmtDate(note.created_at)
@@ -380,11 +407,11 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
           <span style={{
             flexShrink: 0, padding: '4px 12px', borderRadius: 6, fontSize: 11,
             fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, letterSpacing: '0.04em',
-            background: isReleased ? 'var(--greenTint)' : 'rgba(79,142,247,0.1)',
-            color: isReleased ? 'var(--green)' : 'var(--accent)',
-            border: `1px solid ${isReleased ? 'rgba(34,197,94,0.35)' : 'rgba(79,142,247,0.3)'}`,
+            background: isDraft ? 'var(--surfaceAlt)' : isReleased ? 'var(--greenTint)' : 'rgba(79,142,247,0.1)',
+            color: isDraft ? 'var(--textMuted)' : isReleased ? 'var(--green)' : 'var(--accent)',
+            border: `1px solid ${isDraft ? 'var(--border)' : isReleased ? 'rgba(34,197,94,0.35)' : 'rgba(79,142,247,0.3)'}`,
           }}>
-            {isReleased ? t('rn.released') : t('rn.published')}
+            {isDraft ? t('rn.draft') : isReleased ? t('rn.released') : t('rn.published')}
           </span>
         </div>
 
@@ -477,6 +504,105 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
 }
 
 // ── AssignClientsModal ────────────────────────────────────────────────────────
+
+// Uvoz starog release note-a iz fajla (HTML / PDF / Excel). Sadržaj se na
+// serveru pretvara u HTML i sanitizuje; zapis nastaje kao NACRT — bez klijenata
+// i bez obaveštenja — pa admin prvo proveri kako je tekst ispao.
+function ImportNoteModal({ onClose, onImported }) {
+  const t = useT()
+  const panelRef = useDialogBehavior(true, onClose)
+  const [file, setFile] = useState(null)
+  const [title, setTitle] = useState('')
+  const [version, setVersion] = useState('')
+  const [projectId, setProjectId] = useState('')
+  const [projects, setProjects] = useState([])
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    api.getProjects()
+      .then(list => setProjects(Array.isArray(list) ? list : (list?.projects || [])))
+      .catch(() => setProjects([]))
+  }, [])
+
+  function pickFile(f) {
+    setFile(f || null)
+    setError(null)
+    // Naslov se predlaže iz imena fajla; korisnik ga sme promeniti.
+    if (f && !title.trim()) setTitle(f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim())
+  }
+
+  async function submit() {
+    if (!file) { setError(t('rn.import.errNoFile')); return }
+    setBusy(true)
+    setError(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      if (title.trim()) fd.append('title', title.trim())
+      if (version.trim()) fd.append('version', version.trim())
+      if (projectId) fd.append('projectId', projectId)
+      await api.importReleaseNote(fd)
+      onImported()
+    } catch (err) {
+      setError(err.message)
+      setBusy(false)
+    }
+  }
+
+  const inputStyle = {
+    width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: '1px solid var(--border)',
+    borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontFamily: 'Hanken Grotesk', fontSize: 13,
+  }
+  const labelStyle = { display: 'block', fontFamily: 'Hanken Grotesk', fontSize: 11, color: 'var(--textMuted)', margin: '12px 0 4px' }
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div onClick={e => e.stopPropagation()} ref={panelRef} role="dialog" aria-modal="true" aria-label={t('rn.import.title')} tabIndex={-1}
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
+        <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{t('rn.import.title')}</span>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--textMuted)', fontSize: 22, cursor: 'pointer' }}>×</button>
+        </div>
+
+        <div style={{ padding: '4px 24px 18px' }}>
+          <p style={{ fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--textMuted)', lineHeight: 1.6, margin: '14px 0 0' }}>
+            {t('rn.import.hint')}
+          </p>
+
+          <label style={labelStyle}>{t('rn.import.file')}</label>
+          <input type="file" accept=".html,.htm,.pdf,.xlsx" onChange={e => pickFile(e.target.files?.[0])} style={{ ...inputStyle, padding: '7px 10px' }} />
+
+          <label style={labelStyle}>{t('rn.import.noteTitle')}</label>
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('rn.import.titlePlaceholder')} style={inputStyle} />
+
+          <label style={labelStyle}>{t('rn.import.version')}</label>
+          <input value={version} onChange={e => setVersion(e.target.value)} placeholder="3.4.1" style={inputStyle} />
+
+          <label style={labelStyle}>{t('rn.import.project')}</label>
+          <select value={projectId} onChange={e => setProjectId(e.target.value)} style={inputStyle}>
+            <option value="">{t('rn.import.noProject')}</option>
+            {projects.map(p => (
+              <option key={p.id} value={p.id}>{p.displayName || p.epicKey || `#${p.id}`}</option>
+            ))}
+          </select>
+
+          {error && (
+            <div style={{ marginTop: 14, fontFamily: 'Hanken Grotesk', fontSize: 12, color: 'var(--red)' }}>{error}</div>
+          )}
+        </div>
+
+        <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <button onClick={onClose} disabled={busy} style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: busy ? 'not-allowed' : 'pointer' }}>{t('rn.cancel')}</button>
+          <button onClick={submit} disabled={busy || !file}
+            style={{ padding: '8px 24px', borderRadius: 8, fontSize: 13, fontFamily: 'Hanken Grotesk', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: (busy || !file) ? 'not-allowed' : 'pointer', opacity: (busy || !file) ? 0.6 : 1 }}>
+            {busy ? t('rn.import.busy') : t('rn.import.submit')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function AssignClientsModal({ assignModal, allClientUsers, onClose, onSave }) {
   const t = useT()
