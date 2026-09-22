@@ -65,8 +65,8 @@ export default function MetricCards({ data, isClient }) {
       <div style={{ display: 'grid', gridTemplateColumns: clientCols, gap: isMobile ? 8 : 12 }}>
         <MetricCard isMobile={isMobile} label={t('metrics.total')} value={total} subtitle={t('metrics.total.sub')} />
         <MetricCard isMobile={isMobile} label={t('metrics.done')} value={`${done} (${donePct}%)`} subtitle={t('metrics.done.sub', { total })} valueColor="var(--green)" />
-        <MetricCard isMobile={isMobile} label={t('metrics.testing')} value={testing} subtitle={t('metrics.testing.sub')} valueColor="var(--amber)" />
-        <MetricCard isMobile={isMobile} label={t('metrics.inprog')} value={inprog} subtitle={t('metrics.inprog.sub')} valueColor="var(--accent)" />
+        <MetricCard isMobile={isMobile} label={t('metrics.testing')} value={testing} subtitle={t('metrics.testing.sub')} valueColor="var(--accent)" />
+        <MetricCard isMobile={isMobile} label={t('metrics.inprog')} value={inprog} subtitle={t('metrics.inprog.sub')} valueColor="var(--purple)" />
         <MetricCard isMobile={isMobile} label={t('metrics.todo')} value={todo} subtitle={t('metrics.todo.sub')} valueColor="var(--textMuted)" />
       </div>
     )
@@ -78,8 +78,8 @@ export default function MetricCards({ data, isClient }) {
     <div style={{ display: 'grid', gridTemplateColumns: cols, gap: isMobile ? 8 : 12 }}>
       <MetricCard isMobile={isMobile} label={t('metrics.total')} value={total} subtitle={t('metrics.total.sub')} />
       <MetricCard isMobile={isMobile} label={t('metrics.done')} value={`${done} (${donePct}%)`} subtitle={t('metrics.done.sub', { total })} valueColor="var(--green)" />
-      <MetricCard isMobile={isMobile} label={t('metrics.testing')} value={testing} subtitle={t('metrics.testing.sub')} valueColor="var(--amber)" />
-      <MetricCard isMobile={isMobile} label={t('metrics.inprog')} value={inprog} subtitle={t('metrics.inprog.sub')} valueColor="var(--accent)" />
+      <MetricCard isMobile={isMobile} label={t('metrics.testing')} value={testing} subtitle={t('metrics.testing.sub')} valueColor="var(--accent)" />
+      <MetricCard isMobile={isMobile} label={t('metrics.inprog')} value={inprog} subtitle={t('metrics.inprog.sub')} valueColor="var(--purple)" />
       <MetricCard isMobile={isMobile} label={t('metrics.todo')} value={todo} subtitle={t('metrics.todo.sub')} valueColor="var(--textMuted)" />
       <MetricCard isMobile={isMobile} label={t('metrics.est')} value={fmtHours(totalEst)} subtitle={t('metrics.est.sub')} valueColor="var(--accent)" />
       <MetricCard isMobile={isMobile} label={t('metrics.spent')} value={fmtHours(totalSpent)} subtitle={t('metrics.spent.sub')} valueColor="var(--accent)" />

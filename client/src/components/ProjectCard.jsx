@@ -472,8 +472,8 @@ export default function ProjectCard({
 
   const donutSegments = [
     { value: done,    color: 'var(--green)',      label: t('donut.label.done')   },
-    { value: testing, color: 'var(--amber)',      label: t('metrics.testing')    },
-    { value: inprog,  color: 'var(--accent)',     label: t('donut.label.inprog') },
+    { value: testing, color: 'var(--accent)',     label: t('metrics.testing')    },
+    { value: inprog,  color: 'var(--purple)',     label: t('donut.label.inprog') },
     { value: todo,    color: 'var(--textSubtle)', label: t('donut.label.todo')   },
     ...(unknown > 0 ? [{ value: unknown, color: 'var(--textMuted)', label: t('donut.label.unknown') }] : []),
   ]
@@ -572,11 +572,11 @@ export default function ProjectCard({
                 <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{t('donut.done')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--amber)' }}>{Math.round(testingPct * 100)}%</span>
+                <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--accent)' }}>{Math.round(testingPct * 100)}%</span>
                 <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{t('pc.pctTesting')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--accent)' }}>{Math.round(inprogPct * 100)}%</span>
+                <span style={{ fontFamily: 'Hanken Grotesk', fontWeight: 700, fontSize: 20, color: 'var(--purple)' }}>{Math.round(inprogPct * 100)}%</span>
                 <span style={{ fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>{t('pc.pctInprog')}</span>
               </div>
             </div>
@@ -584,16 +584,16 @@ export default function ProjectCard({
             {/* Multi-segment progress bar */}
             <div style={{ height: 10, background: 'var(--border)', borderRadius: 5, overflow: 'hidden', display: 'flex' }}>
               {donePct > 0 && <div style={{ width: `${donePct * 100}%`, background: 'var(--green)', transition: 'width 0.6s ease' }} />}
-              {testingPct > 0 && <div style={{ width: `${testingPct * 100}%`, background: 'var(--amber)', transition: 'width 0.6s ease' }} />}
-              {inprogPct > 0 && <div style={{ width: `${inprogPct * 100}%`, background: 'var(--accent)', opacity: 0.7, transition: 'width 0.6s ease' }} />}
+              {testingPct > 0 && <div style={{ width: `${testingPct * 100}%`, background: 'var(--accent)', transition: 'width 0.6s ease' }} />}
+              {inprogPct > 0 && <div style={{ width: `${inprogPct * 100}%`, background: 'var(--purple)', opacity: 0.85, transition: 'width 0.6s ease' }} />}
             </div>
 
             {/* Legend */}
             <div style={{ display: 'flex', gap: 12, marginTop: 7, flexWrap: 'wrap' }}>
               {[
                 { color: 'var(--green)',      label: t('donut.label.done'), count: done    },
-                { color: 'var(--amber)',      label: t('metrics.testing'),  count: testing },
-                { color: 'var(--accent)',     label: t('metrics.inprog'),   count: inprog  },
+                { color: 'var(--accent)',     label: t('metrics.testing'),  count: testing },
+                { color: 'var(--purple)',     label: t('metrics.inprog'),   count: inprog  },
                 { color: 'var(--textSubtle)', label: t('metrics.todo'),     count: todo    },
                 ...(unknown > 0 ? [{ color: 'var(--textMuted)', label: t('donut.label.unknown'), count: unknown }] : []),
               ].map(s => (

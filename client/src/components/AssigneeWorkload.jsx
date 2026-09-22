@@ -4,8 +4,8 @@ import { useT } from '../lang.jsx'
 
 const STATUS_COLORS = {
   done:    { bg: 'var(--greenTint)',   color: 'var(--green)' },
-  testing: { bg: 'var(--amberTint)',   color: 'var(--amber)' },
-  inprog:  { bg: 'rgba(79,142,247,0.1)', color: 'var(--accent)' },
+  testing: { bg: 'var(--accentTint)',  color: 'var(--accent)' },
+  inprog:  { bg: 'var(--purpleTint)',  color: 'var(--purple)' },
   todo:    { bg: 'var(--surfaceAlt)',  color: 'var(--textMuted)' },
 }
 

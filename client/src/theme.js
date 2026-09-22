@@ -16,9 +16,14 @@ export const themes = {
     '--accentHover': '#1D4ED8',
     '--accentTint':  '#EFF4FE',
     '--green':       '#16A34A',
+    // Ljubičasta = „u radu" (22.09.2026.): narandžasta za „na testiranju" se
+    // izdaleka mešala sa zelenom „završeno", pa testiranje ide u plavo, a rad
+    // dobija svoju boju. Kontrast na belom ~6.4:1.
+    '--purple':      '#6D28D9',
     '--amber':       '#D97706',
     '--red':         '#DC2626',
     '--greenTint':   '#F0FDF4',
+    '--purpleTint':  '#F5F3FF',
     '--amberTint':   '#FFFBEB',
     '--redTint':     '#FEF2F2',
   },

@@ -15,8 +15,8 @@ const font = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
 
 const COLORS = {
   done: 'var(--green)',
-  inprog: 'var(--accent)',
-  testing: 'var(--amber)',
+  inprog: 'var(--purple)',
+  testing: 'var(--accent)',
   todo: 'var(--textSubtle)',
 }
 

@@ -3,6 +3,7 @@ export default function Badge({ color = 'gray', children }) {
     green: { bg: 'var(--greenTint)', text: 'var(--green)', border: 'var(--green)' },
     blue:  { bg: 'rgba(79,142,247,0.12)', text: 'var(--accent)', border: 'var(--accent)' },
     amber: { bg: 'var(--amberTint)', text: 'var(--amber)', border: 'var(--amber)' },
+    purple:{ bg: 'var(--purpleTint)', text: 'var(--purple)', border: 'var(--purple)' },
     red:   { bg: 'var(--redTint)', text: 'var(--red)', border: 'var(--red)' },
     gray:  { bg: 'rgba(107,122,153,0.12)', text: 'var(--textMuted)', border: 'var(--textMuted)' },
   }

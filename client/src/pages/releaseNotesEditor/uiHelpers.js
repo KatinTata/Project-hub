@@ -11,8 +11,8 @@ export function statusCat(task) {
 export function statusBadgeStyle(cat) {
   const m = {
     resolved: { background: 'var(--greenTint)', color: 'var(--green)', border: '1px solid rgba(34,197,94,0.3)' },
-    inprog:   { background: 'rgba(79,142,247,0.12)', color: 'var(--accent)', border: '1px solid rgba(79,142,247,0.3)' },
-    testing:  { background: 'var(--amberTint)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.3)' },
+    inprog:   { background: 'var(--purpleTint)', color: 'var(--purple)', border: '1px solid rgba(109,40,217,0.3)' },
+    testing:  { background: 'var(--accentTint)', color: 'var(--accent)', border: '1px solid rgba(37,99,235,0.3)' },
     other:    { background: 'var(--surfaceAlt)', color: 'var(--textMuted)', border: '1px solid var(--border)' },
   }
   return m[cat] || m.other

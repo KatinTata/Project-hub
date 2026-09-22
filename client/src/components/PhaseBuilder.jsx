@@ -14,7 +14,9 @@ const UNASSIGNED_ID = '__unassigned__'
 
 function TaskChip({ task, faded, jiraUrl }) {
   const sc = task.statusCategory
-  const statusColor = sc === 'done' ? '#22C55E' : sc === 'testing' ? '#F59E0B' : sc === 'inprog' ? '#4F8EF7' : '#6B7A99'
+  // Hex (ne CSS varijable) jer se boji dodaje providnost spajanjem stringa ispod.
+  // Vrednosti prate paletu iz theme.js: green / accent / purple / textMuted.
+  const statusColor = sc === 'done' ? '#16A34A' : sc === 'testing' ? '#2563EB' : sc === 'inprog' ? '#6D28D9' : '#5A6480'
   const statusLabel = sc === 'done' ? 'Done' : sc === 'testing' ? 'Testing' : sc === 'inprog' ? 'In Progress' : 'To Do'
   const link = jiraUrl ? `https://${jiraUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}/browse/${task.key}` : null
 
