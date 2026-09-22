@@ -13,6 +13,22 @@ Osnova radi: praćenje Jira projekata, više korisnika sa rolama
 faze i prognoza, AI Usage modul. 38 tabela, 203 testa (svi prolaze).
 
 ## Šta je zadnje rađeno (22.09.2026.)
+Uvoz starih release note-ova + popravka posle deploy-a:
+- **uvoz iz fajla** (`server/releaseNotesImport.js` + `POST /api/release-notes/import`):
+  admin na stranici Release Notes ima dugme „Uvezi fajl". Podržani formati HTML, PDF i
+  Excel (.xlsx) — bez novih zavisnosti (pdfjs-dist i ExcelJS su već u projektu).
+  Sadržaj se pretvara u HTML, prolazi kroz `sanitizePublishedHtml` i upisuje se u
+  `published_notes` kao **nacrt**: bez dodele klijentima i bez obaveštenja, dok ga admin
+  ne proveri i ne dodeli postojećim dugmadima. Izvučeni tekst dobija minimalnu omotnicu
+  (font, širina, tabela) da javni `/rn` link izgleda kao dokument.
+- kartice i detalj release note-a dobili treće stanje **NACRT** (sivo), pored objavljeno/released
+- provereno lokalno: uvoz sva tri formata preko API-ja i kroz UI, javni link, odbijanje
+  nepodržanog formata (.docx → 400), sanitizacija (`<script>`, `onclick`, `<iframe>` se skidaju)
+- **pad stranice posle deploy-a**: otvorena kartica u browseru traži stara imena chunk-ova
+  koja više ne postoje, pa prva navigacija pukne a reload popravi. `App.jsx` sada neuspeo
+  uvoz chunk-a jednom pretvori u reload (marker u sessionStorage sprečava petlju).
+  Nije reprodukovano lokalno — dev server uvek servira sveže module.
+
 Popravke posle provere na produkciji (klijentski nalog):
 - **lista zadataka je bila odsečena** (npr. 13 od 22) — virtualizacija tabele
   (`TaskTable.jsx`) je pratila skrol PROZORA, a od nove navigacije se skroluje

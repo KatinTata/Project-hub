@@ -33,3 +33,5 @@ nije poznat. Nove odluke od danas nose stvaran datum.
 | 22.09.2026. | Klijentski rečnik statusa je četvorodelan: za rad — u radu — na testiranju — završeno (neprepoznat Jira status ide u „za rad") | „Predstoji" / „Upcoming" je sugerisalo budući posao, a reč je o backlogu; peti čip „Nepoznat" klijentu ne znači ništa |
 | 22.09.2026. | Dnevni snimak projekta broji PODIGNUTE statuse (kao klijent), a ne sirove Jira statuse | grafikon napretka kroz vreme je inače pokazivao druge brojeve od liste zadataka iznad njega; „završeno" podizanje ne menja, pa procenti i upozorenja ostaju isti |
 | 22.09.2026. | Sekcija „Šta je novo" uklonjena iz klijentskog pregleda projekta | za sada nije potrebna; objave, poruke i izveštaji imaju svoja mesta u meniju |
+| 22.09.2026. | Stari release note-ovi se uvoze iz HTML / PDF / Excel fajla i ulaze kao NACRT (bez klijenata) | godinama su slati kao fajlovi; nacrt zato što konverzija nije savršena pa admin prvo proveri kako je tekst ispao |
+| 22.09.2026. | Uvoz ne dodaje nove zavisnosti — PDF se čita pdfjs-om, Excel ExcelJS-om (oba već u projektu); .docx nije podržan | .docx bi tražio mammoth; ako zatreba, dodaje se posebno |
