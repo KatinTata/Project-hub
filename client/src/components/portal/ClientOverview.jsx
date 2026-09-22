@@ -29,7 +29,51 @@ const STATUS_COLORS = {
   todo: 'var(--textSubtle)',
 }
 
-function StatusSentence({ project, data, phases, t }) {
+function fmtAgo(ts, t) {
+  if (!ts) return null
+  const diff = Math.floor((Date.now() - ts) / 1000)
+  if (diff < 60) return t('time.justNow')
+  if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) })
+  return t('time.hoursAgo', { n: Math.floor(diff / 3600) })
+}
+
+// Klijent do sada nije imao nijedan način da povuče sveže stanje — podaci su
+// se osvežavali samo kad keš istekne (odluka 22.09.2026.). Dugme radi isto što i
+// kod internog tima: ponovo povlači zadatke sa Jire za otvoreni projekat.
+function RefreshButton({ t, onRefresh, refreshing, lastRefresh }) {
+  const ago = fmtAgo(lastRefresh, t)
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+      {ago && (
+        <span style={{ fontFamily: font, fontSize: 12, color: 'var(--textSubtle)' }}>
+          {t('portal.refresh.updated', { time: ago })}
+        </span>
+      )}
+      <button
+        onClick={onRefresh}
+        disabled={!!refreshing}
+        title={t('portal.refresh.title')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: 'var(--surfaceAlt)', color: 'var(--text)',
+          border: '1px solid var(--border)', borderRadius: 8,
+          padding: '6px 12px', fontFamily: font, fontWeight: 600, fontSize: 13,
+          cursor: refreshing ? 'not-allowed' : 'pointer',
+          opacity: refreshing ? 0.7 : 1, transition: 'all 0.2s ease', minHeight: 34,
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+          style={{ width: 14, height: 14, flexShrink: 0, animation: refreshing ? 'spin 1s linear infinite' : 'none' }}>
+          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+          <path d="M21 3v5h-5" />
+        </svg>
+        {t('pc.refresh')}
+      </button>
+    </div>
+  )
+}
+
+function StatusSentence({ project, data, phases, t, onRefresh, refreshing, lastRefresh }) {
   const total = data?.total || 0
   const done = data?.done || 0
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
@@ -72,6 +116,7 @@ function StatusSentence({ project, data, phases, t }) {
           fontFamily: font, fontSize: 12, fontWeight: 600, padding: '3px 12px', borderRadius: 20,
           color, background: 'var(--surfaceAlt)', border: `1px solid ${color}`,
         }}>{label}</span>
+        {onRefresh && <RefreshButton t={t} onRefresh={onRefresh} refreshing={refreshing} lastRefresh={lastRefresh} />}
       </div>
       <p style={{ fontFamily: font, fontSize: 15, color: 'var(--textMuted)', margin: '0 0 14px', lineHeight: 1.6 }}>
         {sentence}
@@ -124,7 +169,7 @@ function OnboardingCard({ t, onDismiss }) {
   )
 }
 
-export default function ClientOverview({ project, data, loading, error, unreadCount }) {
+export default function ClientOverview({ project, data, loading, error, unreadCount, onRefresh, refreshing, lastRefresh }) {
   const t = useT()
   const navigate = useNavigate()
   const [introDismissed, setIntroDismissed] = useState(() => localStorage.getItem('jt_portal_intro') === '1')
@@ -199,7 +244,10 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
 
       {/* Stanje projekta jednom rečenicom + progress */}
       <Card style={{ padding: '24px 28px' }}>
-        <StatusSentence project={project} data={data} phases={phases} t={t} />
+        <StatusSentence
+          project={project} data={data} phases={phases} t={t}
+          onRefresh={onRefresh} refreshing={refreshing} lastRefresh={lastRefresh}
+        />
       </Card>
 
       {/* Plan po fazama: gde smo u odnosu na rokove (trake napretka kad rokova nema) */}

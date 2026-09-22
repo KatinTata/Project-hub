@@ -243,6 +243,9 @@ export default function DashboardPage({ user: initialUser }) {
               loading={!!loadingProjects[activeProject.id]}
               error={errorProjects[activeProject.id]}
               unreadCount={unreadCount}
+              onRefresh={handleRefreshClick}
+              refreshing={refreshing}
+              lastRefresh={lastRefresh[activeProject.id]}
             />
           ) : activeProject && (
             <ProjectCard
