@@ -1,5 +1,5 @@
 import { useState, useRef, useLayoutEffect } from 'react'
-import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import Badge from '../ui/Badge.jsx'
 import ProgressBar from '../ui/ProgressBar.jsx'
 import { fmtHours, getStatusCategory } from '../utils.js'
@@ -9,10 +9,13 @@ import { toast } from '../ui/Toast.jsx'
 import { useWindowSize } from '../hooks/useWindowSize.js'
 import { useT } from '../lang.jsx'
 
+// Boje statusa (22.09.2026.): završeno zeleno, na testiranju PLAVO (ranije
+// narandžasto — izdaleka se mešalo sa zelenim), u radu LJUBIČASTO, predstoji sivo.
 function statusColor(name) {
   const cat = getStatusCategory(name)
   if (cat === 'done') return 'green'
-  if (cat === 'inprog') return 'blue'
+  if (cat === 'testing') return 'blue'
+  if (cat === 'inprog') return 'purple'
   if (name === 'On Hold') return 'amber'
   return 'gray'
 }
@@ -103,7 +106,7 @@ function ClientTextLine({ ct, isClient, preview, onEdit }) {
 // prikazuje se putanja statusa u četiri koraka, obojena po fazi u kojoj je
 // zadatak: predstoji → u radu → na testiranju → završeno.
 const STAGE_BY_CATEGORY = { todo: 1, unknown: 1, inprog: 2, testing: 3, done: 4 }
-const STAGE_COLORS = { 1: 'var(--textSubtle)', 2: 'var(--accent)', 3: 'var(--amber)', 4: 'var(--green)' }
+const STAGE_COLORS = { 1: 'var(--textSubtle)', 2: 'var(--purple)', 3: 'var(--accent)', 4: 'var(--green)' }
 
 function StatusSteps({ statusCategory, label }) {
   const stage = STAGE_BY_CATEGORY[statusCategory] || 1
@@ -630,21 +633,43 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
 }
 
 // Virtualizovani redovi (P2-B2): projekat sa 300+ taskova više ne drži sve
-// redove u DOM-u. useWindowVirtualizer zadržava skrol STRANICE (bez unutrašnjeg
-// skrolbara); measureElement meri stvarnu visinu pa expand/collapse radi.
+// redove u DOM-u.
+//
+// VAŽNO: od nove navigacije (08.09.2026.) stranica se NE skroluje — skrol je
+// unutar `<main id="app-content">` u AppShell-u. Virtualizer zato mora da prati
+// taj element; dok je pratio prozor (`useWindowVirtualizer`), `window.scrollY`
+// je uvek bio 0, pa se računao samo prvi ekran redova i lista je izgledala
+// odsečena (npr. 13 od 22 zadatka) koliko god da se skroluje.
+//
+// Ako skrol roditelj ne postoji (drugačiji raspored), lista se renderuje cela,
+// bez virtuelizacije — sporije kod vrlo velikih projekata, ali nikad odsečeno.
+function findScrollParent(el) {
+  let node = el?.parentElement
+  while (node) {
+    const oy = getComputedStyle(node).overflowY
+    if ((oy === 'auto' || oy === 'scroll') && node.scrollHeight > node.clientHeight + 1) return node
+    node = node.parentElement
+  }
+  return null
+}
+
 function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isClient, onOpenMessages, jiraUrl, clientTexts, onEditClientText, clientPreview }) {
   const listRef = useRef(null)
-  // scrollMargin mora biti APSOLUTNA pozicija liste u dokumentu. Ranije se
-  // čitao offsetTop pri prvom renderu (ref još null → 0) i nikad se nije
-  // ažurirao, pa je iznad prvih redova ostajala velika prazna površina.
-  // Sada merimo pravu poziciju i re-merimo kad se layout iznad liste promeni
-  // (sklapanje sekcija, promena taba, resize).
+  const [scrollEl, setScrollEl] = useState(null)
+  // scrollMargin = razmak od početka skrolovanog sadržaja do vrha liste. Meri se
+  // stvarno (ne offsetTop pri prvom renderu, kad je ref još null) i re-meri kad
+  // se raspored iznad liste promeni (sklapanje sekcija, promena taba, resize).
   const [scrollMargin, setScrollMargin] = useState(0)
+
   useLayoutEffect(() => {
+    const parent = findScrollParent(listRef.current)
+    setScrollEl(parent)
     function measure() {
-      const el = listRef.current
-      if (!el) return
-      const top = el.getBoundingClientRect().top + window.scrollY
+      const node = listRef.current
+      if (!node) return
+      const top = parent
+        ? node.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop
+        : node.getBoundingClientRect().top + window.scrollY
       setScrollMargin(prev => (Math.abs(prev - top) > 1 ? top : prev))
     }
     measure()
@@ -654,41 +679,47 @@ function VirtualRows({ filtered, expanded, toggleExpand, isMobile, isTablet, isC
     return () => { window.removeEventListener('resize', measure); ro.disconnect() }
   }, [])
 
-  const virtualizer = useWindowVirtualizer({
+  const virtualizer = useVirtualizer({
     count: filtered.length,
+    getScrollElement: () => scrollEl,
     estimateSize: () => 56,
     overscan: 12,
     scrollMargin,
     getItemKey: i => filtered[i].key,
   })
 
+  const row = (task, index, style, measureRef) => (
+    <div key={task.key} data-index={index} ref={measureRef} style={style}>
+      <TaskRow
+        task={task}
+        expanded={!!expanded[task.key]}
+        onToggle={() => toggleExpand(task.key)}
+        isMobile={isMobile}
+        isTablet={isTablet}
+        isClient={isClient}
+        onOpenQuickMsg={onOpenMessages ? (task) => onOpenMessages(task.key) : undefined}
+        jiraUrl={jiraUrl}
+        clientTexts={clientTexts}
+        onEditClientText={onEditClientText}
+        clientPreview={clientPreview}
+      />
+    </div>
+  )
+
+  // Prvi render (pre nego što se skrol roditelj izmeri) i raspored bez skrol
+  // roditelja: cela lista, obični redovi.
+  if (!scrollEl) {
+    return <div ref={listRef}>{filtered.map((task, i) => row(task, i, undefined, undefined))}</div>
+  }
+
   return (
     <div ref={listRef} style={{ position: 'relative', height: virtualizer.getTotalSize() }}>
-      {virtualizer.getVirtualItems().map(vi => {
-        const task = filtered[vi.index]
-        return (
-          <div
-            key={task.key}
-            data-index={vi.index}
-            ref={virtualizer.measureElement}
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${vi.start - virtualizer.options.scrollMargin}px)` }}
-          >
-            <TaskRow
-              task={task}
-              expanded={!!expanded[task.key]}
-              onToggle={() => toggleExpand(task.key)}
-              isMobile={isMobile}
-              isTablet={isTablet}
-              isClient={isClient}
-              onOpenQuickMsg={onOpenMessages ? (task) => onOpenMessages(task.key) : undefined}
-              jiraUrl={jiraUrl}
-              clientTexts={clientTexts}
-              onEditClientText={onEditClientText}
-              clientPreview={clientPreview}
-            />
-          </div>
-        )
-      })}
+      {virtualizer.getVirtualItems().map(vi => row(
+        filtered[vi.index],
+        vi.index,
+        { position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${vi.start - virtualizer.options.scrollMargin}px)` },
+        virtualizer.measureElement,
+      ))}
     </div>
   )
 }
