@@ -1,6 +1,6 @@
 # Stanje — Project Insight Hub
 
-_Poslednje ažuriranje: 21.09.2026._
+_Poslednje ažuriranje: 22.09.2026._
 
 ## Gde smo
 Aplikacija je na produkciji: **project-hub.intelisale.com** (Railway, Nixpacks,
@@ -12,7 +12,13 @@ Osnova radi: praćenje Jira projekata, više korisnika sa rolama
 (`super_admin` / `admin` / `user`), release notes editor, dokumenti, poruke,
 faze i prognoza, AI Usage modul. 38 tabela, 203 testa (svi prolaze).
 
-## Šta je zadnje rađeno (21.09.2026.)
+## Šta je zadnje rađeno (22.09.2026.)
+Sve gore opisano (Faza A, izmene tabele zadataka, podizanje statusa po subtaskovima)
+commit-ovano je i push-ovano na `main` (`086292c`) — do tada je stajalo samo lokalno,
+pa se na produkciji nije videlo. Railway je odatle deploy-ovao. Pred slanje: 209 testova
+prolazi, lint 0 grešaka, build prolazi.
+
+## Šta je rađeno pre toga (21.09.2026.)
 Status glavnog zadatka prati subtaskove (samo klijentski prikaz):
 - `processEpicData` dobija opciju `rollupSubtaskStatus` (`client/src/utils.js`); kad je
   uključena, status glavnog zadatka se podiže na najdalji status među subtaskovima
@@ -73,7 +79,7 @@ Obogaćen klijentski pregled projekta (Faza A iz `docs/SPEC-klijentski-portal.md
 - 14 novih testova (`tests/portal.test.js`); ukupno 203 testa prolaze, lint 0 grešaka, build prolazi
 - provereno u browseru na dev bazi (desktop + telefon), uključujući klijentski nalog
 
-Nije commit-ovano — čeka pregled.
+Commit-ovano i push-ovano 22.09.2026. (`086292c`) — na produkciji.
 
 ## Šta je rađeno ranije (08.09.2026.)
 Nova navigacija po Predlogu A (dizajn: https://claude.ai/code/artifact/9f42b3ad-a90d-4304-aa02-2af2856469b1):
@@ -100,8 +106,8 @@ taskova, pregled kao klijent), AI Usage po servisu i cena po zahtevu za MCP alat
 - `docs/` i `.claude/` nisu u git-u
 
 ## Sledeći korak
-1. Pregled Faze A + izmena tabele zadataka (21.09.) na dev/produkciji sa stvarnim
-   klijentskim nalogom, pa commit
+1. Provera na produkciji sa stvarnim klijentskim nalogom da se status glavnog zadatka
+   zaista podiže po subtaskovima (klijentu treba jedno osvežavanje da preskoči stari keš)
 2. Faza B iz `docs/SPEC-klijentski-portal.md`: proširiti `TASK_FIELDS` (`updated`,
    `created`, `resolutiondate`, `priority`, `labels`, `fixVersions`, `duedate` — `duedate`
    se povlači ali se ne prikazuje), client-safe istorija promena, izveštaj na zahtev za
