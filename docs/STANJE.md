@@ -13,10 +13,53 @@ Osnova radi: praćenje Jira projekata, više korisnika sa rolama
 faze i prognoza, AI Usage modul. 38 tabela, 203 testa (svi prolaze).
 
 ## Šta je zadnje rađeno (22.09.2026.)
+Popravke posle provere na produkciji (klijentski nalog):
+- **lista zadataka je bila odsečena** (npr. 13 od 22) — virtualizacija tabele
+  (`TaskTable.jsx`) je pratila skrol PROZORA, a od nove navigacije se skroluje
+  `<main id="app-content">` u AppShell-u; `window.scrollY` je uvek 0, pa se računao samo
+  prvi ekran redova. Sada virtualizer prati stvarni skrol element (najbliži skrolujući
+  predak; ako ga nema, lista se renderuje cela). Provereno u browseru na privremenoj
+  probnoj strani: pre popravke 17 od 22 reda i poslednji zadatak se nikad ne pojavi,
+  posle popravke svih 22.
+- **klijentu je keš ostajao zamrznut** — `staleTime: Infinity` + keš u localStorage, a
+  klijent nema dugme za osvežavanje ni auto-refresh, pa ni F5 nije povlačio nove podatke.
+  Sada klijentu keš stari posle 5 minuta (`CLIENT_STALE_MS` u `queries.js`): prikaz je i
+  dalje trenutan iz keša, a svež Jira fetch ide u pozadini. Interni tim ostaje na
+  ručnom / dnevnom osvežavanju.
+- **sekcija „Tempo rada" (delivery pace) uklonjena** iz klijentskog portala, zajedno sa
+  `Velocity.jsx`, `computeVelocity` i pripadajućim testovima i stringovima.
+- **nove boje statusa**: završeno zeleno, na testiranju plavo, u radu ljubičasto
+  (`--purple` u `theme.js`), predstoji sivo. Promenjeno svuda gde se te četiri kategorije
+  boje (tabela zadataka, klijentski portal i grafikoni, kartice i traka na projektu,
+  raspodela po izvršiocima, status čipovi u RN editoru), da se na istom ekranu ne mešaju
+  dve šeme. Provereno u browseru.
+- 201 test prolazi (9 velocity testova uklonjeno), lint 0 grešaka, build prolazi.
+
 Sve gore opisano (Faza A, izmene tabele zadataka, podizanje statusa po subtaskovima)
 commit-ovano je i push-ovano na `main` (`086292c`) — do tada je stajalo samo lokalno,
 pa se na produkciji nije videlo. Railway je odatle deploy-ovao. Pred slanje: 209 testova
 prolazi, lint 0 grešaka, build prolazi.
+
+Adminov „pregled kao klijent" sada pokazuje iste statuse kao klijent (`677a28c`):
+- nova funkcija `applyStatusRollup(tasks)` (`client/src/utils.js`) primenjuje isto pravilo
+  na već obrađene zadatke — admin povlači sirove (interne) podatke, pa se podizanje radi
+  naknadno, samo nad kopijom liste za tabelu (`ProjectCard.jsx`)
+- filter-čipovi i brojači iznad tabele se poklapaju sa klijentskim, jer se računaju iz iste liste
+- kartice iznad tabele (ukupno završeno / u radu) namerno ostaju interne — pregled je i do
+  sada bio samo tabela
+- 1 nov test, ukupno 210 prolazi; lint 0 grešaka, build prolazi; nije provereno u browseru
+  (traži admin nalog sa stvarnim Jira projektom)
+
+Zatečeno, nije dirano: serverski dnevni snapshot (`server/snapshots.js`) računa statuse BEZ
+podizanja po subtaskovima, pa klijent uživo može videti „u radu: 3", dok isti zadaci u
+grafikonu napretka kroz vreme tog dana stoje kao „predstoji". Ispravka je jedna linija, ali menja
+brojeve u istoriji unapred — čeka odluku.
+
+Provereno usput (odgovor na pitanje, bez izmene koda): lista zadataka klijentu NIJE snimljena
+kopija — povlači se uživo iz Jire pri svakom otvaranju (`server/routes/jira.js`), a od admina
+dolazi samo definicija filtera (epic/JQL) i Jira kredencijali vlasnika projekta. Od admina
+zavise klijentski tekstovi zadataka (`task_client_texts`) i dnevni snapshot-i, koje inače
+popunjava serverski posao posle 22:00.
 
 ## Šta je rađeno pre toga (21.09.2026.)
 Status glavnog zadatka prati subtaskove (samo klijentski prikaz):
@@ -32,8 +75,8 @@ Status glavnog zadatka prati subtaskove (samo klijentski prikaz):
   da ne bi gledao stare statuse do sledećeg osvežavanja
 - 6 novih testova (`tests/utils.test.js`), ukupno 209 testova prolazi
 
-Poznato ograničenje: adminov „pregled kao klijent" i dalje prikazuje sirove statuse, jer
-koristi interne podatke projekta.
+(Tadašnje ograničenje — adminov „pregled kao klijent" sa sirovim statusima — rešeno je
+22.09.2026., vidi gore.)
 
 Klijentski pregled projekta (`components/portal/ClientOverview.jsx`):
 - **sekcija dokumenata uklonjena** sa stranice projekta (`ProjectDocuments.jsx` obrisan) —
@@ -108,14 +151,16 @@ taskova, pregled kao klijent), AI Usage po servisu i cena po zahtevu za MCP alat
 ## Sledeći korak
 1. Provera na produkciji sa stvarnim klijentskim nalogom da se status glavnog zadatka
    zaista podiže po subtaskovima (klijentu treba jedno osvežavanje da preskoči stari keš)
-2. Faza B iz `docs/SPEC-klijentski-portal.md`: proširiti `TASK_FIELDS` (`updated`,
+2. Odluka: da li i serverski dnevni snapshot da računa podignute statuse (trend i „tempo rada"
+   inače odstupaju od onoga što klijent vidi uživo)
+3. Faza B iz `docs/SPEC-klijentski-portal.md`: proširiti `TASK_FIELDS` (`updated`,
    `created`, `resolutiondate`, `priority`, `labels`, `fixVersions`, `duedate` — `duedate`
    se povlači ali se ne prikazuje), client-safe istorija promena, izveštaj na zahtev za
    klijenta, higijena (klijentu se i dalje šalju `filterJql`/`filterMeta`)
-3. Dva zatečena baga u `ClientNotificationModal.jsx` (nezamenjen `{n}`, dupla strelica)
-4. Higijena: stringovi u translations, pino umesto console, odluka o QA kodu
-5. Testovi za RBAC i klijentski DTO
-6. Release kalendar i dashboard: specifikacija pre koda; sastanak sa Zokom i Novakom
+4. Dva zatečena baga u `ClientNotificationModal.jsx` (nezamenjen `{n}`, dupla strelica)
+5. Higijena: stringovi u translations, pino umesto console, odluka o QA kodu
+6. Testovi za RBAC i klijentski DTO
+7. Release kalendar i dashboard: specifikacija pre koda; sastanak sa Zokom i Novakom
 
 ## Otvoreno
 Kadenca izveštaja (kod ima default: nedeljno, ponedeljak 08:00), lista primaoca,
