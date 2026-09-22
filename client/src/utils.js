@@ -49,6 +49,18 @@ export function applyStatusRollup(tasks) {
   })
 }
 
+// Broj zadataka po kategoriji statusa — isti oblik koji `processEpicData` vraća,
+// da bi dnevni snimak mogao da se preračuna nad podignutim statusima.
+export function countByStatus(tasks) {
+  const out = { done: 0, testing: 0, inprog: 0, todo: 0, unknown: 0 }
+  for (const task of tasks || []) {
+    const cat = task.statusCategory
+    if (cat in out) out[cat]++
+    else out.unknown++
+  }
+  return out
+}
+
 // `rollupSubtaskStatus` uključuje gornje pravilo — koristi se SAMO za klijentski
 // prikaz (queries.js prosleđuje isClient); interni tim i snapshot-i vide sirov
 // Jira status glavnog zadatka.

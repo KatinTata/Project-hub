@@ -1,6 +1,6 @@
 import { QueryClient, useQuery, useQueries } from '@tanstack/react-query'
 import { api } from './api.js'
-import { processEpicData, billableSecondsOf } from './utils.js'
+import { processEpicData, billableSecondsOf, applyStatusRollup, countByStatus } from './utils.js'
 import { buildStackMatrix } from './utils/stacks.js'
 
 // ── Query client (A2) ─────────────────────────────────────────────────────────
@@ -74,15 +74,19 @@ async function fetchProjectData(project, { isClient }) {
   const fetchedAt = Date.now()
   saveProjectCache(project.id, data)
 
-  // Daily snapshot (history) — fire and forget; server keeps one per day
+  // Daily snapshot (history) — fire and forget; server keeps one per day.
+  // Snimak uvek broji PODIGNUTE statuse (isto kao serverski posao u
+  // server/snapshots.js), iako admin na ekranu vidi sirove: istorija je zajednička
+  // i mora da se poklapa sa onim što klijent vidi u listi zadataka.
   if (!isClient && typeof project.id === 'number') {
     try {
+      const snapCounts = countByStatus(applyStatusRollup(data.tasks))
       const sm = buildStackMatrix(data.tasks, [])
       const stacks = {}
       for (const s of sm.stacks) stacks[s] = { plan: sm.colTotals[s].plan, spent: sm.colTotals[s].spent, remaining: sm.colTotals[s].remaining }
       const billableSpent = (data.tasks || []).reduce((acc, t) => acc + billableSecondsOf(t), 0)
       api.saveSnapshot(project.id, {
-        total: data.total, done: data.done, inprog: data.inprog, testing: data.testing, todo: data.todo, unknown: data.unknown || 0,
+        total: data.total, ...snapCounts,
         totalEst: data.totalEst, totalSpent: data.totalSpent, remainingEst: sm.grand.remaining, billableSpent, stacks,
       }).catch(() => {})
     } catch { /* snapshot je best-effort */ }

@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  getStatusCategory, processEpicData, rollupStatusFromSubtasks, applyStatusRollup, taskAttribution, buildAssigneeData,
+  getStatusCategory, processEpicData, rollupStatusFromSubtasks, applyStatusRollup, countByStatus, taskAttribution, buildAssigneeData,
   buildComponentData, buildModuleData, billableSecondsOf, fmtHours,
 } from '../client/src/utils.js'
 
@@ -117,6 +117,18 @@ describe('podizanje statusa po subtaskovima (klijentski prikaz)', () => {
     expect(out[2]).toBe(tasks[2])
     // ulazna lista se ne menja
     expect(tasks[0].statusCategory).toBe('todo')
+  })
+
+  it('countByStatus broji podignute statuse za dnevni snimak', () => {
+    const tasks = [
+      { key: 'A-1', status: 'To Do', statusCategory: 'todo', subtasks: [{ key: 'A-2', status: 'In Progress', statusCategory: 'inprog' }] },
+      { key: 'B-1', status: 'To Do', statusCategory: 'todo', subtasks: [] },
+      { key: 'C-1', status: 'Resolved', statusCategory: 'done', subtasks: [] },
+      { key: 'D-1', status: 'Neki čudan status', statusCategory: 'unknown', subtasks: [] },
+    ]
+    expect(countByStatus(tasks)).toEqual({ done: 1, testing: 0, inprog: 0, todo: 2, unknown: 1 })
+    // isto što snimak upisuje: prvo podizanje, pa brojanje
+    expect(countByStatus(applyStatusRollup(tasks))).toEqual({ done: 1, testing: 0, inprog: 1, todo: 1, unknown: 1 })
   })
 
   it('rollupStatusFromSubtasks bira najdalji status među subtaskovima', () => {

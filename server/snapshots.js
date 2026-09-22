@@ -114,7 +114,12 @@ export async function runDailySnapshots() {
       const fetched = await fetchProjectTasks(jira, project)
       if (!fetched) { skipped++; continue }
 
-      const r = processEpicData(fetched.parents, fetched.subtasks, fetched.epicSelf)
+      // `rollupSubtaskStatus` — snimak mora da broji statuse ONAKO KAKO IH KLIJENT
+      // VIDI (rad na subtasku podiže glavni zadatak u „u radu"), inače grafikon
+      // napretka kroz vreme pokazuje druge brojeve od liste zadataka iznad njega.
+      // „Završeno" podizanje nikad ne menja, pa upozorenja (detectForProject) i
+      // procenat završenosti ostaju isti.
+      const r = processEpicData(fetched.parents, fetched.subtasks, fetched.epicSelf, { rollupSubtaskStatus: true })
       const sm = buildStackMatrix(r.tasks, [])
       const stacks = {}
       for (const s of sm.stacks) stacks[s] = { plan: sm.colTotals[s].plan, spent: sm.colTotals[s].spent, remaining: sm.colTotals[s].remaining }
