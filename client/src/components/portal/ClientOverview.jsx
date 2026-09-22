@@ -1,7 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { api } from '../../api.js'
 import { usePhasesQuery } from '../../queries.js'
 import { useT } from '../../lang.jsx'
 import TaskTable from '../TaskTable.jsx'
@@ -10,7 +8,6 @@ import Button from '../../ui/Button.jsx'
 import { CollapseToggle } from '../../ui/collapse.jsx'
 import { StatusDonut, ProgressTrend, PhaseBars } from './ClientCharts.jsx'
 import PhaseTimeline from './PhaseTimeline.jsx'
-import WhatsNew from './WhatsNew.jsx'
 
 // P3-1/P3-4: klijentski pregled projekta. Redosled prati pitanja koja klijent
 // zaista postavlja: gde smo (stanje svih zadataka po statusu + plan po fazama),
@@ -169,7 +166,7 @@ function OnboardingCard({ t, onDismiss }) {
   )
 }
 
-export default function ClientOverview({ project, data, loading, error, unreadCount, onRefresh, refreshing, lastRefresh }) {
+export default function ClientOverview({ project, data, loading, error, onRefresh, refreshing, lastRefresh }) {
   const t = useT()
   const navigate = useNavigate()
   const [introDismissed, setIntroDismissed] = useState(() => localStorage.getItem('jt_portal_intro') === '1')
@@ -185,30 +182,6 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
 
   const phasesQuery = usePhasesQuery(project?.id)
   const phases = useMemo(() => phasesQuery.data?.phases || [], [phasesQuery.data])
-
-  // Poslednji release-ovi za ovaj projekat (klijentska lista je već filtrirana po dodeli)
-  const releasesQuery = useQuery({
-    queryKey: ['clientReleases'],
-    queryFn: () => api.getClientReleaseNotes(),
-    staleTime: 60_000,
-  })
-
-  // Izveštaji poslati klijentu (P3-2)
-  const reportsQuery = useQuery({
-    queryKey: ['myReports'],
-    queryFn: () => api.getMyReports(),
-    staleTime: 60_000,
-  })
-  const myReports = useMemo(
-    () => (reportsQuery.data?.runs || []).filter(r => r.project_id === project?.id).slice(0, 5),
-    [reportsQuery.data, project?.id]
-  )
-  // Samo objave ovog projekta — objava bez project_id se ranije prikazivala na
-  // SVAKOM projektu klijenta (ispravka 14.09.2026).
-  const releases = useMemo(() => {
-    const all = releasesQuery.data?.notes || []
-    return all.filter(n => n.project_id === project?.id).slice(0, 5)
-  }, [releasesQuery.data, project?.id])
 
   useEffect(() => {
     if (introDismissed) localStorage.setItem('jt_portal_intro', '1')
@@ -261,9 +234,6 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
 
       {/* Napredak kroz vreme */}
       <ProgressTrend projectId={project.id} />
-
-      {/* Šta je novo: objave, poruke, izveštaji i upozorenja u jednom toku */}
-      <WhatsNew project={project} releases={releases} reports={myReports} unreadCount={unreadCount} />
 
       {/* Detalji: taskovi (sklopivo, default sklopljeno — "story, ne dashboard") */}
       <Card style={{ padding: '20px 24px' }}>

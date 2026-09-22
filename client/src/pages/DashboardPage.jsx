@@ -242,7 +242,6 @@ export default function DashboardPage({ user: initialUser }) {
               data={projectData[activeProject.id]}
               loading={!!loadingProjects[activeProject.id]}
               error={errorProjects[activeProject.id]}
-              unreadCount={unreadCount}
               onRefresh={handleRefreshClick}
               refreshing={refreshing}
               lastRefresh={lastRefresh[activeProject.id]}
