@@ -29,3 +29,5 @@ nije poznat. Nove odluke od danas nose stvaran datum.
 | 22.09.2026. | Sekcija „Tempo rada" (delivery pace) uklonjena iz klijentskog portala | ne prati sve što bi trebalo (računa se samo iz dnevnih snimaka broja stavki), pa je pre zbunjivala nego govorila |
 | 22.09.2026. | Boje statusa: završeno zeleno, na testiranju plavo, u radu ljubičasto, predstoji sivo | narandžasta za „na testiranju" se izdaleka mešala sa zelenom „završeno" |
 | 22.09.2026. | Klijentu keširani podaci projekta stare posle 5 minuta (internom timu i dalje nikad, ima dugme za osvežavanje) | klijent nema dugme za osvežavanje ni auto-refresh, pa mu je keš ostajao zamrznut i posle F5 |
+| 22.09.2026. | Klijent ima dugme „Osveži" na projektu (uz vreme poslednjeg osvežavanja) | automatsko osvežavanje na 5 minuta rešava zastarelost, ali klijent treba i sam da može da povuče sveže stanje |
+| 22.09.2026. | Klijentski rečnik statusa je četvorodelan: za rad — u radu — na testiranju — završeno (neprepoznat Jira status ide u „za rad") | „Predstoji" / „Upcoming" je sugerisalo budući posao, a reč je o backlogu; peti čip „Nepoznat" klijentu ne znači ništa |

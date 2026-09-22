@@ -34,6 +34,13 @@ Popravke posle provere na produkciji (klijentski nalog):
   raspodela po izvršiocima, status čipovi u RN editoru), da se na istom ekranu ne mešaju
   dve šeme. Provereno u browseru.
 - 201 test prolazi (9 velocity testova uklonjeno), lint 0 grešaka, build prolazi.
+- **dugme „Osveži" za klijenta** u zaglavlju projekta, sa vremenom poslednjeg
+  osvežavanja (`ClientOverview.jsx`, prosleđeno iz `DashboardPage.jsx`) — do sada je
+  klijent zavisio isključivo od isteka keša.
+- **klijent vidi tačno četiri statusa**: za rad — u radu — na testiranju — završeno.
+  Label „Predstoji" / „Upcoming" preimenovan u „Za rad" / „To Do" (zadatak u backlogu
+  nije „budući", nego „za rad"), a zadatak sa neprepoznatim Jira statusom (`unknown`)
+  se kod klijenta broji u „za rad" umesto da dobije svoj čip sa istim imenom.
 
 Sve gore opisano (Faza A, izmene tabele zadataka, podizanje statusa po subtaskovima)
 commit-ovano je i push-ovano na `main` (`086292c`) — do tada je stajalo samo lokalno,
