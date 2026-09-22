@@ -436,13 +436,18 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
 
   const overKeys = new Set(overTasks.map(task => task.key))
 
+  // Klijent ima tačno četiri statusa: za rad — u radu — na testiranju — završeno.
+  // Zadatak sa statusom koji ne prepoznajemo (`unknown`) davao bi mu drugi čip sa
+  // istim imenom, pa se kod klijenta broji u „za rad".
+  const foldUnknown = isClient || clientPreview
+
   const filtered = tasks.filter(task => {
     const matchSearch = !search || task.key.toLowerCase().includes(search.toLowerCase()) || task.summary.toLowerCase().includes(search.toLowerCase())
     if (!matchSearch) return false
     if (filter === 'done') return task.statusCategory === 'done'
     if (filter === 'testing') return task.statusCategory === 'testing'
     if (filter === 'inprog') return task.statusCategory === 'inprog'
-    if (filter === 'todo') return task.statusCategory === 'todo'
+    if (filter === 'todo') return task.statusCategory === 'todo' || (foldUnknown && task.statusCategory === 'unknown')
     if (filter === 'unknown') return task.statusCategory === 'unknown'
     if (filter === 'over') return overKeys.has(task.key)
     if (filter === 'noest') return !task.est || task.est === 0
@@ -455,7 +460,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
     done:    tasks.filter(task => task.statusCategory === 'done').length,
     testing: tasks.filter(task => task.statusCategory === 'testing').length,
     inprog:  tasks.filter(task => task.statusCategory === 'inprog').length,
-    todo:    tasks.filter(task => task.statusCategory === 'todo').length,
+    todo:    tasks.filter(task => task.statusCategory === 'todo' || (foldUnknown && task.statusCategory === 'unknown')).length,
     unknown: tasks.filter(task => task.statusCategory === 'unknown').length,
     over:     overTasks.length,
     noest:    tasks.filter(task => !task.est || task.est === 0).length,
@@ -472,7 +477,7 @@ export default function TaskTable({ tasks = [], overTasks = [], isClient, projec
     { key: 'testing', label: pill('portal.chart.testing', 'table.filter.testing'), count: counts.testing, title: t('table.title.testing') },
     { key: 'inprog',  label: pill('portal.chart.inprog', 'table.filter.inprog'),   count: counts.inprog,  title: t('table.title.inprog') },
     { key: 'todo',    label: pill('portal.chart.todo', 'table.filter.todo'),       count: counts.todo,    title: t('table.title.todo') },
-    ...(counts.unknown > 0 ? [{ key: 'unknown', label: pill('portal.chart.todo', 'table.filter.unknown'), count: counts.unknown, title: t('table.title.unknown') }] : []),
+    ...(counts.unknown > 0 && !foldUnknown ? [{ key: 'unknown', label: t('table.filter.unknown'), count: counts.unknown, title: t('table.title.unknown') }] : []),
     ...(!isClient ? [{ key: 'over',     label: t('table.filter.over'),  count: counts.over,     title: t('table.tooltip.message') }] : []),
     ...(!isClient ? [{ key: 'noest',    label: t('table.filter.noest'), count: counts.noest,    title: t('table.title.noest') }] : []),
     ...(!isClient && hasBillableField ? [{ key: 'billable', label: '€ Billable', count: counts.billable, title: 'Taskovi sa billable = Yes u Jiri' }] : []),
