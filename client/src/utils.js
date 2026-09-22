@@ -16,7 +16,31 @@ export function getStatusCategory(statusName) {
   return 'unknown'
 }
 
-export function processEpicData(parents, subtasks, epicSelf = null) {
+// Rangovi statusa za „podizanje" statusa glavnog zadatka po subtaskovima.
+// Zatvoren subtask NAMERNO ne postoji u ovoj mapi: on nikad ne zatvara glavni
+// zadatak (odluka 21.09.2026.) — završeno se klijentu prikazuje tek kad se
+// zatvori sam glavni zadatak.
+const STATUS_RANK = { todo: 1, unknown: 1, inprog: 2, testing: 3 }
+
+// Glavni zadatak u Jiri često ostane u „To Do" iako se radi na njegovom
+// subtasku. Za klijentski prikaz status se zato podiže na najdalji status među
+// subtaskovima (u radu < na testiranju). Nikad se ne spušta i nikad ne prelazi
+// u „završeno" zbog subtaska.
+export function rollupStatusFromSubtasks(statusName, statusCat, subs) {
+  if (statusCat === 'done') return { statusName, statusCat }
+  let best = { statusName, statusCat, rank: STATUS_RANK[statusCat] || 1 }
+  for (const sub of subs || []) {
+    const rank = STATUS_RANK[sub.statusCategory]
+    if (!rank || rank <= best.rank) continue // zatvoren subtask (bez ranga) se preskače
+    best = { statusName: sub.status, statusCat: sub.statusCategory, rank }
+  }
+  return { statusName: best.statusName, statusCat: best.statusCat }
+}
+
+// `rollupSubtaskStatus` uključuje gornje pravilo — koristi se SAMO za klijentski
+// prikaz (queries.js prosleđuje isClient); interni tim i snapshot-i vide sirov
+// Jira status glavnog zadatka.
+export function processEpicData(parents, subtasks, epicSelf = null, { rollupSubtaskStatus = false } = {}) {
   // Deduplicate parents by key
   const seenKeys = new Set()
   const uniqueParents = parents.filter(p => {
@@ -77,8 +101,8 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
 
   for (const parent of topLevel) {
     const f = parent.fields || {}
-    const statusName = f.status?.name || ''
-    const statusCat = getStatusCategory(statusName)
+    let statusName = f.status?.name || ''
+    let statusCat = getStatusCategory(statusName)
 
     const parentEst = f.timeoriginalestimate || 0
     const parentSpent = f.timespent || 0
@@ -94,6 +118,12 @@ export function processEpicData(parents, subtasks, epicSelf = null) {
       calcEst += sub.timeoriginalestimate
       calcSpent += sub.timespent
       subs.push(sub)
+    }
+
+    if (rollupSubtaskStatus) {
+      const rolled = rollupStatusFromSubtasks(statusName, statusCat, subs)
+      statusName = rolled.statusName
+      statusCat = rolled.statusCat
     }
 
     const overFactor = 1 + getCalcConfig().overrunThresholdPct / 100

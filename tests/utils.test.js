@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  getStatusCategory, processEpicData, taskAttribution, buildAssigneeData,
+  getStatusCategory, processEpicData, rollupStatusFromSubtasks, taskAttribution, buildAssigneeData,
   buildComponentData, buildModuleData, billableSecondsOf, fmtHours,
 } from '../client/src/utils.js'
 
@@ -50,6 +50,60 @@ describe('getStatusCategory', () => {
     expect(getStatusCategory('Blocked By Vendor')).toBe('unknown')
     expect(getStatusCategory('')).toBe('unknown')
     expect(getStatusCategory('On Hold')).toBe('inprog')
+  })
+})
+
+describe('podizanje statusa po subtaskovima (klijentski prikaz)', () => {
+  const opts = { rollupSubtaskStatus: true }
+  const catOf = r => r.tasks[0].statusCategory
+  const nameOf = r => r.tasks[0].status
+
+  it('rad na subtasku podiže glavni zadatak u „u radu" (primer PP-2451)', () => {
+    const p = parent('PP-2451', { status: 'To Do', subtaskKeys: ['PP-2589', 'PP-2590'] })
+    const subs = [sub('PP-2589', { status: 'In Progress' }), sub('PP-2590', { status: 'To Do' })]
+    const r = processEpicData([p], subs, null, opts)
+    expect(catOf(r)).toBe('inprog')
+    expect(nameOf(r)).toBe('In Progress')
+    expect(r.inprog).toBe(1)
+    expect(r.todo).toBe(0)
+  })
+
+  it('subtask na testiranju podiže glavni zadatak na testiranje', () => {
+    const p = parent('A-1', { status: 'In Progress', subtaskKeys: ['A-2'] })
+    const r = processEpicData([p], [sub('A-2', { status: 'For Testing' })], null, opts)
+    expect(catOf(r)).toBe('testing')
+    expect(r.testing).toBe(1)
+  })
+
+  it('zatvoren subtask NE zatvara glavni zadatak', () => {
+    const p = parent('A-1', { status: 'To Do', subtaskKeys: ['A-2'] })
+    const r = processEpicData([p], [sub('A-2', { status: 'Resolved' })], null, opts)
+    expect(catOf(r)).toBe('todo')
+    expect(r.done).toBe(0)
+  })
+
+  it('status se nikad ne spušta: zatvoren glavni zadatak ostaje zatvoren', () => {
+    const p = parent('A-1', { status: 'Resolved', subtaskKeys: ['A-2'] })
+    const r = processEpicData([p], [sub('A-2', { status: 'In Progress' })], null, opts)
+    expect(catOf(r)).toBe('done')
+    expect(r.done).toBe(1)
+  })
+
+  it('bez opcije (interni prikaz) status glavnog zadatka ostaje sirov', () => {
+    const p = parent('A-1', { status: 'To Do', subtaskKeys: ['A-2'] })
+    const r = processEpicData([p], [sub('A-2', { status: 'In Progress' })])
+    expect(catOf(r)).toBe('todo')
+    expect(nameOf(r)).toBe('To Do')
+  })
+
+  it('rollupStatusFromSubtasks bira najdalji status među subtaskovima', () => {
+    const subs = [
+      { key: 'S-1', status: 'Resolved', statusCategory: 'done' },
+      { key: 'S-2', status: 'In Progress', statusCategory: 'inprog' },
+      { key: 'S-3', status: 'For Testing', statusCategory: 'testing' },
+    ]
+    expect(rollupStatusFromSubtasks('To Do', 'todo', subs)).toEqual({ statusName: 'For Testing', statusCat: 'testing' })
+    expect(rollupStatusFromSubtasks('To Do', 'todo', [])).toEqual({ statusName: 'To Do', statusCat: 'todo' })
   })
 })
 

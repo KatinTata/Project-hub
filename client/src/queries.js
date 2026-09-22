@@ -56,7 +56,13 @@ async function fetchProjectData(project, { isClient }) {
   // Prethodno stanje (za feed promena) — keš je uvek ogledalo poslednjih podataka
   const prevCache = loadProjectCache(project.id)
   const { parents, subtasks, epicSelf, hasBillableField, clientTexts, clientLang } = await api.getTasks(project)
-  const data = processEpicData(parents, subtasks, epicSelf)
+  // Klijentu se status glavnog zadatka podiže po subtaskovima (rad na subtasku
+  // znači da je i glavni zadatak u radu) — interni tim vidi sirov Jira status.
+  const data = processEpicData(parents, subtasks, epicSelf, { rollupSubtaskStatus: !!isClient })
+  // Marker za keš: keš snimljen pre uvođenja podizanja statusa (21.09.2026.)
+  // ne sme da se servira klijentu, inače bi video stare statuse do sledećeg
+  // ručnog osvežavanja.
+  data.statusRollup = !!isClient
   data.hasBillableField = !!hasBillableField
   data.clientTexts = clientTexts || null
   data.clientLang = clientLang || null
@@ -99,6 +105,8 @@ export function useProjectDataQueries(projects, { isClient, enabled = true } = {
         // Klijentski jezik je uključen, a keš je iz vremena pre prevoda
         // (nema clientTexts) → preskoči keš da svež fetch donese tekstove.
         if (p.clientLang && cached.data && cached.data.clientTexts == null) return undefined
+        // Klijentu keš bez podignutog statusa ne valja — traži se svež fetch.
+        if (isClient && cached.data && !cached.data.statusRollup) return undefined
         return { data: cached.data, fetchedAt: cached.ts }
       },
       initialDataUpdatedAt: () => loadProjectCache(p.id)?.ts,

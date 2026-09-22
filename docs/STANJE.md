@@ -13,6 +13,22 @@ Osnova radi: praćenje Jira projekata, više korisnika sa rolama
 faze i prognoza, AI Usage modul. 38 tabela, 203 testa (svi prolaze).
 
 ## Šta je zadnje rađeno (21.09.2026.)
+Status glavnog zadatka prati subtaskove (samo klijentski prikaz):
+- `processEpicData` dobija opciju `rollupSubtaskStatus` (`client/src/utils.js`); kad je
+  uključena, status glavnog zadatka se podiže na najdalji status među subtaskovima
+  (u radu < na testiranju). Primer: PP-2451 je u „To Do", subtask PP-2589 je „In Progress"
+  → klijent vidi „U radu".
+- **zatvoren subtask nikad ne zatvara glavni zadatak** — „Završeno" se klijentu prikazuje
+  tek kad se zatvori sam glavni zadatak; status se nikad ne spušta
+- opcija se uključuje samo za klijenta (`queries.js`, `isClient`); interni tim, snapshot-i
+  i Excel izveštaji i dalje vide sirov Jira status
+- keš u `localStorage` iz vremena pre ove izmene se klijentu preskače (marker `statusRollup`),
+  da ne bi gledao stare statuse do sledećeg osvežavanja
+- 6 novih testova (`tests/utils.test.js`), ukupno 209 testova prolazi
+
+Poznato ograničenje: adminov „pregled kao klijent" i dalje prikazuje sirove statuse, jer
+koristi interne podatke projekta.
+
 Klijentski pregled projekta (`components/portal/ClientOverview.jsx`):
 - **sekcija dokumenata uklonjena** sa stranice projekta (`ProjectDocuments.jsx` obrisan) —
   prikazivala je sva dokumenta deljena sa klijentom, ne dokumenta tog projekta, a
