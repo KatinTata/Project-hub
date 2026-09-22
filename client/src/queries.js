@@ -48,9 +48,14 @@ export function useProjectsQuery(options = {}) {
 }
 
 // ── Per-project Jira data ─────────────────────────────────────────────────────
-// Ponašanje kao pre RQ: keširan projekat se NE osvežava automatski (staleTime
-// Infinity + initialData iz localStorage); fetch ide samo za projekte bez keša,
-// na ručni refresh, na dnevni auto-refresh i posle izmene filtera.
+// Interni tim: keširan projekat se NE osvežava automatski (staleTime Infinity +
+// initialData iz localStorage); fetch ide samo za projekte bez keša, na ručni
+// refresh, na dnevni auto-refresh i posle izmene filtera.
+//
+// Klijent (rola `user`) NEMA dugme za osvežavanje ni auto-refresh, pa mu je keš
+// iz localStorage-a ostajao zamrznut i posle F5 — video je stanje od prve posete
+// (bug 22.09.2026.). Zato klijentu keš stari posle CLIENT_STALE_MS: podaci se i
+// dalje iscrtavaju odmah iz keša, a svež Jira fetch ide u pozadini.
 
 async function fetchProjectData(project, { isClient }) {
   // Prethodno stanje (za feed promena) — keš je uvek ogledalo poslednjih podataka
@@ -90,12 +95,17 @@ async function fetchProjectData(project, { isClient }) {
   }
 }
 
+// Koliko keširani podaci klijentu važe pre nego što se povuku ponovo. 5 minuta:
+// dovoljno da otvaranje projekta bude trenutno, a da klijent ne gleda jučerašnje
+// stanje; svaki fetch je poziv ka Jiri, pa kraće ne treba.
+const CLIENT_STALE_MS = 5 * 60_000
+
 export function useProjectDataQueries(projects, { isClient, enabled = true } = {}) {
   return useQueries({
     queries: (projects || []).map(p => ({
       queryKey: ['projectData', p.id],
       queryFn: () => fetchProjectData(p, { isClient }),
-      staleTime: Infinity,
+      staleTime: isClient ? CLIENT_STALE_MS : Infinity,
       gcTime: Infinity,
       retry: false,
       enabled,
