@@ -10,7 +10,6 @@ import Button from '../../ui/Button.jsx'
 import { CollapseToggle } from '../../ui/collapse.jsx'
 import { StatusDonut, ProgressTrend, PhaseBars } from './ClientCharts.jsx'
 import PhaseTimeline from './PhaseTimeline.jsx'
-import Velocity from './Velocity.jsx'
 import WhatsNew from './WhatsNew.jsx'
 
 // P3-1/P3-4: klijentski pregled projekta. Redosled prati pitanja koja klijent
@@ -25,8 +24,8 @@ const font = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
 // Boje statusa su iste kao u donutu i u tabeli zadataka — jedan vizuelni jezik.
 const STATUS_COLORS = {
   done: 'var(--green)',
-  testing: 'var(--amber)',
-  inprog: 'var(--accent)',
+  testing: 'var(--accent)',
+  inprog: 'var(--purple)',
   todo: 'var(--textSubtle)',
 }
 
@@ -208,11 +207,9 @@ export default function ClientOverview({ project, data, loading, error, unreadCo
         ? <PhaseTimeline phases={phases} tasksByPhase={tasksByPhase} />
         : <PhaseBars phases={phases} tasksByPhase={tasksByPhase} />}
 
-      {/* Raspodela statusa + tempo rada (tempo bez projektovanog datuma — odluka 14.09.2026.) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, alignItems: 'start' }}>
-        <StatusDonut data={data} />
-        <Velocity projectId={project.id} data={data} />
-      </div>
+      {/* Raspodela statusa (sekcija „tempo rada" uklonjena 22.09.2026. — nije
+          pratila sve što treba, pa je više zbunjivala nego što je govorila) */}
+      <StatusDonut data={data} />
 
       {/* Napredak kroz vreme */}
       <ProgressTrend projectId={project.id} />

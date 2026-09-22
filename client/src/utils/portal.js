@@ -11,59 +11,6 @@ function daysBetween(fromIso, toIso) {
   return Math.round((parseLocalDate(toIso) - parseLocalDate(fromIso)) / DAY_MS)
 }
 
-// ── Tempo rada iz dnevnih snapshot-a ────────────────────────────────────────
-// Odluka 14.09.2026.: prikazuje se tempo, NIKAD projektovan datum završetka.
-//
-// snapshots: [{ day: 'YYYY-MM-DD', total, done }] rastuće po danu (kako ih
-// vraća GET /api/projects/:id/snapshots).
-// Vraća: { enough, completed, perWeek, spanDays, remaining, total, done, from, to }
-//   enough === false znači da nema dovoljno istorije za tvrdnju o tempu —
-//   komponenta tada ne prikazuje ništa umesto da laže brojem.
-export function computeVelocity(snapshots, { windowDays = 30, today = toLocalIso(new Date()) } = {}) {
-  const rows = (snapshots || [])
-    .filter(s => s && s.day && (s.total || 0) > 0)
-    .filter(s => s.day <= today)
-    .sort((a, b) => String(a.day).localeCompare(String(b.day)))
-
-  const empty = { enough: false, completed: 0, perWeek: 0, spanDays: 0, remaining: 0, total: 0, done: 0, from: null, to: null }
-  if (rows.length < 2) return empty
-
-  const last = rows[rows.length - 1]
-  const windowStart = toLocalIso(new Date(parseLocalDate(today).getTime() - windowDays * DAY_MS))
-
-  // Osnova je snimak vremenski NAJBLIŽI početku prozora (sa bilo koje strane).
-  // Snimci se prave jednom dnevno, ali dani znaju da fale (projekat pauziran,
-  // server restartovan), pa "prvi u prozoru" ume da bude i sam poslednji dan.
-  const before = [...rows].reverse().find(s => s.day <= windowStart) || null
-  const after = rows.find(s => s.day > windowStart) || null
-  const dist = s => Math.abs(daysBetween(windowStart, s.day))
-  let baseline = before && after ? (dist(after) < dist(before) ? after : before) : (before || after)
-
-  // Ako je tako izabrana osnova prekratka (ili je i sama poslednji snimak),
-  // pada se na najstariji poznati snimak — tempo se računa na onome što postoji.
-  if (!baseline || daysBetween(baseline.day, last.day) < 7) baseline = rows[0]
-
-  const spanDays = daysBetween(baseline.day, last.day)
-  if (spanDays < 7) return empty // kraće od nedelje nije tempo, nego šum
-
-  // Negativna razlika (stavke uklonjene iz obima) se ne prikazuje kao "minus
-  // završeno" — tempo je 0, a klijent i dalje vidi ukupno stanje.
-  const completed = Math.max(0, (last.done || 0) - (baseline.done || 0))
-  const perWeek = Math.round((completed / spanDays) * 7 * 10) / 10
-
-  return {
-    enough: true,
-    completed,
-    perWeek,
-    spanDays,
-    remaining: Math.max(0, (last.total || 0) - (last.done || 0)),
-    total: last.total || 0,
-    done: last.done || 0,
-    from: baseline.day,
-    to: last.day,
-  }
-}
-
 // ── Vremenska osa faza ──────────────────────────────────────────────────────
 // Faza ulazi na osu samo ako ima `due_date`. Početak je `start_date`, a ako ga
 // nema — rok prethodne faze na osi (lančano, kako se faze i planiraju); za prvu
