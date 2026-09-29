@@ -89,7 +89,7 @@ tests/                # vitest: utils, stacks, forecast, capacity, pricing, fx, 
 
 **messages** (`/api/messages`, U — klijent vidi javne + svoje): GET `/unread-count` · GET `/recent-unread` · PUT `/read-all` · GET `/:projectId/clients` A · GET `/:projectId/export` A (CSV) · GET `/:projectId` · POST `/:projectId`
 
-**release-notes** (`/api/release-notes`; router-level gate: sve A osim client-open ruta): POST `/task-detail`, `/tasks`, `/field-suggestions`, `/export/xlsx`, `/export/docx`, `/ai-enhance` · GET+POST `/sections`, DELETE `/sections/:id` · POST `/publish` (sanitizacija!) · GET `/public/:token` PUB · GET `/list` · GET `/client-list` U · GET `/:id/detail` U* · GET+PUT `/:id/clients` · PUT `/:id/release` · DELETE `/:id`
+**release-notes** (`/api/release-notes`; router-level gate: sve A osim client-open ruta): POST `/task-detail`, `/tasks`, `/field-suggestions`, `/export/xlsx`, `/export/docx`, `/ai-enhance` · GET+POST `/sections`, DELETE `/sections/:id` · POST `/publish` (sanitizacija!) · GET `/public/:token` PUB · GET `/list` (svi admini vide SVE note-ove; `is_owner` — tuđi su samo za čitanje) · GET `/client-list` U · GET `/:id/detail` U* · GET+PUT `/:id/clients` · PUT `/:id/release` · DELETE `/:id` (ova tri samo autor)
 
 **documents** (`/api/documents`, U — klijent vidi po `visible_to`): GET+POST `/sections`, PUT+DELETE `/sections/:id` A · GET `/` · POST `/` A (multer PDF, max 50MB) · GET `/:id/download` · DELETE `/:id` A
 
@@ -109,7 +109,7 @@ tests/                # vitest: utils, stacks, forecast, capacity, pricing, fx, 
 
 **reports — automatski (P3-2, u `/api/reports`)**: GET+POST `/:projectId/schedules`, PUT+DELETE `/schedules/:id`, POST `/schedules/:id/run-now`, GET `/:projectId/runs` A (vlasnik) · GET `/my/runs` + GET `/runs/:id/download` U (klijent: samo audience=clients na dodeljenim projektima)
 
-**ai-usage** (`/api/ai-usage`; pregled A, upravljanje SA, `/my*` za klijente):
+**ai-usage** (`/api/ai-usage`; SVE samo SA — običan admin nema pristup ni pregledu (29.09.2026); `/my*` za klijente; oznaka A ispod sada znači SA):
 GET `/dashboard`, `/trends`, `/by-client`, `/by-source`, `/by-app`, `/by-model`, `/tenants`, `/tenant-report`, `/filter-options` A ·
 GET+PUT `/admin/config`, POST `/admin/test`, PUT `/admin/pricing-config`, GET `/admin/models`, PUT `/admin/models/:modelName`, GET `/admin/history`, POST `/admin/sync` (Azure cene), POST `/admin/fx-fetch` (NBS kursevi), GET `/admin/mappings`, POST `/admin/mappings/discover`, PUT `/admin/mappings/:tenantId` SA ·
 GET `/alerts`, POST `/alerts/:id/ack` A · GET `/budgets` A, PUT `/budgets/:tenantId` SA, POST `/budgets/check` SA · GET `/packages` A, POST+PUT+DELETE `/admin/packages*` SA ·

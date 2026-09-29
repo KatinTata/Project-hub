@@ -35,3 +35,5 @@ nije poznat. Nove odluke od danas nose stvaran datum.
 | 22.09.2026. | Sekcija „Šta je novo" uklonjena iz klijentskog pregleda projekta | za sada nije potrebna; objave, poruke i izveštaji imaju svoja mesta u meniju |
 | 22.09.2026. | Stari release note-ovi se uvoze iz HTML / PDF / Excel fajla i ulaze kao NACRT (bez klijenata) | godinama su slati kao fajlovi; nacrt zato što konverzija nije savršena pa admin prvo proveri kako je tekst ispao |
 | 22.09.2026. | Uvoz ne dodaje nove zavisnosti — PDF se čita pdfjs-om, Excel ExcelJS-om (oba već u projektu); .docx nije podržan | .docx bi tražio mammoth; ako zatreba, dodaje se posebno |
+| 29.09.2026. | Svi admini vide sve release note-ove; tuđe samo gledaju (release, brisanje i dodela klijenata ostaju autoru) | support nalog mora da vidi sve što je do sada objavljeno, a da ne može slučajno da menja tuđe objave |
+| 29.09.2026. | AI potrošnju vide samo super admin i klijent (svoju); običan admin ne vidi ni meni ni podatke, a mejlovi o budžetu idu samo super adminu | potrošnja i cene su poslovna informacija, ne treba celom internom timu |

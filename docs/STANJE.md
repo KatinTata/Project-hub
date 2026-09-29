@@ -1,6 +1,6 @@
 # Stanje — Project Insight Hub
 
-_Poslednje ažuriranje: 22.09.2026._
+_Poslednje ažuriranje: 29.09.2026._
 
 ## Gde smo
 Aplikacija je na produkciji: **project-hub.intelisale.com** (Railway, Nixpacks,
@@ -12,7 +12,19 @@ Osnova radi: praćenje Jira projekata, više korisnika sa rolama
 (`super_admin` / `admin` / `user`), release notes editor, dokumenti, poruke,
 faze i prognoza, AI Usage modul. 38 tabela, 203 testa (svi prolaze).
 
-## Šta je zadnje rađeno (22.09.2026.)
+## Šta je zadnje rađeno (29.09.2026.)
+Prava za „Teams support" admin nalog:
+- **release notes**: svaki admin sada vidi SVE release note-ove (ranije samo svoje).
+  Na tuđim note-ovima je prikazan autor, a dugmad „Označi kao released", „Klijenti" i
+  „Obriši" se ne prikazuju — server te akcije i dalje dozvoljava samo autoru (404).
+  Sekcije i projekti ostaju po autoru (admin vidi samo svoje projekte).
+- **AI potrošnja**: samo super admin (ceo pregled) i klijent (svoja potrošnja).
+  Običnom adminu nestaje stavka iz menija, direktan link ga vraća na početnu, server
+  vraća 403, a mejlovi o prekoračenju budžeta više ne idu adminima nego samo super adminu.
+- provereno lokalno sa probnim nalozima (super admin + admin): lista i detalj tuđeg
+  note-a rade, brisanje/release tuđeg note-a odbijeno, AI rute 403 za admina / 200 za SA.
+
+## Ranije (22.09.2026.)
 Uvoz starih release note-ova + popravka posle deploy-a:
 - **uvoz iz fajla** (`server/releaseNotesImport.js` + `POST /api/release-notes/import`):
   admin na stranici Release Notes ima dugme „Uvezi fajl". Podržani formati HTML, PDF i
