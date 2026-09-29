@@ -17,7 +17,11 @@ Prava za „Teams support" admin nalog:
 - **release notes**: svaki admin sada vidi SVE release note-ove (ranije samo svoje).
   Na tuđim note-ovima je prikazan autor, a dugmad „Označi kao released", „Klijenti" i
   „Obriši" se ne prikazuju — server te akcije i dalje dozvoljava samo autoru (404).
-  Sekcije i projekti ostaju po autoru (admin vidi samo svoje projekte).
+  Sekcije release note-ova i projekti ostaju po autoru (admin vidi samo svoje projekte).
+- **dokumenta**: isto pravilo — svaki admin vidi sve sekcije i sve dokumente i može da
+  ih preuzme; tuđe sekcije pokazuju autora, a preimenovanje/brisanje sekcije i brisanje
+  dokumenta ima samo autor. Novi dokument se postavlja samo u svoju sekciju (server
+  odbija tuđu sa 403). Šta klijent vidi se NE menja.
 - **AI potrošnja**: samo super admin (ceo pregled) i klijent (svoja potrošnja).
   Običnom adminu nestaje stavka iz menija, direktan link ga vraća na početnu, server
   vraća 403, a mejlovi o prekoračenju budžeta više ne idu adminima nego samo super adminu.

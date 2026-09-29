@@ -91,7 +91,7 @@ tests/                # vitest: utils, stacks, forecast, capacity, pricing, fx, 
 
 **release-notes** (`/api/release-notes`; router-level gate: sve A osim client-open ruta): POST `/task-detail`, `/tasks`, `/field-suggestions`, `/export/xlsx`, `/export/docx`, `/ai-enhance` · GET+POST `/sections`, DELETE `/sections/:id` · POST `/publish` (sanitizacija!) · GET `/public/:token` PUB · GET `/list` (svi admini vide SVE note-ove; `is_owner` — tuđi su samo za čitanje) · GET `/client-list` U · GET `/:id/detail` U* · GET+PUT `/:id/clients` · PUT `/:id/release` · DELETE `/:id` (ova tri samo autor)
 
-**documents** (`/api/documents`, U — klijent vidi po `visible_to`): GET+POST `/sections`, PUT+DELETE `/sections/:id` A · GET `/` · POST `/` A (multer PDF, max 50MB) · GET `/:id/download` · DELETE `/:id` A
+**documents** (`/api/documents`, U — klijent vidi po `visible_to`; admini vide SVE, izmena/brisanje i upload u sekciju samo autor): GET+POST `/sections`, PUT+DELETE `/sections/:id` A · GET `/` · POST `/` A (multer PDF, max 50MB) · GET `/:id/download` · DELETE `/:id` A
 
 **phases** (`/api/phases`, pristup po projektu): GET `/:projectId` · POST `/:projectId` (vlasnik) · PUT `/:phaseId` · DELETE `/:phaseId` · POST `/:projectId/assign` · POST `/:projectId/reorder`
 

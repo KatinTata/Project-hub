@@ -37,3 +37,4 @@ nije poznat. Nove odluke od danas nose stvaran datum.
 | 22.09.2026. | Uvoz ne dodaje nove zavisnosti — PDF se čita pdfjs-om, Excel ExcelJS-om (oba već u projektu); .docx nije podržan | .docx bi tražio mammoth; ako zatreba, dodaje se posebno |
 | 29.09.2026. | Svi admini vide sve release note-ove; tuđe samo gledaju (release, brisanje i dodela klijenata ostaju autoru) | support nalog mora da vidi sve što je do sada objavljeno, a da ne može slučajno da menja tuđe objave |
 | 29.09.2026. | AI potrošnju vide samo super admin i klijent (svoju); običan admin ne vidi ni meni ni podatke, a mejlovi o budžetu idu samo super adminu | potrošnja i cene su poslovna informacija, ne treba celom internom timu |
+| 29.09.2026. | Svi admini vide sva dokumenta i sekcije; tuđe samo gledaju i preuzimaju, a dokument se postavlja samo u svoju sekciju | support mora da vidi sva dokumenta; upis u tuđu sekciju bi zamutio kom klijentu je dokument vidljiv |
