@@ -124,7 +124,9 @@ export default function Sidebar({
           <NavItem icon={<IconFolder />} label={t('nav.documents')} active={page === 'documents'} onClick={() => go('/documents')} />
           <NavItem icon={<IconChat />} label={t('nav.messages')} badge={unreadMessages} active={page === 'messages'}
             onClick={() => go(`/messages${activeProjectId ? `?project=${activeProjectId}` : ''}`)} />
-          <NavItem icon={<IconAi />} label={t('nav.aiUsage')} active={page === 'aiUsage'} onClick={() => go('/ai-usage')} />
+          {user?.role !== 'admin' && (
+            <NavItem icon={<IconAi />} label={t('nav.aiUsage')} active={page === 'aiUsage'} onClick={() => go('/ai-usage')} />
+          )}
         </div>
 
         {/* ── Administracija (samo interni tim) ── */}

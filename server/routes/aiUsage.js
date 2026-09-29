@@ -14,7 +14,7 @@ import { fetchTodaysRates, usdConversion } from '../aiUsage/fx.js'
 import { listBudgetStatuses, budgetStatus, checkBudgets, currentMonthKey, listAlerts, BUDGET_SELECT } from '../aiUsage/budgets.js'
 import { mailConfigured } from '../aiUsage/mailer.js'
 import { buildReportData, buildXlsx, buildReportHtml } from '../aiUsage/report.js'
-import { getRole, isAdminRole } from '../rbac.js'
+import { getRole, isSuperAdmin } from '../rbac.js'
 import { logger } from '../logger.js'
 import { logAudit } from '../audit.js'
 
@@ -38,7 +38,8 @@ async function mapLimit(items, limit, fn) {
 }
 
 const roleOf = getRole
-const isAdmin = isAdminRole
+// AI spend is visible only to super_admin (and to clients via /my*); plain admins see nothing.
+const isAdmin = isSuperAdmin
 
 function requireView(req, res) {
   if (!isAdmin(roleOf(req.userId))) { res.status(403).json({ error: 'Forbidden' }); return false }

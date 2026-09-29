@@ -61,7 +61,7 @@ function guidsOf(row) {
 }
 
 function recipients(tenantId, extraEmails) {
-  const admins = db.prepare("SELECT email FROM users WHERE role IN ('admin','super_admin') AND email IS NOT NULL").all().map(r => r.email)
+  const admins = db.prepare("SELECT email FROM users WHERE role = 'super_admin' AND email IS NOT NULL").all().map(r => r.email)
   const clients = db.prepare(`
     SELECT u.email FROM client_tenant_users ctu JOIN users u ON u.id = ctu.user_id WHERE ctu.tenant_id = ?
   `).all(tenantId).map(r => r.email).filter(Boolean)
@@ -156,7 +156,7 @@ export async function checkBudgets() {
   return { month, mail_configured: mailConfigured(), results }
 }
 
-// In-app notes: unacknowledged alerts (admins see all, clients only theirs)
+// In-app notes: unacknowledged alerts (super_admin sees all, clients only theirs)
 export function listAlerts(userId, isAdminUser) {
   if (isAdminUser) {
     return db.prepare('SELECT * FROM ai_usage_alerts WHERE acked_at IS NULL ORDER BY created_at DESC LIMIT 50').all()
