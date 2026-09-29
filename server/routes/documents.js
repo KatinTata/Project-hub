@@ -50,9 +50,12 @@ router.get('/sections', (req, res) => {
     )
     return res.json(visible)
   }
-  const sections = db.prepare(
-    'SELECT * FROM document_sections WHERE user_id = ? ORDER BY position, created_at'
-  ).all(req.userId)
+  // Every admin sees all sections; only the author may rename/delete (is_owner).
+  const sections = db.prepare(`
+    SELECT ds.*, CASE WHEN ds.user_id = ? THEN 1 ELSE 0 END as is_owner, u.name as author_name
+    FROM document_sections ds LEFT JOIN users u ON u.id = ds.user_id
+    ORDER BY ds.position, ds.created_at
+  `).all(req.userId)
   res.json(sections)
 })
 
@@ -106,9 +109,13 @@ router.get('/', (req, res) => {
     ).all(...adminIds, limit, offset)
     return res.json(docs.filter(d => canClientSee(d, req.userId)))
   }
-  const docs = db.prepare(
-    `SELECT ${META} FROM documents WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`
-  ).all(req.userId, limit, offset)
+  // Every admin sees all documents; only the uploader may delete (is_owner).
+  const docs = db.prepare(`
+    SELECT ${META.split(', ').map(c => `d.${c}`).join(', ')},
+           CASE WHEN d.user_id = ? THEN 1 ELSE 0 END as is_owner, u.name as author_name
+    FROM documents d LEFT JOIN users u ON u.id = d.user_id
+    ORDER BY d.created_at DESC LIMIT ? OFFSET ?
+  `).all(req.userId, limit, offset)
   res.json(docs)
 })
 
@@ -153,6 +160,12 @@ router.post('/', (req, res, next) => {
       return res.status(400).json({ error: 'Naziv je obavezan' })
     }
 
+    // Sections of other admins are visible but not writable: upload only into your own.
+    if (section_id && !db.prepare('SELECT 1 FROM document_sections WHERE id = ? AND user_id = ?').get(section_id, req.userId)) {
+      fs.unlink(req.file.path, () => {})
+      return res.status(403).json({ error: 'Sekcija nije vaša' })
+    }
+
     const visibleTo = visible_to || 'all'
     const filePath = req.file.filename
 
@@ -194,12 +207,7 @@ router.get('/:id/download', (req, res) => {
     const doc = db.prepare('SELECT * FROM documents WHERE id = ?').get(req.params.id)
     if (!doc) return res.status(404).json({ error: 'Dokument nije pronađen' })
 
-    if (isAdminRole(role)) {
-      // Strictly per-user: an admin may only download their own documents.
-      if (Number(doc.user_id) !== Number(req.userId)) {
-        return res.status(403).json({ error: 'Pristup odbijen' })
-      }
-    } else {
+    if (!isAdminRole(role)) {
       // Must be linked to the document's owner admin AND the doc must be visible to them
       const linked = db.prepare(`
         SELECT 1 FROM project_clients pc

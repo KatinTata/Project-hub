@@ -196,7 +196,7 @@ function DocCard({ doc, isAdmin, onDelete }) {
             >
               <IconDownload />
             </button>
-            {isAdmin && (
+            {isAdmin && !!doc.is_owner && (
               <button
                 onClick={e => { e.stopPropagation(); onDelete(doc.id) }}
                 title={t('rne.delete')}
@@ -548,8 +548,12 @@ export default function DocumentsPage({ user }) {
   }
 
   function handleUploaded(doc, updatedSections) {
-    setDocuments(prev => [doc, ...prev])
-    setSections(updatedSections)
+    // The modal only knows the admin's own sections; keep other admins' sections too.
+    setDocuments(prev => [{ ...doc, is_owner: 1 }, ...prev])
+    setSections(prev => [
+      ...prev,
+      ...updatedSections.filter(s => !prev.some(p => p.id === s.id)).map(s => ({ ...s, is_owner: 1 })),
+    ])
     setUploadOpen(false)
   }
 
@@ -634,7 +638,12 @@ export default function DocumentsPage({ user }) {
                         <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)', background: 'var(--surfaceAlt)', border: '1px solid var(--border)', borderRadius: 20, padding: '2px 9px' }}>
                           {sectionDocs.length}
                         </span>
-                        {isAdmin && !isConfirmingDelete && (
+                        {isAdmin && !section.is_owner && section.author_name && (
+                          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
+                            {t('rn.author')}: {section.author_name}
+                          </span>
+                        )}
+                        {isAdmin && !!section.is_owner && !isConfirmingDelete && (
                           <>
                             <button onClick={() => { setRenameId(section.id); setRenameName(section.name) }} title={t('rne.rename')} style={{ width: 28, height: 28, borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--textMuted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--borderHover)'; e.currentTarget.style.color = 'var(--text)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--textMuted)' }}>
                               <IconPencil />
@@ -697,7 +706,7 @@ export default function DocumentsPage({ user }) {
       </div>
 
       {uploadOpen && (
-        <UploadModal sections={sections} onClose={() => setUploadOpen(false)} onUploaded={handleUploaded} />
+        <UploadModal sections={sections.filter(s => s.is_owner)} onClose={() => setUploadOpen(false)} onUploaded={handleUploaded} />
       )}
     </div>
   )
