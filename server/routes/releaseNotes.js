@@ -934,17 +934,21 @@ router.get('/public/:token', (req, res) => {
 
 // ── Route: List notes (admin) ─────────────────────────────────────────────────
 
+// Every admin sees all notes (read-only for notes created by someone else);
+// release / delete / client assignment stay limited to the author (is_owner).
 router.get('/list', (req, res) => {
   try {
     const notes = db.prepare(`
       SELECT pn.id, pn.token, pn.title, pn.version, pn.status, pn.created_at, pn.updated_at, pn.released_at, pn.project_id,
              p.display_name as project_name, p.epic_key,
              pn.section_id, rns.name as section_name,
-             (SELECT COUNT(*) FROM release_note_clients WHERE note_id = pn.id) as client_count
+             (SELECT COUNT(*) FROM release_note_clients WHERE note_id = pn.id) as client_count,
+             CASE WHEN pn.user_id = ? THEN 1 ELSE 0 END as is_owner,
+             u.name as author_name
       FROM published_notes pn
       LEFT JOIN projects p ON p.id = pn.project_id
       LEFT JOIN release_note_sections rns ON rns.id = pn.section_id
-      WHERE pn.user_id = ?
+      LEFT JOIN users u ON u.id = pn.user_id
       ORDER BY pn.created_at DESC
       LIMIT ? OFFSET ?
     `).all(req.userId, Math.min(500, parseInt(req.query.limit, 10) || 200), parseInt(req.query.offset, 10) || 0)
@@ -995,11 +999,12 @@ router.get('/:id/detail', (req, res) => {
       note = db.prepare(`
         SELECT pn.id, pn.token, pn.title, pn.version, pn.status, pn.created_at, pn.released_at, pn.html,
                pn.project_id, p.display_name as project_name, p.epic_key,
-               (SELECT COUNT(*) FROM release_note_clients WHERE note_id = pn.id) as client_count
+               (SELECT COUNT(*) FROM release_note_clients WHERE note_id = pn.id) as client_count,
+               CASE WHEN pn.user_id = ? THEN 1 ELSE 0 END as is_owner
         FROM published_notes pn
         LEFT JOIN projects p ON p.id = pn.project_id
-        WHERE pn.id = ? AND pn.user_id = ?
-      `).get(req.params.id, req.userId)
+        WHERE pn.id = ?
+      `).get(req.userId, req.params.id)
     }
     if (!note) return res.status(404).json({ error: 'Nije pronađeno' })
     res.json({ note })

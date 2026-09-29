@@ -329,6 +329,11 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
             {t('rn.notReleased')}
           </div>
         )}
+        {!isClient && !note.is_owner && note.author_name && (
+          <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
+            {t('rn.author')}: {note.author_name}
+          </div>
+        )}
         {!isClient && note.client_count !== undefined && (
           <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, color: 'var(--textMuted)' }}>
             {note.client_count} {note.client_count === 1 ? t('rn.client.singular') : t('rn.client.plural')}
@@ -336,7 +341,7 @@ function NoteCard({ note, isClient, onOpen, onRelease, onDelete }) {
         )}
       </div>
 
-      {!isClient && !isReleased && (
+      {!isClient && !!note.is_owner && !isReleased && (
         <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--border)' }}>
           <button
             onClick={e => { e.stopPropagation(); onRelease() }}
@@ -421,6 +426,7 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
             { label: t('rn.released'), value: releasedDate || t('rn.notReleased'), color: releasedDate ? 'var(--green)' : 'var(--textSubtle)' },
             ...(note.project_name ? [{ label: 'Projekat', value: note.project_name, color: 'var(--text)' }] : []),
             ...(!isClient && clientCount !== undefined ? [{ label: t('rn.clients'), value: `${clientCount}`, color: 'var(--text)' }] : []),
+            ...(!isClient && note.author_name ? [{ label: t('rn.author'), value: note.author_name, color: 'var(--text)' }] : []),
           ].map(({ label, value, color }) => (
             <div key={label}>
               <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 10, color: 'var(--textMuted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>{label}</div>
@@ -438,7 +444,8 @@ function NoteDetailView({ note, detail, loading, isClient, onBack, onRelease, on
           >
             {t('rn.publicLink')}
           </a>
-          {!isClient && (
+          {/* Notes created by another admin are read-only: only the author manages them */}
+          {!isClient && !!note.is_owner && (
             <>
               <button
                 onClick={onManageClients}
